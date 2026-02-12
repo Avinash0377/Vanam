@@ -3,7 +3,6 @@ import Image from 'next/image';
 import prisma from '@/lib/prisma';
 import ProductCard from '@/components/ProductCard';
 import FadeIn, { StaggerContainer } from '@/components/FadeIn';
-import TestimonialCarousel from '@/components/TestimonialCarousel';
 import {
     LeafIcon, PlantIcon, TruckIcon, MessageIcon,
     GiftIcon, CheckIcon, TreeIcon, PotIcon,
@@ -619,22 +618,6 @@ export default async function HomePage() {
                             </FadeIn>
                         ))}
                     </StaggerContainer>
-                </div>
-            </section>
-
-            {/* Testimonials Section */}
-            <section className={styles.testimonials}>
-                <div className="container">
-                    <FadeIn direction="up">
-                        <div className={styles.sectionHeader}>
-                            <span className={styles.sectionBadge}>Customer Love</span>
-                            <h2 className={styles.sectionTitle}>What Our Plant Parents Say</h2>
-                        </div>
-                    </FadeIn>
-
-                    <FadeIn direction="up" delay={0.2}>
-                        <TestimonialCarousel />
-                    </FadeIn>
                 </div>
             </section>
 
