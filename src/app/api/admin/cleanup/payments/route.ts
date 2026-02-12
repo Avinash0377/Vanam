@@ -1,0 +1,40 @@
+import { NextRequest, NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
+import { withAdmin } from '@/lib/middleware';
+
+async function cleanupPayments() {
+    try {
+        const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+        // Delete PENDING records older than 7 days (abandoned checkouts)
+        const deletedPending = await prisma.pendingPayment.deleteMany({
+            where: {
+                status: 'PENDING',
+                createdAt: { lt: sevenDaysAgo },
+            },
+        });
+
+        // Delete FAILED records older than 24 hours (no longer needed for debugging)
+        const deletedFailed = await prisma.pendingPayment.deleteMany({
+            where: {
+                status: 'FAILED',
+                updatedAt: { lt: oneDayAgo },
+            },
+        });
+
+        return NextResponse.json({
+            message: 'Cleanup complete',
+            deletedPending: deletedPending.count,
+            deletedFailed: deletedFailed.count,
+        });
+
+    } catch (error) {
+        console.error('Cleanup error:', error);
+        return NextResponse.json({ error: 'Cleanup failed' }, { status: 500 });
+    }
+}
+
+export async function POST(request: NextRequest) {
+    return withAdmin(request, cleanupPayments);
+}

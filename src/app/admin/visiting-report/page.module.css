@@ -1,0 +1,55 @@
+.page {
+    padding: 0;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.title {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--neutral-900);
+    margin-bottom: 0.25rem;
+}
+
+.subtitle {
+    color: var(--neutral-500);
+    font-size: 1rem;
+}
+
+.content {
+    background: white;
+    border-radius: 16px;
+    padding: 3rem;
+    border: 1px solid var(--neutral-100);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    min-height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.emptyState {
+    text-align: center;
+    max-width: 400px;
+}
+
+.emptyIcon {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+    display: block;
+}
+
+.emptyState h3 {
+    font-size: 1.25rem;
+    color: var(--neutral-900);
+    margin-bottom: 0.5rem;
+}
+
+.emptyState p {
+    color: var(--neutral-500);
+}

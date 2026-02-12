@@ -1,0 +1,296 @@
+.page {
+    min-height: 100vh;
+}
+
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    gap: 1rem;
+}
+
+.loading p {
+    color: var(--neutral-500);
+}
+
+/* Header */
+.header {
+    margin-bottom: 1.5rem;
+}
+
+.backBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--neutral-600);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.backBtn:hover {
+    color: var(--primary-600);
+}
+
+/* Profile Card */
+.profileCard {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    border: 1px solid var(--neutral-100);
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .profileCard {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+}
+
+.profileMain {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.profileInfo {
+    display: flex;
+    flex-direction: column;
+}
+
+.profileName {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--neutral-900);
+    margin: 0;
+}
+
+.profileMobile {
+    color: var(--neutral-700);
+    font-weight: 500;
+    margin: 0;
+}
+
+.profileEmail {
+    color: var(--neutral-500);
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+.profileMeta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+.metaItem {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.metaLabel {
+    font-size: 0.75rem;
+    color: var(--neutral-500);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.metaValue {
+    font-weight: 600;
+    color: var(--neutral-900);
+}
+
+.roleBadge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background: var(--neutral-100);
+    color: var(--neutral-700);
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.roleBadge.admin {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+/* Stats Grid */
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .statsGrid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.statCard {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    border: 1px solid var(--neutral-100);
+}
+
+.statCard svg,
+.currencyIcon {
+    color: var(--primary-600);
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.statCard>div {
+    display: flex;
+    flex-direction: column;
+}
+
+.statValue {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--neutral-900);
+}
+
+.statLabel {
+    font-size: 0.75rem;
+    color: var(--neutral-500);
+}
+
+/* Orders Section */
+.ordersSection {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    border: 1px solid var(--neutral-100);
+}
+
+.sectionTitle {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--neutral-900);
+    margin: 0 0 1rem 0;
+}
+
+.empty {
+    color: var(--neutral-400);
+    text-align: center;
+    padding: 2rem;
+}
+
+.ordersList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.orderCard {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: var(--neutral-50);
+    border-radius: 12px;
+    text-decoration: none;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+}
+
+.orderCard:hover {
+    background: white;
+    border-color: var(--primary-200);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+@media (min-width: 768px) {
+    .orderCard {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+}
+
+.orderMain {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.orderNumber {
+    font-weight: 700;
+    color: var(--neutral-900);
+}
+
+.orderStatus {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.orderItems {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.orderItem {
+    font-size: 0.8125rem;
+    color: var(--neutral-600);
+    padding: 0.25rem 0.5rem;
+    background: white;
+    border-radius: 4px;
+}
+
+.moreItems {
+    font-size: 0.8125rem;
+    color: var(--neutral-400);
+}
+
+.orderMeta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.25rem;
+}
+
+.orderAmount {
+    font-weight: 700;
+    color: var(--neutral-900);
+}
+
+.orderDate {
+    font-size: 0.8125rem;
+    color: var(--neutral-500);
+}

@@ -1,0 +1,338 @@
+// Prisma Schema for Vanam Store - MongoDB Version
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== ENUMS ====================
+enum UserRole {
+  CUSTOMER
+  ADMIN
+}
+
+enum ProductType {
+  PLANT
+  POT
+  PLANTER
+  ACCESSORY
+  SEED
+}
+
+enum ProductSize {
+  SMALL
+  MEDIUM
+  BIG
+}
+
+enum SuitableFor {
+  INDOOR
+  OUTDOOR
+  BOTH
+}
+
+enum ProductStatus {
+  ACTIVE
+  DRAFT
+  OUT_OF_STOCK
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PACKING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  RAZORPAY
+  COD
+  WHATSAPP
+}
+
+// ==================== USER ====================
+model User {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  mobile      String    @unique
+  email       String?   @unique
+  password    String
+  role        UserRole  @default(CUSTOMER)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  lastLoginAt DateTime?
+
+  orders    Order[]
+  cartItems Cart[]
+
+  @@index([createdAt])
+  @@index([lastLoginAt])
+}
+
+// ==================== CATEGORY ====================
+model Category {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  slug        String    @unique
+  description String?
+  image       String?
+  featured    Boolean   @default(false)
+  parentId    String?   @db.ObjectId
+  parent      Category? @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children    Category[] @relation("CategoryHierarchy")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  products    Product[]
+}
+
+
+// ==================== PRODUCT ====================
+
+// Color type for size variants
+type VariantColor {
+  name   String
+  hex    String
+  images String[]  // Array of images for this color
+}
+
+// Embedded type for size variants with per-size pricing, stock, and colors
+type SizeVariant {
+  size   String          // S, M, L, XL
+  price  Float
+  stock  Int
+  colors VariantColor[]  // Colors available for THIS size only
+}
+
+model Product {
+  id               String        @id @default(auto()) @map("_id") @db.ObjectId
+  name             String
+  slug             String        @unique
+  description      String?
+  careInstructions String?
+  productType      ProductType   @default(PLANT)
+  size             ProductSize?
+  suitableFor      SuitableFor?
+  price            Float         // Base price (min of variants or single price)
+  comparePrice     Float?
+  images           String[]
+  stock            Int           @default(0) // Total stock (sum of variants or single)
+  status           ProductStatus @default(ACTIVE)
+  featured         Boolean       @default(false)
+  categoryId       String?       @db.ObjectId
+  category         Category?     @relation(fields: [categoryId], references: [id])
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  // Product variants
+  sizeVariants       SizeVariant[]  // Per-size pricing, stock, and colors
+  preferredLocations String[]       // Delivery locations
+
+  cartItems   Cart[]
+  orderItems  OrderItem[]
+
+  // Indexes for faster queries
+  @@index([stock])
+  @@index([categoryId])
+  @@index([status])
+  @@index([productType])
+  @@index([productType, status])
+  @@index([createdAt])
+}
+
+// ==================== CART ====================
+model Cart {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  productId String?  @db.ObjectId
+  product   Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  comboId   String?  @db.ObjectId
+  combo     Combo?   @relation(fields: [comboId], references: [id], onDelete: Cascade)
+  
+  hamperId  String?  @db.ObjectId
+  hamper    GiftHamper? @relation(fields: [hamperId], references: [id], onDelete: Cascade)
+  
+  quantity      Int      @default(1)
+  size          String?
+  selectedColor String?   // Hex or name of selected color
+  colorImage    String?   // Image URL for the selected color
+  customMessage String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// ==================== COMMON TYPES ====================
+type IncludedItem {
+  name     String
+  quantity Int
+  image    String?
+}
+
+// ==================== ORDER ====================
+model Order {
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
+  orderNumber   String        @unique
+  userId        String        @db.ObjectId
+  user          User          @relation(fields: [userId], references: [id])
+  customerName  String
+  mobile        String
+  email         String?
+  address       String
+  city          String
+  state         String
+  pincode       String
+  shippingAddress Json? // New field for detailed shipping address
+  
+  // Shipping & Tracking
+  trackingNumber  String?
+  courierName     String?
+  shippedAt       DateTime?
+  deliveredAt     DateTime?
+
+  notes         String?
+  subtotal      Float
+  shippingCost  Float         @default(0)
+  totalAmount   Float
+  orderStatus   OrderStatus   @default(PENDING)
+  paymentMethod PaymentMethod @default(RAZORPAY)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  items    OrderItem[]
+  payment  Payment?
+
+  // Indexes for faster dashboard queries
+  @@index([orderStatus])
+  @@index([createdAt])
+  @@index([userId])
+}
+
+// ==================== ORDER ITEM ====================
+model OrderItem {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  orderId   String  @db.ObjectId
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  productId String?  @db.ObjectId
+  product   Product? @relation(fields: [productId], references: [id])
+  
+  comboId   String?  @db.ObjectId
+  combo     Combo?   @relation(fields: [comboId], references: [id])
+  
+  hamperId  String?    @db.ObjectId
+  hamper    GiftHamper? @relation(fields: [hamperId], references: [id])
+  
+  name          String
+  price         Float
+  quantity      Int
+  image         String?
+  customMessage String?
+  selectedSize  String?
+  selectedColor String?
+  colorImage    String?
+}
+
+// ==================== PAYMENT ====================
+model Payment {
+  id                 String        @id @default(auto()) @map("_id") @db.ObjectId
+  orderId            String        @unique @db.ObjectId
+  order              Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  razorpayOrderId    String        @unique
+  razorpayPaymentId  String        @unique
+  razorpaySignature  String
+  amount             Float
+  currency           String        @default("INR")
+  status             PaymentStatus @default(SUCCESS)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+}
+
+// ==================== PENDING PAYMENT ====================
+// Stores pre-order payment attempts (before verification)
+model PendingPayment {
+  id                String        @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String        @db.ObjectId
+  razorpayOrderId   String        @unique
+  amount            Float
+  currency          String        @default("INR")
+  status            PaymentStatus @default(PENDING)
+  
+  // Shipping info (stored for order creation after payment)
+  customerName      String
+  mobile            String
+  email             String?
+  address           String
+  city              String
+  state             String
+  pincode           String
+  notes             String?
+  paymentMethod     PaymentMethod @default(RAZORPAY)
+  
+  // Cart snapshot (JSON string of cart items at time of payment)
+  cartSnapshot      String
+  
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+}
+
+// ==================== COMBO ====================
+model Combo {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  slug        String        @unique
+  description String?
+  includes    IncludedItem[] // Access items directly
+  suitableFor SuitableFor?
+  price       Float
+  comparePrice Float?
+  images      String[]
+  stock       Int           @default(0)
+  status      ProductStatus @default(ACTIVE)
+  featured    Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  cartItems   Cart[]
+  orderItems  OrderItem[]
+}
+
+// ==================== GIFT HAMPER ====================
+model GiftHamper {
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  slug         String        @unique
+  description  String?
+  includes     IncludedItem[] // Access items directly
+  giftWrap     Boolean       @default(true)
+  messageCard  Boolean       @default(true)
+  price        Float
+  comparePrice Float?
+  images       String[]
+  stock        Int           @default(0)
+  status       ProductStatus @default(ACTIVE)
+  featured     Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  cartItems    Cart[]
+  orderItems   OrderItem[]
+}

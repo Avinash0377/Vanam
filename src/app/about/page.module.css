@@ -1,0 +1,423 @@
+.page {
+    padding-top: 80px;
+}
+
+/* Hero Section */
+.hero {
+    padding: 40px 0;
+    text-align: center;
+    background: linear-gradient(180deg, #f0f9f4 0%, #f0f9f4 50%, #fff 100%);
+}
+
+@media (min-width: 768px) {
+    .hero {
+        padding: 80px 0;
+    }
+}
+
+.badge {
+    display: inline-block;
+    padding: 10px 24px;
+    background: linear-gradient(135deg, #d9f0e3, #b0dfc4);
+    color: #164027;
+    font-size: 14px;
+    font-weight: 700;
+    border-radius: 50px;
+    margin-bottom: 20px;
+}
+
+.title {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 14px;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+}
+
+@media (min-width: 768px) {
+    .title {
+        font-size: 3rem;
+        margin-bottom: 20px;
+    }
+}
+
+.title span {
+    background: linear-gradient(135deg, #1a4d2e, #1a4d2e);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.subtitle {
+    font-size: 0.95rem;
+    color: #64748b;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+@media (min-width: 768px) {
+    .subtitle {
+        font-size: 1.25rem;
+        line-height: 1.7;
+    }
+}
+
+/* Story Section */
+.story {
+    padding: 40px 0;
+    background: white;
+}
+
+@media (min-width: 768px) {
+    .story {
+        padding: 80px 0;
+    }
+}
+
+.storyGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 48px;
+    align-items: center;
+}
+
+@media (min-width: 768px) {
+    .storyGrid {
+        grid-template-columns: 1fr 1.2fr;
+    }
+}
+
+.storyImage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1;
+    background: linear-gradient(135deg, #d9f0e3, #b0dfc4);
+    border-radius: 24px;
+}
+
+.storyEmoji {
+    font-size: 8rem;
+}
+
+.storyContent h2 {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 24px;
+}
+
+.storyContent p {
+    font-size: 1.05rem;
+    color: #475569;
+    line-height: 1.8;
+    margin-bottom: 16px;
+}
+
+/* Values Section */
+.values {
+    padding: 40px 0;
+    background: #f8fafc;
+}
+
+@media (min-width: 768px) {
+    .values {
+        padding: 80px 0;
+    }
+}
+
+.sectionTitle {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #0f172a;
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+@media (min-width: 768px) {
+    .sectionTitle {
+        font-size: 2rem;
+        margin-bottom: 48px;
+    }
+}
+
+.valuesGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+}
+
+@media (min-width: 640px) {
+    .valuesGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .valuesGrid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.valueCard {
+    padding: 20px;
+    background: white;
+    border-radius: 14px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease;
+}
+
+@media (min-width: 768px) {
+    .valueCard {
+        padding: 32px;
+        border-radius: 20px;
+    }
+}
+
+.valueCard:hover {
+    transform: translateY(-8px);
+}
+
+.valueIcon {
+    display: block;
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+@media (min-width: 768px) {
+    .valueIcon {
+        font-size: 3rem;
+        margin-bottom: 16px;
+    }
+}
+
+.valueCard h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 8px;
+}
+
+@media (min-width: 768px) {
+    .valueCard h3 {
+        font-size: 1.125rem;
+        margin-bottom: 12px;
+    }
+}
+
+.valueCard p {
+    font-size: 0.85rem;
+    color: #64748b;
+    line-height: 1.6;
+}
+
+@media (min-width: 768px) {
+    .valueCard p {
+        font-size: 0.95rem;
+    }
+}
+
+/* Timeline Section */
+.timeline {
+    padding: 80px 0;
+    background: white;
+}
+
+.timelineGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+    .timelineGrid {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
+
+.milestoneCard {
+    flex: 1;
+    min-width: 200px;
+    padding: 24px;
+    background: #f8fafc;
+    border-radius: 16px;
+    border-left: 4px solid #1a4d2e;
+    transition: transform 0.3s ease;
+}
+
+.milestoneCard:hover {
+    transform: translateX(8px);
+}
+
+.year {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #1a4d2e;
+    margin-bottom: 8px;
+}
+
+.milestoneCard p {
+    font-size: 0.95rem;
+    color: #475569;
+    line-height: 1.5;
+}
+
+/* Stats Section */
+.stats {
+    padding: 40px 0;
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+}
+
+@media (min-width: 768px) {
+    .stats {
+        padding: 80px 0;
+    }
+}
+
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+}
+
+@media (min-width: 768px) {
+    .statsGrid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 40px;
+    }
+}
+
+.statItem {
+    text-align: center;
+}
+
+.statNumber {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 4px;
+}
+
+@media (min-width: 768px) {
+    .statNumber {
+        font-size: 2.5rem;
+        margin-bottom: 8px;
+    }
+}
+
+.statLabel {
+    font-size: 0.8rem;
+    color: #94a3b8;
+}
+
+@media (min-width: 768px) {
+    .statLabel {
+        font-size: 0.95rem;
+    }
+}
+
+/* CTA Section */
+.cta {
+    padding: 40px 0;
+    background: #f8fafc;
+}
+
+@media (min-width: 768px) {
+    .cta {
+        padding: 80px 0;
+    }
+}
+
+.ctaCard {
+    padding: 32px 20px;
+    background: linear-gradient(135deg, #1a4d2e, #164027);
+    border-radius: 16px;
+    text-align: center;
+}
+
+@media (min-width: 768px) {
+    .ctaCard {
+        padding: 60px;
+        border-radius: 24px;
+    }
+}
+
+.ctaCard h2 {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 8px;
+}
+
+@media (min-width: 768px) {
+    .ctaCard h2 {
+        font-size: 2rem;
+        margin-bottom: 12px;
+    }
+}
+
+.ctaCard p {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.85);
+    margin-bottom: 24px;
+}
+
+@media (min-width: 768px) {
+    .ctaCard p {
+        font-size: 1.1rem;
+        margin-bottom: 32px;
+    }
+}
+
+.ctaButtons {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.primaryBtn {
+    display: inline-flex;
+    padding: 16px 32px;
+    background: white;
+    color: #1a4d2e;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 12px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.primaryBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
+.whatsappBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 32px;
+    background: #25D366;
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 12px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.whatsappBtn:hover {
+    background: #128C7E;
+    transform: translateY(-2px);
+}

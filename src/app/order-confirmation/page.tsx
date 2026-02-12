@@ -1,0 +1,142 @@
+'use client';
+
+import { Suspense, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import { CheckIcon, PackageIcon, WhatsAppIcon } from '@/components/Icons';
+import styles from './page.module.css';
+
+export default function OrderConfirmationPage() {
+    return (
+        <Suspense fallback={
+            <div className={styles.page}>
+                <div className={styles.container}>
+                    <div className={styles.card}>
+                        <p>Loading order details...</p>
+                    </div>
+                </div>
+            </div>
+        }>
+            <OrderConfirmationContent />
+        </Suspense>
+    );
+}
+
+function OrderConfirmationContent() {
+    const searchParams = useSearchParams();
+    const orderNumber = searchParams.get('orderNumber');
+    const [showConfetti, setShowConfetti] = useState(true);
+
+    useEffect(() => {
+        // Hide confetti after animation
+        const timer = setTimeout(() => setShowConfetti(false), 3000);
+        return () => clearTimeout(timer);
+    }, []);
+
+    if (!orderNumber) {
+        return (
+            <div className={styles.page}>
+                <div className={styles.container}>
+                    <div className={styles.errorCard}>
+                        <span className={styles.errorIcon}>❌</span>
+                        <h1>Order Not Found</h1>
+                        <p>We couldn't find your order. Please check your email for confirmation.</p>
+                        <Link href="/" className="btn btn-primary">
+                            Go to Home
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className={styles.page}>
+            {showConfetti && (
+                <div className={styles.confetti}>
+                    {[...Array(50)].map((_, i) => (
+                        <div key={i} className={styles.confettiPiece} style={{
+                            left: `${Math.random() * 100}%`,
+                            animationDelay: `${Math.random() * 2}s`,
+                            backgroundColor: ['#1a4d2e', '#4aab78', '#f59e0b', '#ec4899', '#8b5cf6'][Math.floor(Math.random() * 5)]
+                        }} />
+                    ))}
+                </div>
+            )}
+
+            <div className={styles.container}>
+                <div className={styles.card}>
+                    <div className={styles.successIcon}>
+                        <CheckIcon size={48} color="white" />
+                    </div>
+
+                    <h1 className={styles.title}>Order Confirmed! 🌿</h1>
+                    <p className={styles.subtitle}>Thank you for shopping with Vanam Store</p>
+
+                    <div className={styles.orderNumber}>
+                        <span className={styles.label}>Order Number</span>
+                        <span className={styles.number}>{orderNumber}</span>
+                    </div>
+
+                    <div className={styles.infoCards}>
+                        <div className={styles.infoCard}>
+                            <PackageIcon size={24} color="#16a34a" />
+                            <div>
+                                <h3>What's Next?</h3>
+                                <p>Your plants are being prepared with love. You'll receive a shipping notification soon!</p>
+                            </div>
+                        </div>
+
+                        <div className={styles.infoCard}>
+                            <span className={styles.emoji}>📧</span>
+                            <div>
+                                <h3>Order Confirmation</h3>
+                                <p>We've sent the order details to your registered email and phone.</p>
+                            </div>
+                        </div>
+
+                        <div className={styles.infoCard}>
+                            <span className={styles.emoji}>🚚</span>
+                            <div>
+                                <h3>Delivery Timeline</h3>
+                                <p>Expected delivery within 3-7 business days depending on your location.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className={styles.actions}>
+                        <Link href="/profile" className="btn btn-primary">
+                            View My Orders
+                        </Link>
+                        <Link href="/plants" className="btn btn-secondary">
+                            Continue Shopping
+                        </Link>
+                    </div>
+
+                    <div className={styles.whatsappBox}>
+                        <p>Need help with your order?</p>
+                        <a
+                            href={`https://wa.me/918897249374?text=Hi!%20I%20just%20placed%20order%20${orderNumber}%20and%20have%20a%20question.`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={styles.whatsappBtn}
+                        >
+                            <WhatsAppIcon size={20} color="white" />
+                            Chat on WhatsApp
+                        </a>
+                    </div>
+                </div>
+
+                <div className={styles.tips}>
+                    <h3>🌱 Plant Care Tips</h3>
+                    <ul>
+                        <li>When your plants arrive, let them rest for 24 hours before repotting</li>
+                        <li>Place in indirect light initially to help them adjust</li>
+                        <li>Water lightly and avoid direct sunlight for the first few days</li>
+                        <li>Keep the care guide handy - it's included with your order!</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    );
+}

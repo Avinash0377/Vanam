@@ -1,0 +1,90 @@
+.skeleton {
+    background: linear-gradient(90deg,
+            var(--neutral-100) 0%,
+            var(--neutral-50) 50%,
+            var(--neutral-100) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+.text {
+    margin-bottom: 0.5rem;
+}
+
+.rectangular {
+    border-radius: 12px;
+}
+
+.circular {
+    flex-shrink: 0;
+}
+
+/* Product Card Skeleton */
+.productCard {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--neutral-100);
+}
+
+.productCard .image {
+    border-radius: 0;
+}
+
+.productCard .content {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* Stat Card Skeleton */
+.statCard {
+    background: white;
+    border-radius: 16px;
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border: 1px solid var(--neutral-100);
+}
+
+.statContent {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+}
+
+/* Category Card Skeleton */
+.categoryCard {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid var(--neutral-100);
+}
+
+.categoryCard .image {
+    border-radius: 0;
+}
+
+.categoryCard .content {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* Table Row Skeleton */
+.tableRow td {
+    padding: 1rem 1.5rem;
+}
