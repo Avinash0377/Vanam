@@ -175,60 +175,6 @@ export default async function HomePage() {
                     <div className={styles.floatingIcon15}>🪴</div>
                 </div>
 
-                {/* Mobile Hero V-Design (Visible only on mobile) */}
-                <div className={styles.mobileVanamLayout}>
-                    <div className={styles.vGrid}>
-                        {/* Left Arm */}
-                        <div className={`${styles.vCard} ${styles.vCard1}`}>
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src="/snake-plant.png" alt="" />
-                        </div>
-                        <div className={`${styles.vCard} ${styles.vCard2}`}>
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src="/pothos.png" alt="" />
-                        </div>
-                        <div className={`${styles.vCard} ${styles.vCard3}`}>
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src="/hero-plant.png" alt="" />
-                        </div>
-
-                        {/* Center Bottom Point */}
-                        <div className={`${styles.vCard} ${styles.vCard4}`}>
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src="/succulent.png" alt="" />
-                        </div>
-
-                        {/* Right Arm */}
-                        <div className={`${styles.vCard} ${styles.vCard5}`}>
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src="/peace-lily.png" alt="" />
-                        </div>
-                        <div className={`${styles.vCard} ${styles.vCard6}`}>
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src="/rubber-plant.png" alt="" />
-                        </div>
-                        <div className={`${styles.vCard} ${styles.vCard7}`}>
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src="/snake-plant.png" alt="" />
-                        </div>
-
-                        {/* Brand Text */}
-                        <h1 className={styles.anamTitle}>anam</h1>
-                    </div>
-
-                    <p className={styles.rootedTagline}>ROOTED IN NATURE</p>
-
-                    <div className={styles.heroButtons}>
-                        <Link href="/plants" className={styles.btnBrowse}>BROWSE PLANTS</Link>
-                        <Link href="/gift-hampers" className={styles.btnGifts}>GIFTS</Link>
-                    </div>
-
-                    <div className={styles.mobileBottomSheet}>
-                        <div className={styles.sheetHandle}></div>
-                        <p>Handpicked plants delivered to your doorstep.</p>
-                    </div>
-                </div>
-
                 <div className={styles.heroContainer}>
                     <div className={styles.heroContent}>
                         <span className={styles.mobileHeroAccent}>NATURE &bull; SIMPLIFIED</span>
