@@ -336,3 +336,16 @@ model GiftHamper {
   cartItems    Cart[]
   orderItems   OrderItem[]
 }
+
+// ==================== SERVICEABLE PINCODE ====================
+model ServiceablePincode {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  pincode   String   @unique
+  city      String?
+  state     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([pincode, isActive])
+}

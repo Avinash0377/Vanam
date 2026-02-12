@@ -505,3 +505,109 @@
     color: var(--neutral-500);
     font-weight: 500;
 }
+
+/* Pincode Checker */
+.pincodeChecker {
+    margin-bottom: 1.25rem;
+    padding: 1rem;
+    background: var(--neutral-50);
+    border: 1px solid var(--neutral-100);
+    border-radius: 12px;
+}
+
+.pincodeLabel {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--neutral-700);
+    margin-bottom: 0.75rem;
+}
+
+.pincodeInputRow {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.pincodeInput {
+    flex: 1;
+    padding: 0.625rem 0.875rem;
+    border: 1.5px solid var(--neutral-200);
+    border-radius: 10px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: var(--neutral-900);
+    background: white;
+    transition: border-color 0.2s;
+}
+
+.pincodeInput:focus {
+    outline: none;
+    border-color: var(--primary-500);
+}
+
+.pincodeInput::placeholder {
+    font-weight: 400;
+    letter-spacing: 0;
+    color: var(--neutral-400);
+}
+
+.pincodeBtn {
+    padding: 0.625rem 1rem;
+    background: var(--neutral-900);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+
+.pincodeBtn:hover:not(:disabled) {
+    background: var(--primary-600);
+}
+
+.pincodeBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pincodeResult {
+    margin-top: 0.625rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
+.pincodeSuccess {
+    color: #15803d;
+    background: #dcfce7;
+    border: 1px solid #bbf7d0;
+}
+
+.pincodeError {
+    color: #991b1b;
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+}
+
+.checkoutBtnDisabled {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 1rem;
+    background: var(--neutral-300);
+    color: var(--neutral-500);
+    font-weight: 600;
+    border: none;
+    border-radius: var(--radius-lg);
+    cursor: not-allowed;
+    opacity: 0.7;
+}

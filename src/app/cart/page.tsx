@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
@@ -8,6 +9,55 @@ import styles from './page.module.css';
 
 export default function CartPage() {
     const { items, summary, updateQuantity, removeItem, isLoading } = useCart();
+
+    // Pincode checker state
+    const [pincode, setPincode] = useState('');
+    const [pincodeStatus, setPincodeStatus] = useState<'idle' | 'checking' | 'valid' | 'invalid'>('idle');
+    const [pincodeMessage, setPincodeMessage] = useState('');
+    const [validatedPincode, setValidatedPincode] = useState('');
+
+    const handlePincodeCheck = async () => {
+        const trimmed = pincode.trim();
+        if (!/^\d{6}$/.test(trimmed)) {
+            setPincodeStatus('invalid');
+            setPincodeMessage('Please enter a valid 6-digit pincode');
+            return;
+        }
+
+        setPincodeStatus('checking');
+        setPincodeMessage('');
+
+        try {
+            const res = await fetch(`/api/pincode/check?pincode=${trimmed}`);
+            const data = await res.json();
+
+            if (data.available) {
+                setPincodeStatus('valid');
+                const location = [data.city, data.state].filter(Boolean).join(', ');
+                setPincodeMessage(location ? `Delivery available to ${location}` : 'Delivery available in your area!');
+                setValidatedPincode(trimmed);
+            } else {
+                setPincodeStatus('invalid');
+                setPincodeMessage('Sorry, we don\'t deliver to this pincode yet');
+                setValidatedPincode('');
+            }
+        } catch {
+            setPincodeStatus('invalid');
+            setPincodeMessage('Unable to check. Please try again.');
+            setValidatedPincode('');
+        }
+    };
+
+    const handlePincodeChange = (value: string) => {
+        const digits = value.replace(/\D/g, '').slice(0, 6);
+        setPincode(digits);
+        // Reset validation if pincode changes after being validated
+        if (validatedPincode && digits !== validatedPincode) {
+            setPincodeStatus('idle');
+            setPincodeMessage('');
+            setValidatedPincode('');
+        }
+    };
 
     if (isLoading) {
         return (
@@ -25,13 +75,15 @@ export default function CartPage() {
                     <CartIcon size={64} color="#94a3b8" />
                 </div>
                 <h2>Your cart is empty</h2>
-                <p>Looks like you haven't added any plants yet.</p>
+                <p>Looks like you haven&apos;t added any plants yet.</p>
                 <Link href="/plants" className="btn btn-primary btn-lg">
                     Start Shopping
                 </Link>
             </div>
         );
     }
+
+    const canCheckout = pincodeStatus === 'valid' && validatedPincode.length === 6;
 
     return (
         <div className={styles.page}>
@@ -162,10 +214,47 @@ export default function CartPage() {
                             <span>₹{summary.total.toLocaleString('en-IN')}</span>
                         </div>
 
-                        <Link href="/checkout" className={styles.checkoutBtn}>
-                            Proceed to Checkout
-                            <ArrowRightIcon size={20} />
-                        </Link>
+                        {/* Pincode Checker */}
+                        <div className={styles.pincodeChecker}>
+                            <div className={styles.pincodeLabel}>
+                                <TruckIcon size={16} />
+                                <span>Check Delivery Availability</span>
+                            </div>
+                            <div className={styles.pincodeInputRow}>
+                                <input
+                                    type="text"
+                                    value={pincode}
+                                    onChange={(e) => handlePincodeChange(e.target.value)}
+                                    placeholder="Enter pincode"
+                                    className={styles.pincodeInput}
+                                    maxLength={6}
+                                    onKeyDown={(e) => { if (e.key === 'Enter') handlePincodeCheck(); }}
+                                />
+                                <button
+                                    onClick={handlePincodeCheck}
+                                    className={styles.pincodeBtn}
+                                    disabled={pincodeStatus === 'checking' || pincode.length < 6}
+                                >
+                                    {pincodeStatus === 'checking' ? '...' : 'Check'}
+                                </button>
+                            </div>
+                            {pincodeMessage && (
+                                <div className={`${styles.pincodeResult} ${pincodeStatus === 'valid' ? styles.pincodeSuccess : styles.pincodeError}`}>
+                                    {pincodeStatus === 'valid' ? '✅' : '❌'} {pincodeMessage}
+                                </div>
+                            )}
+                        </div>
+
+                        {canCheckout ? (
+                            <Link href="/checkout" className={styles.checkoutBtn}>
+                                Proceed to Checkout
+                                <ArrowRightIcon size={20} />
+                            </Link>
+                        ) : (
+                            <button className={styles.checkoutBtnDisabled} disabled>
+                                {pincodeStatus === 'idle' ? 'Enter pincode to proceed' : 'Delivery not available'}
+                            </button>
+                        )}
 
                         <div className={styles.secureBadge}>
                             <ShieldIcon size={16} color="#059669" />

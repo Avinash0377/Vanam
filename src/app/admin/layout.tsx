@@ -14,6 +14,7 @@ import {
     UsersIcon,
     TrendingUpIcon,
     GiftIcon,
+    TruckIcon,
 } from '@/components/Icons';
 import styles from './layout.module.css';
 
@@ -26,6 +27,7 @@ const navItems = [
     { href: '/admin/analytics', icon: FolderIcon, label: 'Analytics' },
     { href: '/admin/customers', icon: UsersIcon, label: 'Customers' },
     { href: '/admin/sales-reports', icon: TrendingUpIcon, label: 'Reports' },
+    { href: '/admin/delivery-settings', icon: TruckIcon, label: 'Delivery' },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

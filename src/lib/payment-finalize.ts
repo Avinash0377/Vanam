@@ -79,6 +79,16 @@ export async function finalizePayment(
             return { success: false, error: 'Invalid cart data' };
         }
 
+        // 4. Re-validate pincode (may have been deactivated since payment was initiated)
+        const serviceablePincode = await prisma.serviceablePincode.findFirst({
+            where: { pincode: pendingPayment.pincode, isActive: true },
+        });
+
+        if (!serviceablePincode) {
+            console.log(`[${source}] Pincode ${pendingPayment.pincode} no longer serviceable`);
+            return { success: false, error: 'Delivery not available in this area.' };
+        }
+
         // 5. Calculate totals
         const { subtotal, shippingCost, totalAmount } = calculateOrderTotals(cartSnapshot);
 

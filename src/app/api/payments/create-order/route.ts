@@ -44,6 +44,18 @@ async function createPaymentOrder(request: NextRequest, user: JWTPayload) {
             paymentMethod,
         } = validation.data;
 
+        // Validate pincode is serviceable
+        const serviceablePincode = await prisma.serviceablePincode.findFirst({
+            where: { pincode, isActive: true },
+        });
+
+        if (!serviceablePincode) {
+            return NextResponse.json(
+                { error: 'Delivery not available in this area.' },
+                { status: 400 }
+            );
+        }
+
         // SECURITY: Fetch cart items from MongoDB (NOT from frontend)
         const cartItems = await prisma.cart.findMany({
             where: { userId: user.userId },

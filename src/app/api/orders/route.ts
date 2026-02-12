@@ -109,6 +109,18 @@ async function createOrder(request: NextRequest, user: JWTPayload) {
             notes,
         } = validation.data;
 
+        // Validate pincode is serviceable
+        const serviceablePincode = await prisma.serviceablePincode.findFirst({
+            where: { pincode, isActive: true },
+        });
+
+        if (!serviceablePincode) {
+            return NextResponse.json(
+                { error: 'Delivery not available in this area.' },
+                { status: 400 }
+            );
+        }
+
         // Get user's cart items with product sizeVariants
         const cartItems = await prisma.cart.findMany({
             where: { userId: user.userId },
