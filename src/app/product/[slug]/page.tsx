@@ -185,7 +185,8 @@ export default function ProductPage() {
         ? Math.round(((product.comparePrice - currentPrice) / product.comparePrice) * 100)
         : 0;
 
-    const hasVariants = product.sizeVariants && product.sizeVariants.length > 0;
+    // Only show size selector if there are non-DEFAULT variants (DEFAULT = single-size product)
+    const hasVariants = product.sizeVariants && product.sizeVariants.some(v => v.size !== 'DEFAULT');
 
     return (
         <div className={styles.page}>

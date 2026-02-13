@@ -33,7 +33,7 @@ export interface ProductFormData {
     status: string;
     images: string[];
     sizeVariants: SizeVariant[];
-    preferredLocations: string[];
+
     // Legacy fields (for backward compatibility)
     price: string;
     comparePrice: string;
@@ -51,15 +51,6 @@ interface ProductFormProps {
 }
 
 const AVAILABLE_SIZES = ['S', 'M', 'L', 'XL'];
-const PREDEFINED_LOCATIONS = [
-    'Hyderabad',
-    'Bangalore',
-    'Chennai',
-    'Mumbai',
-    'Delhi',
-    'Pune',
-    'Kolkata',
-];
 
 const defaultFormData: ProductFormData = {
     name: '',
@@ -72,7 +63,7 @@ const defaultFormData: ProductFormData = {
     status: 'ACTIVE',
     images: [],
     sizeVariants: [],
-    preferredLocations: [],
+
     price: '',
     comparePrice: '',
     stock: '',
@@ -83,19 +74,26 @@ export default function ProductForm({ initialData, categories, onSubmit, loading
     const [formData, setFormData] = useState<ProductFormData>(defaultFormData);
     const [uploading, setUploading] = useState(false);
     const [uploadError, setUploadError] = useState<string | null>(null);
-    const [newLocation, setNewLocation] = useState('');
+
     const [colorInputs, setColorInputs] = useState<{ [size: string]: { name: string; hex: string; file?: File | null } }>({});
     const [colorImageUploading, setColorImageUploading] = useState<{ [key: string]: boolean }>({});
     const [addingColor, setAddingColor] = useState<{ [size: string]: boolean }>({});
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // Single size mode: auto-detect from initialData
+    const [isSingleSize, setIsSingleSize] = useState(false);
+
     useEffect(() => {
         if (initialData) {
+            const variants = initialData.sizeVariants || [];
+            // Auto-detect single size mode
+            const isSingle = variants.length === 1 && variants[0].size === 'DEFAULT';
+            setIsSingleSize(isSingle);
             setFormData({
                 ...defaultFormData,
                 ...initialData,
-                sizeVariants: initialData.sizeVariants || [],
-                preferredLocations: initialData.preferredLocations || [],
+                sizeVariants: variants,
+
             });
         }
     }, [initialData]);
@@ -283,23 +281,7 @@ export default function ProductForm({ initialData, categories, onSubmit, loading
         setColorImageUploading(prev => ({ ...prev, [key]: false }));
     };
 
-    // LOCATIONS HANDLERS
-    const handleAddLocation = (location: string) => {
-        if (location && !formData.preferredLocations.includes(location)) {
-            setFormData(prev => ({
-                ...prev,
-                preferredLocations: [...prev.preferredLocations, location]
-            }));
-        }
-        setNewLocation('');
-    };
 
-    const handleRemoveLocation = (location: string) => {
-        setFormData(prev => ({
-            ...prev,
-            preferredLocations: prev.preferredLocations.filter(l => l !== location)
-        }));
-    };
 
     // FILE UPLOAD
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -596,194 +578,206 @@ export default function ProductForm({ initialData, categories, onSubmit, loading
 
                     {/* SIZE VARIANTS WITH PER-SIZE COLORS — Hidden for SEED type */}
                     {formData.productType !== 'SEED' && (
-                    <div className={styles.card}>
-                        <h2 className={styles.cardTitle}>Size Variants</h2>
-                        <p className={styles.helpText}>Select sizes and configure price, stock, and colors for each</p>
+                        <div className={styles.card}>
+                            <h2 className={styles.cardTitle}>Size Variants</h2>
 
-                        <div className={styles.sizeCheckboxes}>
-                            {AVAILABLE_SIZES.map(size => (
-                                <label key={size} className={styles.sizeCheckbox}>
+                            {/* Single Size Toggle */}
+                            <div className={styles.singleSizeToggle}>
+                                <label className={styles.featuredLabel}>
                                     <input
                                         type="checkbox"
-                                        checked={selectedSizes.includes(size)}
-                                        onChange={() => handleSizeToggle(size)}
+                                        checked={isSingleSize}
+                                        onChange={(e) => {
+                                            const checked = e.target.checked;
+                                            setIsSingleSize(checked);
+                                            if (checked) {
+                                                // Switch to single size: create DEFAULT variant, carrying over price/stock if present
+                                                const existingPrice = formData.sizeVariants[0]?.price || formData.price || '';
+                                                const existingStock = formData.sizeVariants[0]?.stock || formData.stock || '';
+                                                const existingColors = formData.sizeVariants[0]?.colors || [];
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    sizeVariants: [{ size: 'DEFAULT', price: existingPrice, stock: existingStock, colors: existingColors }]
+                                                }));
+                                            } else {
+                                                // Switch to multi-size: clear variants
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    sizeVariants: []
+                                                }));
+                                            }
+                                        }}
                                     />
-                                    <span className={styles.sizeLabel}>{size}</span>
+                                    <span>Single Size Product</span>
                                 </label>
-                            ))}
-                        </div>
-
-                        {formData.sizeVariants.length > 0 && (
-                            <div className={styles.variantBlocks}>
-                                {formData.sizeVariants.map(variant => (
-                                    <div key={variant.size} className={styles.variantBlock}>
-                                        <div className={styles.variantHeader}>
-                                            <span className={styles.variantSize}>Size: {variant.size}</span>
-                                        </div>
-
-                                        <div className={styles.variantRow}>
-                                            <div className={styles.variantField}>
-                                                <label>Price (₹)</label>
-                                                <input
-                                                    type="number"
-                                                    value={variant.price}
-                                                    onChange={(e) => handleVariantChange(variant.size, 'price', e.target.value)}
-                                                    placeholder="299"
-                                                    min="0"
-                                                    required
-                                                />
-                                            </div>
-                                            <div className={styles.variantField}>
-                                                <label>Stock</label>
-                                                <input
-                                                    type="number"
-                                                    value={variant.stock}
-                                                    onChange={(e) => handleVariantChange(variant.size, 'stock', e.target.value)}
-                                                    placeholder="10"
-                                                    min="0"
-                                                    required
-                                                />
-                                            </div>
-                                        </div>
-
-                                        {/* Colors for this size - Only for POTs */}
-                                        {formData.productType === 'POT' && (
-                                            <div className={styles.colorSection}>
-                                                <label>Colors for {variant.size}</label>
-                                                <div className={styles.colorInputCard}>
-                                                    <div className={styles.colorInputRow}>
-                                                        <input
-                                                            type="text"
-                                                            placeholder="Color name (e.g., Red)"
-                                                            value={colorInputs[variant.size]?.name || ''}
-                                                            onChange={(e) => handleColorInputChange(variant.size, 'name', e.target.value)}
-                                                        />
-                                                        <input
-                                                            type="color"
-                                                            value={colorInputs[variant.size]?.hex || '#4CAF50'}
-                                                            onChange={(e) => handleColorInputChange(variant.size, 'hex', e.target.value)}
-                                                            className={styles.colorPicker}
-                                                        />
-                                                    </div>
-                                                    <div className={styles.colorImageRow}>
-                                                        <label className={styles.colorFileLabel}>
-                                                            <input
-                                                                type="file"
-                                                                accept="image/*"
-                                                                key={`file-${variant.size}-${variant.colors.length}`}
-                                                                onChange={(e) => handleColorFileChange(variant.size, e.target.files?.[0] || null)}
-                                                                className={styles.colorFileInput}
-                                                            />
-                                                            {colorInputs[variant.size]?.file ? (
-                                                                <span className={styles.fileSelected}>
-                                                                    ✓ {colorInputs[variant.size]?.file?.name?.substring(0, 20)}...
-                                                                </span>
-                                                            ) : (
-                                                                <span>📷 Choose Image</span>
-                                                            )}
-                                                        </label>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleAddColorToSize(variant.size)}
-                                                            className={styles.addColorBtn}
-                                                            disabled={addingColor[variant.size]}
-                                                        >
-                                                            {addingColor[variant.size] ? 'Adding...' : 'Add Color'}
-                                                        </button>
-                                                    </div>
-                                                </div>
-
-                                                <div className={styles.colorDots}>
-                                                    {variant.colors.map((color, idx) => (
-                                                        <div key={idx} className={styles.colorDotCard}>
-                                                            <div className={styles.colorDotHeader}>
-                                                                <span
-                                                                    className={styles.dotPreview}
-                                                                    style={{ backgroundColor: color.hex }}
-                                                                    title={color.name}
-                                                                ></span>
-                                                                <span className={styles.colorName}>{color.name}</span>
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => handleRemoveColorFromSize(variant.size, idx)}
-                                                                    className={styles.removeColorBtn}
-                                                                >×</button>
-                                                            </div>
-                                                            {/* Image upload for this color */}
-                                                            <div className={styles.colorImageUpload}>
-                                                                {color.images && color.images.length > 0 ? (
-                                                                    <div className={styles.colorImagePreview}>
-                                                                        <img src={color.images[0]} alt={color.name} />
-                                                                    </div>
-                                                                ) : (
-                                                                    <label className={styles.colorImageLabel}>
-                                                                        <input
-                                                                            type="file"
-                                                                            accept="image/*"
-                                                                            className={styles.colorImageInput}
-                                                                            onChange={(e) => {
-                                                                                const file = e.target.files?.[0];
-                                                                                if (file) handleColorImageUpload(variant.size, idx, file);
-                                                                            }}
-                                                                            disabled={colorImageUploading[`${variant.size}-${idx}`]}
-                                                                        />
-                                                                        {colorImageUploading[`${variant.size}-${idx}`] ? (
-                                                                            <span>Uploading...</span>
-                                                                        ) : (
-                                                                            <span>📷 Add Image</span>
-                                                                        )}
-                                                                    </label>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                    {variant.colors.length === 0 && (
-                                                        <span className={styles.noColors}>No colors added</span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
+                                <p className={styles.helpText}>
+                                    {isSingleSize
+                                        ? 'This product has one size — customers won\'t see a size selector'
+                                        : 'Select sizes and configure price, stock, and colors for each'}
+                                </p>
                             </div>
-                        )}
 
-                        {formData.sizeVariants.length === 0 && (
-                            <p className={styles.emptyState}>Select sizes above to add variants</p>
-                        )}
-                    </div>
-                    )}
+                            {/* Multi-size checkboxes (hidden in single-size mode) */}
+                            {!isSingleSize && (
+                                <div className={styles.sizeCheckboxes}>
+                                    {AVAILABLE_SIZES.map(size => (
+                                        <label key={size} className={styles.sizeCheckbox}>
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedSizes.includes(size)}
+                                                onChange={() => handleSizeToggle(size)}
+                                            />
+                                            <span className={styles.sizeLabel}>{size}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            )}
 
-                    {/* PREFERRED LOCATIONS */}
-                    <div className={styles.card}>
-                        <h2 className={styles.cardTitle}>Preferred Locations</h2>
+                            {formData.sizeVariants.length > 0 && (
+                                <div className={styles.variantBlocks}>
+                                    {formData.sizeVariants.map(variant => (
+                                        <div key={variant.size} className={styles.variantBlock}>
+                                            {/* Only show size header for multi-size products */}
+                                            {!isSingleSize && (
+                                                <div className={styles.variantHeader}>
+                                                    <span className={styles.variantSize}>Size: {variant.size}</span>
+                                                </div>
+                                            )}
 
-                        <div className={styles.tagInputRow}>
-                            <select
-                                value={newLocation}
-                                onChange={(e) => {
-                                    if (e.target.value) handleAddLocation(e.target.value);
-                                }}
-                            >
-                                <option value="">Select location</option>
-                                {PREDEFINED_LOCATIONS.filter(l => !formData.preferredLocations.includes(l)).map(loc => (
-                                    <option key={loc} value={loc}>{loc}</option>
-                                ))}
-                            </select>
-                        </div>
+                                            <div className={styles.variantRow}>
+                                                <div className={styles.variantField}>
+                                                    <label>Price (₹)</label>
+                                                    <input
+                                                        type="number"
+                                                        value={variant.price}
+                                                        onChange={(e) => handleVariantChange(variant.size, 'price', e.target.value)}
+                                                        placeholder="299"
+                                                        min="0"
+                                                        required
+                                                    />
+                                                </div>
+                                                <div className={styles.variantField}>
+                                                    <label>Stock</label>
+                                                    <input
+                                                        type="number"
+                                                        value={variant.stock}
+                                                        onChange={(e) => handleVariantChange(variant.size, 'stock', e.target.value)}
+                                                        placeholder="10"
+                                                        min="0"
+                                                        required
+                                                    />
+                                                </div>
+                                            </div>
 
-                        <div className={styles.tagList}>
-                            {formData.preferredLocations.map(location => (
-                                <span key={location} className={styles.tag}>
-                                    📍 {location}
-                                    <button type="button" onClick={() => handleRemoveLocation(location)}>×</button>
-                                </span>
-                            ))}
-                            {formData.preferredLocations.length === 0 && (
-                                <p className={styles.emptyState}>No locations added (available everywhere)</p>
+                                            {/* Colors for this size - Only for POTs */}
+                                            {formData.productType === 'POT' && (
+                                                <div className={styles.colorSection}>
+                                                    <label>Colors{!isSingleSize ? ` for ${variant.size}` : ''}</label>
+                                                    <div className={styles.colorInputCard}>
+                                                        <div className={styles.colorInputRow}>
+                                                            <input
+                                                                type="text"
+                                                                placeholder="Color name (e.g., Red)"
+                                                                value={colorInputs[variant.size]?.name || ''}
+                                                                onChange={(e) => handleColorInputChange(variant.size, 'name', e.target.value)}
+                                                            />
+                                                            <input
+                                                                type="color"
+                                                                value={colorInputs[variant.size]?.hex || '#4CAF50'}
+                                                                onChange={(e) => handleColorInputChange(variant.size, 'hex', e.target.value)}
+                                                                className={styles.colorPicker}
+                                                            />
+                                                        </div>
+                                                        <div className={styles.colorImageRow}>
+                                                            <label className={styles.colorFileLabel}>
+                                                                <input
+                                                                    type="file"
+                                                                    accept="image/*"
+                                                                    key={`file-${variant.size}-${variant.colors.length}`}
+                                                                    onChange={(e) => handleColorFileChange(variant.size, e.target.files?.[0] || null)}
+                                                                    className={styles.colorFileInput}
+                                                                />
+                                                                {colorInputs[variant.size]?.file ? (
+                                                                    <span className={styles.fileSelected}>
+                                                                        ✓ {colorInputs[variant.size]?.file?.name?.substring(0, 20)}...
+                                                                    </span>
+                                                                ) : (
+                                                                    <span>📷 Choose Image</span>
+                                                                )}
+                                                            </label>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleAddColorToSize(variant.size)}
+                                                                className={styles.addColorBtn}
+                                                                disabled={addingColor[variant.size]}
+                                                            >
+                                                                {addingColor[variant.size] ? 'Adding...' : 'Add Color'}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className={styles.colorDots}>
+                                                        {variant.colors.map((color, idx) => (
+                                                            <div key={idx} className={styles.colorDotCard}>
+                                                                <div className={styles.colorDotHeader}>
+                                                                    <span
+                                                                        className={styles.dotPreview}
+                                                                        style={{ backgroundColor: color.hex }}
+                                                                        title={color.name}
+                                                                    ></span>
+                                                                    <span className={styles.colorName}>{color.name}</span>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleRemoveColorFromSize(variant.size, idx)}
+                                                                        className={styles.removeColorBtn}
+                                                                    >×</button>
+                                                                </div>
+                                                                {/* Image upload for this color */}
+                                                                <div className={styles.colorImageUpload}>
+                                                                    {color.images && color.images.length > 0 ? (
+                                                                        <div className={styles.colorImagePreview}>
+                                                                            <img src={color.images[0]} alt={color.name} />
+                                                                        </div>
+                                                                    ) : (
+                                                                        <label className={styles.colorImageLabel}>
+                                                                            <input
+                                                                                type="file"
+                                                                                accept="image/*"
+                                                                                className={styles.colorImageInput}
+                                                                                onChange={(e) => {
+                                                                                    const file = e.target.files?.[0];
+                                                                                    if (file) handleColorImageUpload(variant.size, idx, file);
+                                                                                }}
+                                                                                disabled={colorImageUploading[`${variant.size}-${idx}`]}
+                                                                            />
+                                                                            {colorImageUploading[`${variant.size}-${idx}`] ? (
+                                                                                <span>Uploading...</span>
+                                                                            ) : (
+                                                                                <span>📷 Add Image</span>
+                                                                            )}
+                                                                        </label>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                        {variant.colors.length === 0 && (
+                                                            <span className={styles.noColors}>No colors added</span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {!isSingleSize && formData.sizeVariants.length === 0 && (
+                                <p className={styles.emptyState}>Select sizes above to add variants</p>
                             )}
                         </div>
-                    </div>
+                    )}
+
+
                 </div>
             </div>
 

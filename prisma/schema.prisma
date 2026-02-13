@@ -139,7 +139,6 @@ model Product {
 
   // Product variants
   sizeVariants       SizeVariant[]  // Per-size pricing, stock, and colors
-  preferredLocations String[]       // Delivery locations
 
   cartItems   Cart[]
   orderItems  OrderItem[]

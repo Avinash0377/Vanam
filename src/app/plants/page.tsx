@@ -32,7 +32,7 @@ interface Product {
     images: string[];
     featured?: boolean;
     sizeVariants?: SizeVariant[];
-    preferredLocations?: string[];
+
 }
 
 export default function PlantsPage() {
@@ -200,7 +200,7 @@ export default function PlantsPage() {
                                         type="product"
                                         featured={product.featured}
                                         sizeVariants={product.sizeVariants || []}
-                                        preferredLocations={product.preferredLocations || []}
+
                                         productType={product.productType}
                                         tags={product.suitableFor === 'INDOOR' ? ['Low Maintenance'] : []}
                                     />

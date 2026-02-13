@@ -53,7 +53,7 @@ export async function PUT(
                 status,
                 images,
                 sizeVariants,
-                preferredLocations,
+
             } = body;
 
             // Fetch existing product for partial update context
@@ -123,7 +123,7 @@ export async function PUT(
                     status,
                     images,
                     sizeVariants: processedVariants.length > 0 ? processedVariants : undefined,
-                    preferredLocations: preferredLocations || undefined,
+
                 },
             });
 

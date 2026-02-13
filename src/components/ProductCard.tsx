@@ -36,7 +36,7 @@ interface ProductCardProps {
     tags?: string[];
     giftCount?: number;
     sizeVariants?: SizeVariant[];
-    preferredLocations?: string[];
+
     productType?: string;
 }
 
@@ -57,7 +57,7 @@ export default function ProductCard({
     tags = [],
     giftCount = 0,
     sizeVariants = [],
-    preferredLocations = [],
+
     productType,
 }: ProductCardProps) {
     const { addItem } = useCart();
@@ -67,7 +67,8 @@ export default function ProductCard({
     const isSeed = productType === 'SEED';
 
     // Get available sizes from variants - NO FALLBACKS, only from DB
-    const availableSizes = isSeed ? [] : sizeVariants.map(v => v.size);
+    // Filter out DEFAULT so single-size products don't show a size selector
+    const availableSizes = isSeed ? [] : sizeVariants.map(v => v.size).filter(s => s !== 'DEFAULT');
 
     // Get initial size - first available variant or default
     const getInitialSize = () => {

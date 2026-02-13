@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { withAdmin } from '@/lib/middleware';
 
-async function getSalesAnalytics(request: NextRequest) {
+async function getSalesAnalytics(request: NextRequest, _user: { userId: string; mobile: string; role: string }) {
 
     try {
         const thirtyDaysAgo = new Date();

@@ -37,7 +37,7 @@ interface Product {
             images: string[];
         }>;
     }>;
-    preferredLocations?: string[];
+
 }
 
 export default function EditProductPage() {
@@ -79,7 +79,7 @@ export default function EditProductPage() {
                     status: product.status,
                     images: product.images || [],
                     sizeVariants: product.sizeVariants || [],
-                    preferredLocations: product.preferredLocations || [],
+
                 });
             }
         } catch (error) {

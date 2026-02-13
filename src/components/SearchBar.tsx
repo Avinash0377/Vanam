@@ -2,20 +2,30 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import styles from './SearchBar.module.css';
 
-interface Product {
+interface SearchResult {
     id: string;
     name: string;
     slug: string;
     price: number;
-    images: string[];
+    image: string | null;
+    type: string;
+    href: string;
 }
+
+const TYPE_LABELS: Record<string, string> = {
+    plant: '🌿 Plant',
+    pot: '🪴 Pot',
+    seed: '🌱 Seed',
+    accessory: '🛠 Accessory',
+    combo: '📦 Combo',
+    hamper: '🎁 Hamper',
+};
 
 export default function SearchBar({ mobile = false }: { mobile?: boolean }) {
     const [query, setQuery] = useState('');
-    const [results, setResults] = useState<Product[]>([]);
+    const [results, setResults] = useState<SearchResult[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
@@ -31,7 +41,7 @@ export default function SearchBar({ mobile = false }: { mobile?: boolean }) {
     }, []);
 
     useEffect(() => {
-        const searchProducts = async () => {
+        const searchAll = async () => {
             if (query.length < 2) {
                 setResults([]);
                 setIsOpen(false);
@@ -40,10 +50,10 @@ export default function SearchBar({ mobile = false }: { mobile?: boolean }) {
 
             setLoading(true);
             try {
-                const res = await fetch(`/api/products?search=${encodeURIComponent(query)}&limit=5`);
+                const res = await fetch(`/api/search?q=${encodeURIComponent(query)}&limit=8`);
                 const data = await res.json();
-                if (data.products) {
-                    setResults(data.products);
+                if (data.results) {
+                    setResults(data.results);
                     setIsOpen(true);
                 }
             } catch (error) {
@@ -53,7 +63,7 @@ export default function SearchBar({ mobile = false }: { mobile?: boolean }) {
             }
         };
 
-        const debounce = setTimeout(searchProducts, 300);
+        const debounce = setTimeout(searchAll, 300);
         return () => clearTimeout(debounce);
     }, [query]);
 
@@ -63,7 +73,7 @@ export default function SearchBar({ mobile = false }: { mobile?: boolean }) {
                 <input
                     type="text"
                     className={styles.input}
-                    placeholder="Search plants, pots..."
+                    placeholder="Search plants, combos, hampers..."
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     onFocus={() => {
@@ -81,28 +91,48 @@ export default function SearchBar({ mobile = false }: { mobile?: boolean }) {
             {isOpen && (
                 <div className={styles.dropdown}>
                     {loading ? (
-                        <div style={{ padding: '1rem', textAlign: 'center', color: '#666' }}>Searching...</div>
+                        <div className={styles.searchMessage}>Searching...</div>
                     ) : results.length > 0 ? (
-                        results.map((product) => (
-                            <Link
-                                key={product.id}
-                                href={`/product/${product.slug}`}
-                                className={styles.resultItem}
-                                onClick={() => { setIsOpen(false); setQuery(''); }}
-                            >
-                                <img
-                                    src={product.images[0] || '/placeholder-plant.jpg'}
-                                    alt={product.name}
-                                    className={styles.resultImage}
-                                />
-                                <div className={styles.resultInfo}>
-                                    <span className={styles.resultName}>{product.name}</span>
-                                    <span className={styles.resultPrice}>₹{product.price.toLocaleString('en-IN')}</span>
-                                </div>
-                            </Link>
-                        ))
+                        <>
+                            {results.map((item) => (
+                                <Link
+                                    key={`${item.type}-${item.id}`}
+                                    href={item.href}
+                                    className={styles.resultItem}
+                                    onClick={() => { setIsOpen(false); setQuery(''); }}
+                                >
+                                    <div className={styles.resultImageWrap}>
+                                        {item.image ? (
+                                            <img
+                                                src={item.image}
+                                                alt={item.name}
+                                                className={styles.resultImage}
+                                            />
+                                        ) : (
+                                            <span className={styles.resultPlaceholder}>🌱</span>
+                                        )}
+                                    </div>
+                                    <div className={styles.resultInfo}>
+                                        <span className={styles.resultName}>{item.name}</span>
+                                        <div className={styles.resultMeta}>
+                                            <span className={styles.resultPrice}>
+                                                ₹{item.price.toLocaleString('en-IN')}
+                                            </span>
+                                            <span className={`${styles.typeBadge} ${styles[`type_${item.type}`] || ''}`}>
+                                                {TYPE_LABELS[item.type] || item.type}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </Link>
+                            ))}
+                            <div className={styles.searchFooter}>
+                                <span>{results.length} result{results.length !== 1 ? 's' : ''} found</span>
+                            </div>
+                        </>
                     ) : (
-                        <div style={{ padding: '1rem', textAlign: 'center', color: '#666' }}>No results found</div>
+                        <div className={styles.searchMessage}>
+                            No results for &ldquo;{query}&rdquo;
+                        </div>
                     )}
                 </div>
             )}

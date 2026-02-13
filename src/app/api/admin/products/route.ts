@@ -79,7 +79,7 @@ async function createProduct(request: NextRequest, user: JWTPayload) {
             status,
             images,
             sizeVariants,
-            preferredLocations,
+
         } = body;
 
         // Fix 8: Validate comparePrice > price
@@ -151,7 +151,6 @@ async function createProduct(request: NextRequest, user: JWTPayload) {
                 status: status || 'ACTIVE',
                 images: images || [],
                 sizeVariants: processedVariants,
-                preferredLocations: preferredLocations || [],
             },
         });
 

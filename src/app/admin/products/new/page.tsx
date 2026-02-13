@@ -39,7 +39,7 @@ export default function NewProductPage() {
         status: 'ACTIVE',
         images: [],
         sizeVariants: [],
-        preferredLocations: [],
+
     };
 
     // Get title based on product type

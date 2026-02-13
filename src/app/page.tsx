@@ -145,7 +145,7 @@ export default async function HomePage() {
         featured: p.featured as boolean,
         productType: p.productType as string,
         sizeVariants: (p.sizeVariants || []) as { size: string; price: number; stock: number; colors: { name: string; hex: string; images: string[] }[] }[],
-        preferredLocations: (p.preferredLocations || []) as string[],
+
     });
 
     return (
@@ -353,7 +353,7 @@ export default async function HomePage() {
                                         type={p.productType === 'POT' ? 'pot' : 'product'}
                                         featured={p.featured}
                                         sizeVariants={p.sizeVariants}
-                                        preferredLocations={p.preferredLocations}
+
                                         productType={p.productType}
                                     />
                                 </FadeIn>
@@ -400,7 +400,7 @@ export default async function HomePage() {
                                             stock={p.stock}
                                             type="product"
                                             sizeVariants={p.sizeVariants}
-                                            preferredLocations={p.preferredLocations}
+
                                             productType={p.productType}
                                             tags={['Air Purifying', 'Low Maintenance']}
                                         />
@@ -449,7 +449,7 @@ export default async function HomePage() {
                                             stock={p.stock}
                                             type="product"
                                             sizeVariants={p.sizeVariants}
-                                            preferredLocations={p.preferredLocations}
+
                                             productType={p.productType}
                                             tags={['Flowering', 'Garden']}
                                         />
@@ -497,7 +497,7 @@ export default async function HomePage() {
                                             stock={p.stock}
                                             type="pot"
                                             sizeVariants={p.sizeVariants}
-                                            preferredLocations={p.preferredLocations}
+
                                             productType={p.productType}
                                             tags={['Designer', 'Premium']}
                                         />

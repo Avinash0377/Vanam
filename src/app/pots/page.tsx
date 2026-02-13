@@ -32,7 +32,7 @@ interface Pot {
     images: string[];
     featured?: boolean;
     sizeVariants?: SizeVariant[];
-    preferredLocations?: string[];
+
 }
 
 const materials = ['All', 'Ceramic', 'Terracotta', 'Cement', 'Plastic', 'Metal'];
@@ -149,7 +149,7 @@ export default function PotsPage() {
                                         type="pot"
                                         featured={pot.featured}
                                         sizeVariants={pot.sizeVariants || []}
-                                        preferredLocations={pot.preferredLocations || []}
+
                                         productType="POT"
                                         tags={[pot.material, pot.color].filter(Boolean) as string[]}
                                         suitableFor="BOTH"

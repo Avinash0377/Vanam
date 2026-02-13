@@ -294,6 +294,11 @@
     transform: none;
 }
 
+/* Single Size Toggle */
+.singleSizeToggle {
+    margin-bottom: 1rem;
+}
+
 /* Size Variants Section */
 .sizeCheckboxes {
     display: flex;

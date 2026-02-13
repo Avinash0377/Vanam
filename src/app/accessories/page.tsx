@@ -30,7 +30,7 @@ interface Product {
     images: string[];
     featured?: boolean;
     sizeVariants?: SizeVariant[];
-    preferredLocations?: string[];
+
 }
 
 export default function AccessoriesPage() {
@@ -154,7 +154,7 @@ export default function AccessoriesPage() {
                                         type="product"
                                         featured={product.featured}
                                         sizeVariants={product.sizeVariants || []}
-                                        preferredLocations={product.preferredLocations || []}
+
                                         productType={product.productType}
                                         tags={['Garden', 'Essential']}
                                     />

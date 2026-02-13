@@ -86,7 +86,7 @@ async function updateProduct(
             status,
             // Variant fields
             sizeVariants,
-            preferredLocations,
+
         } = body;
 
         // Check if product exists
@@ -161,7 +161,7 @@ async function updateProduct(
                 updateData.stock = processedVariants.reduce((sum: number, v: { stock: number }) => sum + v.stock, 0);
             }
         }
-        if (preferredLocations !== undefined) updateData.preferredLocations = preferredLocations;
+
 
         const product = await prisma.product.update({
             where: { id },
