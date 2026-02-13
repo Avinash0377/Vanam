@@ -339,11 +339,15 @@ export default function AdminProductsPage() {
                                                 <td>
                                                     <div className={styles.productCell}>
                                                         <div className={styles.productImage}>
-                                                            {product.images[0] ? (
-                                                                <img src={product.images[0]} alt={product.name} />
-                                                            ) : (
-                                                                <PlantIcon size={20} />
-                                                            )}
+                                                            {(() => {
+                                                                const img = product.images?.[0] ||
+                                                                    product.sizeVariants?.flatMap(v => v.colors?.flatMap(c => c.images || []) || [])?.[0];
+                                                                return img ? (
+                                                                    <img src={img} alt={product.name} />
+                                                                ) : (
+                                                                    <PlantIcon size={20} />
+                                                                );
+                                                            })()}
                                                         </div>
                                                         <div>
                                                             <span className={styles.productName}>
