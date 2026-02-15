@@ -122,7 +122,7 @@ export async function PUT(
                     featured,
                     status,
                     images,
-                    sizeVariants: processedVariants.length > 0 ? processedVariants : undefined,
+                    sizeVariants: sizeVariants !== undefined ? processedVariants : undefined,
 
                 },
             });

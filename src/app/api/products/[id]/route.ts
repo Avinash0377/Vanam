@@ -137,6 +137,8 @@ async function updateProduct(
             interface VariantColor {
                 name: string;
                 hex: string;
+                image?: string;
+                images?: string[];
             }
             interface SizeVariantInput {
                 size: string;
@@ -151,7 +153,8 @@ async function updateProduct(
                 stock: parseInt(v.stock) || 0,
                 colors: (v.colors || []).map((c: VariantColor) => ({
                     name: c.name,
-                    hex: c.hex
+                    hex: c.hex,
+                    images: c.images || (c.image ? [c.image] : [])
                 }))
             }));
             updateData.sizeVariants = processedVariants;

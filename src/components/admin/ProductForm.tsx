@@ -82,6 +82,8 @@ export default function ProductForm({ initialData, categories, onSubmit, loading
 
     // Single size mode: auto-detect from initialData
     const [isSingleSize, setIsSingleSize] = useState(false);
+    // Multi-color mode: auto-detect from initialData (replaces hardcoded POT check)
+    const [isMultiColor, setIsMultiColor] = useState(false);
 
     useEffect(() => {
         if (initialData) {
@@ -89,6 +91,9 @@ export default function ProductForm({ initialData, categories, onSubmit, loading
             // Auto-detect single size mode
             const isSingle = variants.length === 1 && variants[0].size === 'DEFAULT';
             setIsSingleSize(isSingle);
+            // Auto-detect multi-color mode: if any variant has colors
+            const hasColors = variants.some(v => v.colors && v.colors.length > 0);
+            setIsMultiColor(hasColors);
             setFormData({
                 ...defaultFormData,
                 ...initialData,
@@ -524,8 +529,55 @@ export default function ProductForm({ initialData, categories, onSubmit, loading
                         </div>
                     </div>
 
-                    {/* Images - Hidden for Pots (they use per-color images) */}
-                    {formData.productType !== 'POT' && (
+                    {/* Color Mode Toggle — shown for all types except SEED */}
+                    {formData.productType !== 'SEED' && (
+                        <div className={styles.card}>
+                            <h2 className={styles.cardTitle}>Product Color Type</h2>
+                            <div className={styles.colorModeToggle}>
+                                <div className={styles.colorModeButtons}>
+                                    <button
+                                        type="button"
+                                        className={`${styles.colorModeBtn} ${!isMultiColor ? styles.colorModeBtnActive : ''}`}
+                                        onClick={() => {
+                                            setIsMultiColor(false);
+                                            // Clear colors from all variants when switching to single
+                                            setFormData(prev => ({
+                                                ...prev,
+                                                sizeVariants: prev.sizeVariants.map(v => ({ ...v, colors: [] }))
+                                            }));
+                                        }}
+                                    >
+                                        <span className={styles.colorModeIcon}>
+                                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                <circle cx="12" cy="12" r="8" />
+                                                <circle cx="12" cy="12" r="3" fill="currentColor" />
+                                            </svg>
+                                        </span>
+                                        <span className={styles.colorModeLabel}>Single Color</span>
+                                        <span className={styles.colorModeDesc}>One color — upload product images directly</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className={`${styles.colorModeBtn} ${isMultiColor ? styles.colorModeBtnActive : ''}`}
+                                        onClick={() => setIsMultiColor(true)}
+                                    >
+                                        <span className={styles.colorModeIcon}>
+                                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                                                <circle cx="10" cy="9" r="5" />
+                                                <circle cx="16" cy="9" r="5" />
+                                                <circle cx="13" cy="15" r="5" />
+                                            </svg>
+                                        </span>
+                                        <span className={styles.colorModeLabel}>Multiple Colors</span>
+                                        <span className={styles.colorModeDesc}>Add colors with individual images per variant</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Images - Hidden when multi-color is selected (they use per-color images) */}
+                    {!isMultiColor && (
                         <div className={styles.card}>
                             <h2 className={styles.cardTitle}>Images</h2>
 
@@ -669,8 +721,8 @@ export default function ProductForm({ initialData, categories, onSubmit, loading
                                                 </div>
                                             </div>
 
-                                            {/* Colors for this size - Only for POTs */}
-                                            {formData.productType === 'POT' && (
+                                            {/* Colors for this size - shown when multi-color mode is enabled */}
+                                            {isMultiColor && (
                                                 <div className={styles.colorSection}>
                                                     <label>Colors{!isSingleSize ? ` for ${variant.size}` : ''}</label>
                                                     <div className={styles.colorInputCard}>
