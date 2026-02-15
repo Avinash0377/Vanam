@@ -20,6 +20,8 @@ export default function NewComboPage() {
         comparePrice: '',
         stock: '0',
         featured: false,
+        showOnHome: false,
+        displayOrder: '0',
     });
     const [imageUrl, setImageUrl] = useState('');
     const [uploading, setUploading] = useState(false);
@@ -224,7 +226,7 @@ export default function NewComboPage() {
                         />
                     </div>
 
-                    {/* Featured */}
+                    {/* Featured & Homepage */}
                     <div className={styles.formGroup}>
                         <label className={styles.formCheck}>
                             <input
@@ -233,9 +235,34 @@ export default function NewComboPage() {
                                 checked={formData.featured}
                                 onChange={handleChange}
                             />
-                            <span>Featured Combo</span>
+                            <span>⭐ Best Seller</span>
                         </label>
                     </div>
+                    <div className={styles.formGroup}>
+                        <label className={styles.formCheck}>
+                            <input
+                                type="checkbox"
+                                name="showOnHome"
+                                checked={formData.showOnHome}
+                                onChange={handleChange}
+                            />
+                            <span>🏠 Show on Homepage</span>
+                        </label>
+                    </div>
+                    {formData.showOnHome && (
+                        <div className={styles.formGroup}>
+                            <label className={styles.formLabel}>Display Order</label>
+                            <input
+                                type="number"
+                                name="displayOrder"
+                                value={formData.displayOrder}
+                                onChange={handleChange}
+                                className={styles.formInput}
+                                min="0"
+                                style={{ width: '100px' }}
+                            />
+                        </div>
+                    )}
 
                     {error && <div className={styles.error}>{error}</div>}
 

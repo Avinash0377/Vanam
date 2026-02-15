@@ -104,3 +104,69 @@
 .switchBtn:hover {
     text-decoration: underline;
 }
+
+/* ==============================================
+   MOBILE LOGIN
+   ============================================== */
+@media (max-width: 767px) {
+    .page {
+        padding: 1.5rem 0.75rem;
+        padding-bottom: 80px;
+        align-items: flex-start;
+        padding-top: 80px;
+    }
+
+    .card {
+        padding: 1.5rem 1.25rem;
+        border-radius: 18px;
+    }
+
+    .header {
+        margin-bottom: 1.25rem;
+    }
+
+    .icon {
+        font-size: 2.25rem;
+        margin-bottom: 8px;
+    }
+
+    .header h1 {
+        font-size: 1.35rem;
+        margin-bottom: 4px;
+    }
+
+    .header p {
+        font-size: 0.82rem;
+    }
+
+    .error {
+        padding: 8px 12px;
+        margin-bottom: 1rem;
+        font-size: 0.78rem;
+    }
+
+    .form {
+        gap: 1rem;
+    }
+
+    .formGroup label {
+        font-size: 0.78rem;
+        margin-bottom: 4px;
+    }
+
+    .formGroup input {
+        padding: 12px 14px;
+        font-size: 0.9rem;
+        border-radius: 10px;
+        border-width: 1.5px;
+    }
+
+    .footer {
+        margin-top: 1.25rem;
+        padding-top: 1rem;
+    }
+
+    .footer p {
+        font-size: 0.82rem;
+    }
+}

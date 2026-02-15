@@ -364,3 +364,126 @@
         /* Subtract sidebar width */
     }
 }
+
+/* ==============================================
+   MOBILE ADMIN SIDEBAR & HEADER
+   ============================================== */
+@media (max-width: 767px) {
+    .mobileHeader {
+        padding: 8px 12px;
+        height: 50px;
+    }
+
+    .menuBtn {
+        width: 36px;
+        height: 36px;
+    }
+
+    .menuBtn svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .logo {
+        font-size: 1rem;
+        gap: 6px;
+    }
+
+    .logoImage {
+        height: 30px;
+    }
+
+    .homeBtn {
+        width: 36px;
+        height: 36px;
+    }
+
+    /* Sidebar */
+    .sidebar {
+        width: 240px;
+    }
+
+    .sidebarHeader {
+        padding: 12px 14px 16px;
+        gap: 8px;
+    }
+
+    .sidebarLogo {
+        height: 40px;
+    }
+
+    .sidebarLogoText {
+        font-size: 1.3rem;
+    }
+
+    .badge {
+        font-size: 0.55rem;
+        padding: 2px 6px;
+    }
+
+    /* Nav Items */
+    .nav {
+        padding: 8px 8px;
+        gap: 2px;
+    }
+
+    .navItem {
+        gap: 10px;
+        padding: 10px 12px;
+        font-size: 0.82rem;
+        border-radius: 10px;
+        min-height: 40px;
+    }
+
+    .navIcon {
+        width: 20px;
+        font-size: 1rem;
+    }
+
+    /* Footer */
+    .sidebarFooter {
+        padding: 12px;
+    }
+
+    .userInfo {
+        gap: 8px;
+        padding-bottom: 10px;
+        margin-bottom: 10px;
+    }
+
+    .userAvatar {
+        width: 32px;
+        height: 32px;
+        font-size: 0.9rem;
+    }
+
+    .userAvatar svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .userName {
+        font-size: 0.78rem;
+    }
+
+    .userRole {
+        font-size: 0.65rem;
+    }
+
+    .footerActions {
+        gap: 6px;
+    }
+
+    .footerBtn,
+    .logoutBtn {
+        padding: 8px 10px;
+        font-size: 0.78rem;
+        border-radius: 8px;
+        gap: 8px;
+    }
+
+    /* Main Content */
+    .main {
+        padding-top: 50px;
+    }
+}

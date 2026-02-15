@@ -343,3 +343,174 @@
     color: #64748b;
     line-height: 1.6;
 }
+
+/* ==============================================
+   MOBILE CONTACT — COMPACT PREMIUM
+   ============================================== */
+@media (max-width: 767px) {
+    .page {
+        padding: 80px 0 0;
+        padding-bottom: 80px;
+    }
+
+    /* ---- Header ---- */
+    .header {
+        margin-bottom: 16px;
+    }
+
+    .badge {
+        padding: 5px 14px;
+        font-size: 10px;
+        margin-bottom: 8px;
+    }
+
+    .title {
+        font-size: 1.35rem;
+        margin-bottom: 6px;
+    }
+
+    .subtitle {
+        font-size: 0.8rem;
+        line-height: 1.5;
+    }
+
+    /* ---- WhatsApp CTA ---- */
+    .whatsappCta {
+        padding: 16px;
+        border-radius: 14px;
+        margin-bottom: 20px;
+        gap: 10px;
+    }
+
+    .ctaIcon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+    }
+
+    .ctaContent h3 {
+        font-size: 1rem;
+        margin-bottom: 2px;
+    }
+
+    .ctaContent p {
+        font-size: 0.78rem;
+    }
+
+    .whatsappBtn {
+        padding: 12px 20px;
+        font-size: 0.85rem;
+        border-radius: 10px;
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* ---- Main Grid ---- */
+    .mainGrid {
+        gap: 28px;
+        margin-bottom: 28px;
+    }
+
+    /* ---- Form ---- */
+    .formSection h2,
+    .infoSection h2 {
+        font-size: 1.15rem;
+        margin-bottom: 14px;
+    }
+
+    .form {
+        padding: 16px;
+        border-radius: 14px;
+    }
+
+    .formGroup {
+        margin-bottom: 14px;
+    }
+
+    .formGroup label {
+        font-size: 0.78rem;
+        margin-bottom: 6px;
+    }
+
+    .formGroup input,
+    .formGroup textarea {
+        padding: 11px 14px;
+        font-size: 0.88rem;
+        border-radius: 10px;
+        border-width: 1.5px;
+    }
+
+    .formRow {
+        gap: 14px;
+    }
+
+    .submitBtn {
+        padding: 13px;
+        font-size: 0.9rem;
+        border-radius: 10px;
+    }
+
+    /* ---- Info Cards ---- */
+    .infoCards {
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+
+    .infoCard {
+        padding: 14px;
+        border-radius: 12px;
+        gap: 12px;
+    }
+
+    .infoIcon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        font-size: 16px;
+    }
+
+    .infoLabel {
+        font-size: 0.68rem;
+        margin-bottom: 2px;
+    }
+
+    .infoValue {
+        font-size: 0.85rem;
+    }
+
+    /* ---- Map ---- */
+    .mapPlaceholder {
+        height: 140px;
+        border-radius: 12px;
+        font-size: 0.85rem;
+    }
+
+    /* ---- FAQs ---- */
+    .faqSection {
+        padding-top: 24px;
+    }
+
+    .faqSection h2 {
+        font-size: 1.15rem;
+        margin-bottom: 16px;
+    }
+
+    .faqGrid {
+        gap: 10px;
+    }
+
+    .faqCard {
+        padding: 16px;
+        border-radius: 12px;
+    }
+
+    .faqCard h3 {
+        font-size: 0.88rem;
+        margin-bottom: 8px;
+    }
+
+    .faqCard p {
+        font-size: 0.8rem;
+        line-height: 1.5;
+    }
+}

@@ -30,6 +30,8 @@ export interface ProductFormData {
     suitableFor: string;
     categoryId: string;
     featured: boolean;
+    showOnHome: boolean;
+    displayOrder: string;
     status: string;
     images: string[];
     sizeVariants: SizeVariant[];
@@ -61,6 +63,8 @@ const defaultFormData: ProductFormData = {
     suitableFor: 'INDOOR',
     categoryId: '',
     featured: false,
+    showOnHome: false,
+    displayOrder: '0',
     status: 'ACTIVE',
     images: [],
     sizeVariants: [],
@@ -466,9 +470,34 @@ export default function ProductForm({ initialData, categories, onSubmit, loading
                                     checked={formData.featured}
                                     onChange={handleChange}
                                 />
-                                <span>Featured Product</span>
+                                <span>⭐ Best Seller</span>
                             </label>
                         </div>
+                        <div className={styles.statusGroup}>
+                            <label className={styles.featuredLabel}>
+                                <input
+                                    type="checkbox"
+                                    name="showOnHome"
+                                    checked={formData.showOnHome}
+                                    onChange={handleChange}
+                                />
+                                <span>🏠 Show on Homepage</span>
+                            </label>
+                        </div>
+                        {formData.showOnHome && (
+                            <div className={styles.statusGroup}>
+                                <label>Display Order</label>
+                                <input
+                                    type="number"
+                                    name="displayOrder"
+                                    value={formData.displayOrder}
+                                    onChange={handleChange}
+                                    min="0"
+                                    className={styles.statusSelect}
+                                    style={{ width: '80px' }}
+                                />
+                            </div>
+                        )}
                         <div className={styles.statusGroup}>
                             <label>Category</label>
                             <select

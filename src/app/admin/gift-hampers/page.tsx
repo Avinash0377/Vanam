@@ -24,6 +24,7 @@ interface Hamper {
     stock: number;
     images: string[];
     featured: boolean;
+    showOnHome?: boolean;
 }
 
 export default function AdminGiftHampersPage() {
@@ -135,6 +136,9 @@ export default function AdminGiftHampersPage() {
                                                             <span className={styles.featuredBadge}>
                                                                 <StarIcon size={14} color="#f59e0b" />
                                                             </span>
+                                                        )}
+                                                        {hamper.showOnHome && (
+                                                            <span className={styles.featuredBadge} title="Shown on Homepage">🏠</span>
                                                         )}
                                                     </span>
                                                 </div>

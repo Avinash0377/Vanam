@@ -22,7 +22,7 @@
             var(--primary-400) 100%);
 }
 
-/* Floating Leaf Decoration - GPU optimized */
+/* Floating Leaf Decoration */
 .footer::after {
     content: '🌿';
     position: absolute;
@@ -205,4 +205,159 @@
 
 .legal a:hover {
     color: var(--primary-600);
+}
+
+/* =============================================== */
+/* ============    MOBILE FOOTER     ============= */
+/* =============================================== */
+@media (max-width: 767px) {
+    .footer {
+        padding: 2.5rem 0 0;
+        padding-bottom: 80px;
+    }
+
+    .footer::after {
+        display: none;
+    }
+
+    .container {
+        padding: 0 16px;
+    }
+
+    /* Grid: brand full-width, then Shop+Help side by side, then Contact full-width */
+    .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+        row-gap: 20px;
+    }
+
+    /* Brand takes full row */
+    .brand {
+        grid-column: 1 / -1;
+        padding: 0;
+        text-align: center;
+        padding-bottom: 20px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .logo {
+        justify-content: center;
+        margin-bottom: 4px;
+    }
+
+    .logoIcon {
+        font-size: 1.3rem;
+    }
+
+    .logoText {
+        font-size: 1.25rem;
+    }
+
+    .tagline {
+        font-size: 0.75rem;
+        margin-bottom: 6px;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        opacity: 0.7;
+    }
+
+    .description {
+        font-size: 0.8rem;
+        line-height: 1.55;
+        color: var(--neutral-500);
+        max-width: 280px;
+        margin: 0 auto;
+    }
+
+    /* Shop + Help columns sit side by side */
+    .column {
+        text-align: left;
+    }
+
+    .columnTitle {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--primary-800);
+        margin-bottom: 10px;
+        padding-bottom: 6px;
+        border-bottom: 2px solid var(--primary-400);
+        display: inline-block;
+    }
+
+    .links li {
+        margin-bottom: 6px;
+    }
+
+    .links a {
+        font-size: 0.8rem;
+        color: var(--neutral-700);
+        padding: 2px 0;
+    }
+
+    /* Contact takes full row */
+    .column:last-child {
+        grid-column: 1 / -1;
+        padding-top: 16px;
+        border-top: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .contactList {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .contactItem {
+        background: rgba(255, 255, 255, 0.55);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border-radius: 12px;
+        padding: 12px;
+        margin-bottom: 0;
+        gap: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.8);
+    }
+
+    .contactItem:last-child {
+        grid-column: 1 / -1;
+    }
+
+    .contactItem:active {
+        transform: scale(0.97);
+        transition: transform 0.15s ease;
+    }
+
+    .contactIcon {
+        font-size: 1rem;
+    }
+
+    .contactItem a {
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--neutral-700);
+    }
+
+    /* ---- Bottom Bar ---- */
+    .bottom {
+        margin-top: 16px;
+        padding: 14px 0;
+        gap: 6px;
+    }
+
+    .copyright {
+        font-size: 0.7rem;
+        text-align: center;
+        color: var(--neutral-400);
+    }
+
+    .legal {
+        gap: 1rem;
+    }
+
+    .legal a {
+        font-size: 0.7rem;
+    }
 }

@@ -449,3 +449,180 @@
     background: var(--primary-100);
     border-color: var(--primary-400);
 }
+
+/* =============================================
+   MOBILE FORM OPTIMIZATION (≤768px)
+   ============================================= */
+@media (max-width: 768px) {
+
+    /* Form Page */
+    .formPage {
+        padding: 0.75rem;
+    }
+
+    .formCard {
+        padding: 1.25rem;
+        border-radius: 16px;
+        max-width: 100%;
+    }
+
+    .formTitle {
+        font-size: 1.25rem;
+        margin-bottom: 1.25rem;
+    }
+
+    /* Form Groups - tighter spacing */
+    .formGroup {
+        margin-bottom: 1rem;
+    }
+
+    .formLabel {
+        font-size: 0.8125rem;
+        margin-bottom: 0.375rem;
+    }
+
+    .formInput,
+    .formTextarea,
+    .formSelect {
+        padding: 0.75rem 0.875rem;
+        font-size: 0.9375rem;
+        border-radius: 10px;
+        min-height: 44px;
+    }
+
+    .formTextarea {
+        min-height: 80px;
+    }
+
+    /* Form Row - always stack */
+    .formRow {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    /* Checkbox - touch friendly */
+    .formCheck {
+        padding: 0.75rem 1rem;
+        background: var(--neutral-50);
+        border-radius: 10px;
+        border: 2px solid var(--neutral-200);
+        min-height: 44px;
+        transition: all 0.2s;
+    }
+
+    .formCheck input {
+        width: 22px;
+        height: 22px;
+    }
+
+    .formCheck span {
+        font-size: 0.9375rem;
+        font-weight: 500;
+    }
+
+    /* Image Upload */
+    .imagePreview {
+        width: 100px;
+        height: 100px;
+    }
+
+    .uploadBtn {
+        width: 100%;
+        justify-content: center;
+        padding: 0.75rem;
+        min-height: 44px;
+    }
+
+    /* Form Actions - stack */
+    .formActions {
+        flex-direction: column-reverse;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+        padding-top: 1.25rem;
+    }
+
+    .submitBtn,
+    .cancelBtn {
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+        min-height: 48px;
+        font-size: 0.9375rem;
+    }
+
+    /* Back Link */
+    .backLink {
+        margin-bottom: 1rem;
+        font-size: 0.875rem;
+    }
+
+    /* Table view for list pages */
+    .table th,
+    .table td {
+        padding: 0.875rem 1rem;
+        font-size: 0.8125rem;
+    }
+
+    .itemImage {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+    }
+
+    .itemCell {
+        gap: 0.75rem;
+    }
+
+    .itemName {
+        font-size: 0.8125rem;
+    }
+
+    .actionBtn {
+        width: 32px;
+        height: 32px;
+    }
+
+    /* Header */
+    .header {
+        margin-bottom: 1.25rem;
+        gap: 1rem;
+    }
+
+    .header h1 {
+        font-size: 1.5rem;
+    }
+
+    .headerDesc {
+        font-size: 0.8125rem;
+    }
+
+    .addBtn {
+        padding: 0.75rem 1.25rem;
+        font-size: 0.875rem;
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Error message */
+    .error {
+        font-size: 0.8125rem;
+        padding: 0.625rem 0.875rem;
+    }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+    .formCard {
+        padding: 1rem;
+        border-radius: 14px;
+    }
+
+    .formPage {
+        padding: 0.5rem;
+    }
+
+    .table th:nth-child(2),
+    .table td:nth-child(2) {
+        display: none;
+    }
+}

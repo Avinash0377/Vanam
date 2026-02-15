@@ -25,6 +25,8 @@ interface Product {
     stock: number;
     categoryId?: string;
     featured: boolean;
+    showOnHome: boolean;
+    displayOrder: number;
     status: string;
     images: string[];
     sizeVariants?: Array<{
@@ -77,6 +79,8 @@ export default function EditProductPage() {
                     stock: product.stock.toString(),
                     categoryId: product.categoryId || '',
                     featured: product.featured,
+                    showOnHome: product.showOnHome || false,
+                    displayOrder: (product.displayOrder || 0).toString(),
                     status: product.status,
                     images: product.images || [],
                     sizeVariants: product.sizeVariants || [],

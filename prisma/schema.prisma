@@ -132,6 +132,8 @@ model Product {
   stock            Int           @default(0) // Total stock (sum of variants or single)
   status           ProductStatus @default(ACTIVE)
   featured         Boolean       @default(false)
+  showOnHome       Boolean       @default(false)
+  displayOrder     Int           @default(0)
   tags             String[]      // Custom product tags (e.g., Bestseller, Pet Friendly)
   categoryId       String?       @db.ObjectId
   category         Category?     @relation(fields: [categoryId], references: [id])
@@ -308,6 +310,8 @@ model Combo {
   stock       Int           @default(0)
   status      ProductStatus @default(ACTIVE)
   featured    Boolean       @default(false)
+  showOnHome  Boolean       @default(false)
+  displayOrder Int          @default(0)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
@@ -330,6 +334,8 @@ model GiftHamper {
   stock        Int           @default(0)
   status       ProductStatus @default(ACTIVE)
   featured     Boolean       @default(false)
+  showOnHome   Boolean       @default(false)
+  displayOrder Int           @default(0)
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 

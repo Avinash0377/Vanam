@@ -18,24 +18,45 @@ export default function Navbar() {
 
     useEffect(() => {
         let lastScrollY = window.scrollY;
+        let ticking = false;
 
         const controlNavbar = () => {
             const currentScrollY = window.scrollY;
+            const scrollDelta = currentScrollY - lastScrollY;
 
-            if (currentScrollY > lastScrollY && currentScrollY > 50) {
-                // Scrolling down & past threshold
+            // Never hide if mobile menu or search is open
+            if (mobileMenuOpen || mobileSearchOpen) {
+                setIsVisible(true);
+                lastScrollY = currentScrollY;
+                ticking = false;
+                return;
+            }
+
+            // Always show when near top
+            if (currentScrollY < 100) {
+                setIsVisible(true);
+            } else if (scrollDelta > 10 && currentScrollY > 80) {
+                // Only hide on significant downward scroll (10px+)
                 setIsVisible(false);
-            } else if (currentScrollY < lastScrollY) {
-                // Scrolling up
+            } else if (scrollDelta < -5) {
+                // Show on any upward scroll (5px+)
                 setIsVisible(true);
             }
 
             lastScrollY = currentScrollY;
+            ticking = false;
         };
 
-        window.addEventListener('scroll', controlNavbar, { passive: true });
-        return () => window.removeEventListener('scroll', controlNavbar);
-    }, []);
+        const onScroll = () => {
+            if (!ticking) {
+                window.requestAnimationFrame(controlNavbar);
+                ticking = true;
+            }
+        };
+
+        window.addEventListener('scroll', onScroll, { passive: true });
+        return () => window.removeEventListener('scroll', onScroll);
+    }, [mobileMenuOpen, mobileSearchOpen]);
 
     const navLinks = [
         { href: '/plants', label: 'Plants', icon: <PlantIcon size={18} /> },

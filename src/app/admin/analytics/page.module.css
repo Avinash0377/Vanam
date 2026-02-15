@@ -304,3 +304,145 @@
 .loading p {
     color: var(--neutral-500);
 }
+
+/* ==============================================
+   MOBILE ADMIN ANALYTICS
+   ============================================== */
+@media (max-width: 767px) {
+    .header {
+        margin-bottom: 1rem;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .title {
+        font-size: 1.2rem;
+    }
+
+    .subtitle {
+        font-size: 0.78rem;
+    }
+
+    /* Summary Cards */
+    .summaryGrid {
+        gap: 8px;
+        margin-bottom: 1rem;
+    }
+
+    .summaryCard {
+        padding: 10px 12px;
+        border-radius: 12px;
+        gap: 8px;
+    }
+
+    .summaryIcon {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        font-size: 1.1rem;
+    }
+
+    .summaryLabel {
+        font-size: 0.68rem;
+        margin-bottom: 1px;
+    }
+
+    .summaryValue {
+        font-size: 1.1rem;
+    }
+
+    /* Sections */
+    .section {
+        padding: 12px;
+        border-radius: 12px;
+        margin-bottom: 10px;
+    }
+
+    .sectionTitle {
+        font-size: 1rem;
+        margin-bottom: 10px;
+    }
+
+    /* Table */
+    .table {
+        font-size: 0.78rem;
+    }
+
+    .table th {
+        padding: 6px 8px;
+        font-size: 0.68rem;
+    }
+
+    .table td {
+        padding: 8px;
+        font-size: 0.75rem;
+    }
+
+    .rank {
+        font-size: 0.75rem;
+    }
+
+    .categoryName {
+        font-size: 0.8rem;
+    }
+
+    .categorySlug {
+        font-size: 0.68rem;
+    }
+
+    /* Category Cards */
+    .categoryGrid {
+        gap: 8px;
+    }
+
+    .categoryCard {
+        padding: 10px;
+        border-radius: 10px;
+    }
+
+    .categoryCardTitle {
+        font-size: 0.85rem;
+        margin-bottom: 8px;
+        padding-bottom: 6px;
+    }
+
+    .productList {
+        gap: 6px;
+    }
+
+    .productRank {
+        width: 20px;
+        height: 20px;
+        font-size: 0.65rem;
+    }
+
+    .productName {
+        font-size: 0.8rem;
+    }
+
+    .productStats {
+        font-size: 0.7rem;
+    }
+
+    /* Bar Chart */
+    .barRow {
+        grid-template-columns: 80px 1fr 60px;
+        gap: 6px;
+    }
+
+    .barLabel {
+        font-size: 0.72rem;
+    }
+
+    .barWrapper {
+        height: 18px;
+    }
+
+    .barValue {
+        font-size: 0.72rem;
+    }
+
+    .loading {
+        min-height: 200px;
+    }
+}

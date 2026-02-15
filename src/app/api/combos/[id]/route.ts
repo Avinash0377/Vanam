@@ -57,7 +57,7 @@ async function updateCombo(
 ) {
     try {
         const body = await request.json();
-        const { name, description, includes, suitableFor, price, comparePrice, stock, images, featured } = body;
+        const { name, description, includes, suitableFor, price, comparePrice, stock, images, featured, showOnHome, displayOrder } = body;
 
         const existing = await prisma.combo.findUnique({ where: { id } });
         if (!existing) {
@@ -96,6 +96,8 @@ async function updateCombo(
                 stock: stock !== undefined ? parseInt(stock) : existing.stock,
                 images: images !== undefined ? images : existing.images,
                 featured: featured !== undefined ? featured : existing.featured,
+                showOnHome: showOnHome !== undefined ? showOnHome : existing.showOnHome,
+                displayOrder: displayOrder !== undefined ? parseInt(displayOrder) || 0 : existing.displayOrder,
             },
         });
 

@@ -22,6 +22,8 @@ export default function EditComboPage() {
         comparePrice: '',
         stock: '0',
         featured: false,
+        showOnHome: false,
+        displayOrder: '0',
     });
     const [imageUrl, setImageUrl] = useState('');
     const [loading, setLoading] = useState(true);
@@ -48,6 +50,8 @@ export default function EditComboPage() {
                     comparePrice: combo.comparePrice?.toString() || '',
                     stock: combo.stock?.toString() || '0',
                     featured: combo.featured || false,
+                    showOnHome: combo.showOnHome || false,
+                    displayOrder: (combo.displayOrder || 0).toString(),
                 });
                 setImageUrl(combo.images?.[0] || '');
             }
@@ -266,7 +270,7 @@ export default function EditComboPage() {
                         />
                     </div>
 
-                    {/* Featured */}
+                    {/* Featured & Homepage */}
                     <div className={styles.formGroup}>
                         <label className={styles.formCheck}>
                             <input
@@ -275,9 +279,34 @@ export default function EditComboPage() {
                                 checked={formData.featured}
                                 onChange={handleChange}
                             />
-                            <span>Featured Combo</span>
+                            <span>⭐ Best Seller</span>
                         </label>
                     </div>
+                    <div className={styles.formGroup}>
+                        <label className={styles.formCheck}>
+                            <input
+                                type="checkbox"
+                                name="showOnHome"
+                                checked={formData.showOnHome}
+                                onChange={handleChange}
+                            />
+                            <span>🏠 Show on Homepage</span>
+                        </label>
+                    </div>
+                    {formData.showOnHome && (
+                        <div className={styles.formGroup}>
+                            <label className={styles.formLabel}>Display Order</label>
+                            <input
+                                type="number"
+                                name="displayOrder"
+                                value={formData.displayOrder}
+                                onChange={handleChange}
+                                className={styles.formInput}
+                                min="0"
+                                style={{ width: '100px' }}
+                            />
+                        </div>
+                    )}
 
                     {error && <div className={styles.error}>{error}</div>}
 

@@ -264,24 +264,126 @@
     margin-bottom: 1.5rem;
 }
 
-@media (max-width: 480px) {
+/* ==============================================
+   MOBILE ORDER CONFIRMATION
+   ============================================== */
+@media (max-width: 767px) {
+    .page {
+        padding: 1.5rem 0;
+        padding-bottom: 80px;
+    }
+
     .card {
-        padding: 2rem 1.25rem;
+        padding: 1.5rem 1rem;
+        border-radius: 18px;
+    }
+
+    .successIcon {
+        width: 60px;
+        height: 60px;
+        margin-bottom: 1rem;
     }
 
     .title {
-        font-size: 1.5rem;
+        font-size: 1.35rem;
+        margin-bottom: 4px;
+    }
+
+    .subtitle {
+        font-size: 0.85rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .orderNumber {
+        padding: 12px;
+        border-radius: 12px;
+        margin-bottom: 1.25rem;
+    }
+
+    .label {
+        font-size: 0.75rem;
     }
 
     .number {
-        font-size: 1.25rem;
+        font-size: 1.15rem;
+        letter-spacing: 1.5px;
+    }
+
+    .infoCards {
+        gap: 8px;
+        margin-bottom: 1.25rem;
+    }
+
+    .infoCard {
+        padding: 10px;
+        border-radius: 10px;
+        gap: 10px;
+    }
+
+    .infoCard .emoji {
+        font-size: 1.2rem;
+    }
+
+    .infoCard h3 {
+        font-size: 0.82rem;
+    }
+
+    .infoCard p {
+        font-size: 0.75rem;
     }
 
     .actions {
         flex-direction: column;
+        gap: 8px;
+        margin-bottom: 1.25rem;
     }
 
     .actions .btn {
         width: 100%;
+        min-width: unset;
+    }
+
+    .whatsappBox p {
+        font-size: 0.78rem;
+    }
+
+    .whatsappBtn {
+        padding: 10px 20px;
+        font-size: 0.85rem;
+        border-radius: 8px;
+    }
+
+    .tips {
+        margin-top: 1.25rem;
+        padding: 14px;
+        border-radius: 12px;
+    }
+
+    .tips h3 {
+        font-size: 0.88rem;
+        margin-bottom: 8px;
+    }
+
+    .tips li {
+        font-size: 0.78rem;
+        margin-bottom: 6px;
+        padding-left: 1.25rem;
+    }
+
+    .errorCard {
+        padding: 2rem 1.25rem;
+        border-radius: 18px;
+    }
+
+    .errorIcon {
+        font-size: 2.5rem;
+    }
+
+    .errorCard h1 {
+        font-size: 1.15rem;
+    }
+
+    .errorCard p {
+        font-size: 0.82rem;
     }
 }

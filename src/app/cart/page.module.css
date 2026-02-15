@@ -611,3 +611,222 @@
     cursor: not-allowed;
     opacity: 0.7;
 }
+
+/* ==============================================
+   MOBILE CART — PREMIUM COMPACT LAYOUT
+   ============================================== */
+@media (max-width: 768px) {
+
+    /* ---- Page ---- */
+    .page {
+        padding: 1.25rem 0 0;
+        min-height: auto;
+        padding-bottom: 80px;
+    }
+
+    /* ---- Header ---- */
+    .header {
+        margin-bottom: 1rem;
+    }
+
+    .title {
+        font-size: 1.35rem;
+    }
+
+    .itemCount {
+        font-size: 0.75rem;
+        background: var(--neutral-100);
+        padding: 3px 10px;
+        border-radius: 20px;
+    }
+
+    /* ---- Layout ---- */
+    .layout {
+        gap: 1.25rem;
+    }
+
+    /* ---- Cart Items ---- */
+    .cartItems {
+        gap: 10px;
+    }
+
+    .cartItem {
+        grid-template-columns: 70px 1fr;
+        gap: 12px;
+        padding: 12px;
+        border-radius: 14px;
+        border: 1px solid #f1f5f9;
+    }
+
+    .itemImage {
+        width: 70px;
+        height: 70px;
+        border-radius: 10px;
+    }
+
+    .itemHeader {
+        margin-bottom: 2px;
+    }
+
+    .itemName {
+        font-size: 0.85rem;
+        line-height: 1.25;
+    }
+
+    .itemType {
+        padding: 2px 8px;
+        font-size: 0.6rem;
+        margin-bottom: 6px;
+    }
+
+    /* ---- Variants ---- */
+    .variantInfo {
+        gap: 4px;
+        margin-bottom: 8px;
+    }
+
+    .variantTag {
+        padding: 4px 8px;
+        font-size: 0.7rem;
+        border-radius: 6px;
+        gap: 4px;
+    }
+
+    .colorDot {
+        width: 14px;
+        height: 14px;
+    }
+
+    /* ---- Controls ---- */
+    .itemControls {
+        margin-top: 4px;
+    }
+
+    .qtyBtn {
+        width: 32px;
+        height: 32px;
+        font-size: 1.1rem;
+        border-radius: 8px;
+    }
+
+    .qtyValue {
+        width: 28px;
+        font-size: 0.85rem;
+    }
+
+    .itemPrice {
+        font-size: 0.95rem;
+    }
+
+    .removeBtn {
+        width: 30px;
+        height: 30px;
+    }
+
+    /* ---- Summary Card ---- */
+    .summary {
+        padding: 16px;
+        border-radius: 16px;
+        position: static;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.04);
+        border: 1px solid #f1f5f9;
+    }
+
+    .summaryTitle {
+        font-size: 1.05rem;
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .summaryRow {
+        margin-bottom: 8px;
+        font-size: 0.82rem;
+    }
+
+    .shippingNote {
+        padding: 8px 10px;
+        margin: 10px 0;
+        font-size: 0.78rem;
+        border-radius: 10px;
+    }
+
+    .summaryDivider {
+        margin: 10px 0;
+    }
+
+    .summaryTotal {
+        font-size: 1.1rem;
+        margin-bottom: 12px;
+    }
+
+    /* ---- Pincode ---- */
+    .pincodeChecker {
+        padding: 12px;
+        margin-bottom: 12px;
+        border-radius: 10px;
+    }
+
+    .pincodeLabel {
+        font-size: 0.75rem;
+        margin-bottom: 8px;
+    }
+
+    .pincodeInput {
+        min-height: 42px;
+        font-size: 0.85rem;
+        padding: 8px 12px;
+        border-radius: 8px;
+    }
+
+    .pincodeBtn {
+        min-height: 42px;
+        padding: 8px 14px;
+        font-size: 0.78rem;
+        border-radius: 8px;
+    }
+
+    .pincodeResult {
+        font-size: 0.75rem;
+        padding: 6px 10px;
+    }
+
+    /* ---- Checkout Button ---- */
+    .checkoutBtn {
+        padding: 14px;
+        font-size: 0.9rem;
+        border-radius: 12px;
+    }
+
+    .checkoutBtnDisabled {
+        padding: 14px;
+        font-size: 0.82rem;
+        border-radius: 12px;
+    }
+
+    .secureBadge {
+        margin-top: 10px;
+        font-size: 0.72rem;
+    }
+
+    /* ---- Empty State ---- */
+    .empty {
+        min-height: 50vh;
+        padding: 2rem 1rem;
+    }
+
+    .emptyIconWrapper {
+        width: 80px;
+        height: 80px;
+        margin-bottom: 1.25rem;
+    }
+
+    .empty h2 {
+        font-size: 1.15rem;
+    }
+
+    .empty p {
+        font-size: 0.82rem;
+        margin-bottom: 1.25rem;
+    }
+}

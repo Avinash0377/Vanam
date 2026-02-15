@@ -1081,8 +1081,18 @@
 
 @media (max-width: 767px) {
     .statsBar {
-        padding-bottom: 80px;
-        /* 56px bottom nav + 24px breathing room */
+        padding: 0 12px 80px;
+        margin-top: -20px;
+    }
+
+    .statsContainer {
+        gap: 16px;
+        padding: 20px;
+        border-radius: 14px;
+    }
+
+    .statItem {
+        min-width: 100px;
     }
 }
 
@@ -2142,42 +2152,85 @@
     .mobileFloatingPlant:nth-child(1) {
         animation: mPlantFloat1 5s ease-in-out infinite;
     }
+
     .mobileFloatingPlant:nth-child(2) {
         animation: mPlantFloat2 5.5s ease-in-out infinite;
         animation-delay: 0.8s;
     }
+
     .mobileFloatingPlant:nth-child(3) {
         animation: mPlantFloat3 4.5s ease-in-out infinite;
         animation-delay: 1.5s;
     }
+
     .mobileFloatingPlant:nth-child(4) {
         animation: mPlantFloat4 6s ease-in-out infinite;
         animation-delay: 0.4s;
     }
+
     .mobileFloatingPlant:nth-child(5) {
         animation: mPlantFloat5 5s ease-in-out infinite;
         animation-delay: 1.2s;
     }
 
     @keyframes mPlantFloat1 {
-        0%, 100% { transform: translateY(0) rotate(-1deg); }
-        50% { transform: translateY(-12px) rotate(2deg); }
+
+        0%,
+        100% {
+            transform: translateY(0) rotate(-1deg);
+        }
+
+        50% {
+            transform: translateY(-12px) rotate(2deg);
+        }
     }
+
     @keyframes mPlantFloat2 {
-        0%, 100% { transform: translateY(0) rotate(1deg); }
-        50% { transform: translateY(-10px) rotate(-2deg); }
+
+        0%,
+        100% {
+            transform: translateY(0) rotate(1deg);
+        }
+
+        50% {
+            transform: translateY(-10px) rotate(-2deg);
+        }
     }
+
     @keyframes mPlantFloat3 {
-        0%, 100% { transform: translateY(0) rotate(0deg); }
-        50% { transform: translateY(-14px) rotate(2deg); }
+
+        0%,
+        100% {
+            transform: translateY(0) rotate(0deg);
+        }
+
+        50% {
+            transform: translateY(-14px) rotate(2deg);
+        }
     }
+
     @keyframes mPlantFloat4 {
-        0%, 100% { transform: translateY(0) rotate(1deg); }
-        50% { transform: translateY(-8px) rotate(-1deg); }
+
+        0%,
+        100% {
+            transform: translateY(0) rotate(1deg);
+        }
+
+        50% {
+            transform: translateY(-8px) rotate(-1deg);
+        }
     }
+
     @keyframes mPlantFloat5 {
-        0%, 100% { transform: translateY(0) scale(1); }
-        50% { transform: translateY(-10px) scale(1.04); }
+
+        0%,
+        100% {
+            transform: translateY(0) scale(1);
+        }
+
+        50% {
+            transform: translateY(-10px) scale(1.04);
+        }
     }
 
     .mobileFloatingPlantImg {
@@ -2393,4 +2446,161 @@
        MOBILE HERO — V-ANAM LAYOUT (≤768px)
        ============================================== */
 
+}
+
+/* ==============================================
+   MOBILE BOTTOM SECTIONS (≤768px)
+   Features · Gallery · CTA · Stats
+   ============================================== */
+@media (max-width: 767px) {
+
+    /* ---- Section Headers ---- */
+    .sectionHeader {
+        margin-bottom: 24px;
+    }
+
+    .sectionBadge {
+        padding: 6px 14px;
+        font-size: 10px;
+        margin-bottom: 10px;
+    }
+
+    .sectionTitle {
+        font-size: 1.3rem;
+        margin-bottom: 8px;
+    }
+
+    .sectionDesc {
+        font-size: 0.82rem;
+        line-height: 1.5;
+    }
+
+    /* ---- Featured Section Headers ---- */
+    .featuredHeader {
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .viewAllLink {
+        font-size: 0.85rem;
+    }
+
+    /* ---- Features Section ---- */
+    .features {
+        padding: 32px 0;
+    }
+
+    .featuresGrid {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .featureCard {
+        padding: 16px 12px;
+        border-radius: 14px;
+    }
+
+    .featureIcon {
+        width: 40px;
+        height: 40px;
+        margin: 0 auto 10px;
+        border-radius: 10px;
+        font-size: 1.1rem;
+    }
+
+    .featureCard h3 {
+        font-size: 0.8rem;
+        margin-bottom: 4px;
+    }
+
+    .featureCard p {
+        font-size: 0.7rem;
+        line-height: 1.45;
+    }
+
+    /* ---- Gallery Section ---- */
+    .gallery {
+        padding: 32px 0;
+    }
+
+    .galleryGrid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+
+    .galleryItem {
+        border-radius: 12px;
+        font-size: 2rem;
+    }
+
+    /* ---- CTA Section ---- */
+    .cta {
+        padding: 32px 0;
+    }
+
+    .ctaCard {
+        padding: 24px 20px;
+        border-radius: 18px;
+        gap: 20px;
+    }
+
+    .ctaContent h2 {
+        font-size: 1.35rem;
+        margin-bottom: 10px;
+    }
+
+    .ctaContent p {
+        font-size: 0.85rem;
+        margin-bottom: 20px;
+        line-height: 1.55;
+    }
+
+    .ctaButtons {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .whatsappBtn {
+        padding: 13px 20px;
+        font-size: 0.9rem;
+        border-radius: 12px;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .browseBtn {
+        padding: 12px 20px;
+        font-size: 0.85rem;
+        border-radius: 12px;
+        text-align: center;
+        justify-content: center;
+        width: 100%;
+    }
+
+    /* ---- Stats Bar ---- */
+    .statsBar {
+        padding: 0 12px 80px;
+        margin-top: -16px;
+    }
+
+    .statsContainer {
+        padding: 16px;
+        border-radius: 14px;
+        gap: 8px;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .statItem {
+        min-width: unset;
+    }
+
+    .statNumber {
+        font-size: 1.1rem;
+        margin-bottom: 2px;
+    }
+
+    .statLabel {
+        font-size: 0.65rem;
+    }
 }

@@ -74,30 +74,35 @@ export default async function HomePage() {
         potsCount,
         combosCount,
     ] = await Promise.all([
+        // Bestsellers: products marked as featured (star badge)
         prisma.product.findMany({
             where: { status: 'ACTIVE', featured: true },
             take: 4,
-            orderBy: { createdAt: 'desc' },
+            orderBy: [{ displayOrder: 'asc' }, { createdAt: 'desc' }],
         }),
+        // Plants section: prefer showOnHome, fallback to latest
         prisma.product.findMany({
             where: { status: 'ACTIVE', productType: 'PLANT' },
             take: 8,
-            orderBy: { createdAt: 'desc' },
+            orderBy: [{ showOnHome: 'desc' }, { displayOrder: 'asc' }, { createdAt: 'desc' }],
         }),
+        // Pots section: prefer showOnHome, fallback to latest
         prisma.product.findMany({
             where: { status: 'ACTIVE', productType: 'POT' },
             take: 4,
-            orderBy: { createdAt: 'desc' },
+            orderBy: [{ showOnHome: 'desc' }, { displayOrder: 'asc' }, { createdAt: 'desc' }],
         }),
+        // Combos section: prefer showOnHome, fallback to latest
         prisma.combo.findMany({
-            where: { status: 'ACTIVE', featured: true },
+            where: { status: 'ACTIVE' },
             take: 4,
-            orderBy: { createdAt: 'desc' },
+            orderBy: [{ showOnHome: 'desc' }, { displayOrder: 'asc' }, { createdAt: 'desc' }],
         }),
+        // Gift Hampers section: prefer showOnHome, fallback to latest
         prisma.giftHamper.findMany({
-            where: { status: 'ACTIVE', featured: true },
+            where: { status: 'ACTIVE' },
             take: 4,
-            orderBy: { createdAt: 'desc' },
+            orderBy: [{ showOnHome: 'desc' }, { displayOrder: 'asc' }, { createdAt: 'desc' }],
         }),
         prisma.product.count({ where: { status: 'ACTIVE', productType: 'PLANT', suitableFor: { in: ['INDOOR', 'BOTH'] } } }),
         prisma.product.count({ where: { status: 'ACTIVE', productType: 'PLANT', suitableFor: { in: ['OUTDOOR', 'BOTH'] } } }),

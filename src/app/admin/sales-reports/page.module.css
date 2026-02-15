@@ -272,3 +272,142 @@
 .emptyState p {
     color: var(--neutral-500);
 }
+
+/* ==============================================
+   MOBILE ADMIN SALES REPORTS
+   ============================================== */
+@media (max-width: 767px) {
+    .header {
+        margin-bottom: 1rem;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .title {
+        font-size: 1.2rem;
+    }
+
+    .subtitle {
+        font-size: 0.78rem;
+    }
+
+    /* Summary Cards */
+    .summaryGrid {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 1rem;
+    }
+
+    .summaryCard {
+        padding: 10px 12px;
+        border-radius: 12px;
+        gap: 8px;
+    }
+
+    .summaryIcon {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+    }
+
+    .summaryLabel {
+        font-size: 0.68rem;
+        margin-bottom: 1px;
+    }
+
+    .summaryValue {
+        font-size: 1.1rem;
+    }
+
+    /* Sections */
+    .section {
+        padding: 12px;
+        border-radius: 12px;
+        margin-bottom: 10px;
+    }
+
+    .sectionTitle {
+        font-size: 1rem;
+        margin-bottom: 10px;
+    }
+
+    /* Chart */
+    .chartContainer {
+        height: 200px;
+    }
+
+    .barLabel {
+        font-size: 0.6rem;
+    }
+
+    .barValue {
+        max-width: 14px;
+    }
+
+    /* Grid */
+    .grid {
+        gap: 10px;
+    }
+
+    /* Stat Bars */
+    .statRow {
+        gap: 8px;
+    }
+
+    .statLabel {
+        width: 80px;
+        font-size: 0.72rem;
+    }
+
+    .statBarWrapper {
+        height: 10px;
+    }
+
+    .statValue {
+        width: 32px;
+        font-size: 0.78rem;
+    }
+
+    /* Tabs */
+    .tabs {
+        gap: 0;
+        margin-bottom: 1rem;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .tab {
+        padding: 8px 12px;
+        font-size: 0.78rem;
+        white-space: nowrap;
+        gap: 4px;
+    }
+
+    .tabContent {
+        min-height: 200px;
+    }
+
+    /* Empty State */
+    .content {
+        padding: 1.5rem;
+        border-radius: 12px;
+        min-height: 250px;
+    }
+
+    .emptyIcon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .emptyState h3 {
+        font-size: 1rem;
+    }
+
+    .emptyState p {
+        font-size: 0.82rem;
+    }
+
+    .loading {
+        min-height: 200px;
+    }
+}

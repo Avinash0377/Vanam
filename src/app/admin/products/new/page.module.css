@@ -199,3 +199,65 @@
     opacity: 0.7;
     cursor: not-allowed;
 }
+
+/* Mobile Optimization */
+@media (max-width: 768px) {
+    .page {
+        padding: 0.75rem 0;
+    }
+
+    .header h1 {
+        font-size: 1.25rem;
+    }
+
+    .breadcrumb {
+        font-size: 0.75rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .formGrid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .card {
+        padding: 1rem;
+        border-radius: 14px;
+    }
+
+    .formGroup input,
+    .formGroup select,
+    .formGroup textarea {
+        padding: 0.75rem 0.875rem;
+        min-height: 44px;
+    }
+
+    .formRow {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+
+    .checkbox {
+        padding: 0.75rem;
+        background: var(--neutral-50);
+        border-radius: 10px;
+    }
+
+    .checkbox input {
+        width: 20px;
+        height: 20px;
+    }
+
+    .formActions {
+        flex-direction: column-reverse;
+        gap: 0.75rem;
+    }
+
+    .cancelBtn,
+    .saveBtn {
+        width: 100%;
+        text-align: center;
+        padding: 0.875rem;
+        min-height: 48px;
+    }
+}

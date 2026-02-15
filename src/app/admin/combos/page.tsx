@@ -22,6 +22,7 @@ interface Combo {
     stock: number;
     images: string[];
     featured: boolean;
+    showOnHome?: boolean;
 }
 
 export default function AdminCombosPage() {
@@ -133,6 +134,9 @@ export default function AdminCombosPage() {
                                                             <span className={styles.featuredBadge}>
                                                                 <StarIcon size={14} color="#f59e0b" />
                                                             </span>
+                                                        )}
+                                                        {combo.showOnHome && (
+                                                            <span className={styles.featuredBadge} title="Shown on Homepage">🏠</span>
                                                         )}
                                                     </span>
                                                 </div>

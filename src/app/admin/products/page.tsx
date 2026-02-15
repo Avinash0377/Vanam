@@ -36,6 +36,7 @@ interface Product {
     stock: number;
     status: string;
     featured: boolean;
+    showOnHome?: boolean;
     images: string[];
     category?: { name: string };
     suitableFor?: string;
@@ -353,6 +354,7 @@ export default function AdminProductsPage() {
                                                             <span className={styles.productName}>
                                                                 {product.name}
                                                                 {product.featured && <span className={styles.featuredBadge}><StarIcon size={14} filled color="#f59e0b" /></span>}
+                                                                {product.showOnHome && <span className={styles.featuredBadge} title="Shown on Homepage">🏠</span>}
                                                             </span>
                                                             <span className={styles.productCategory}>
                                                                 {product.category?.name || 'Uncategorized'}

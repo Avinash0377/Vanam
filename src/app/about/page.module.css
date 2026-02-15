@@ -421,3 +421,181 @@
     background: #128C7E;
     transform: translateY(-2px);
 }
+
+/* ==============================================
+   MOBILE ABOUT — COMPACT PREMIUM
+   ============================================== */
+@media (max-width: 767px) {
+    .page {
+        padding-top: 60px;
+        padding-bottom: 80px;
+    }
+
+    /* ---- Hero ---- */
+    .hero {
+        padding: 24px 0 20px;
+    }
+
+    .badge {
+        padding: 6px 16px;
+        font-size: 11px;
+        margin-bottom: 12px;
+    }
+
+    .title {
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+    }
+
+    .subtitle {
+        font-size: 0.82rem;
+        line-height: 1.5;
+    }
+
+    /* ---- Story ---- */
+    .story {
+        padding: 28px 0;
+    }
+
+    .storyGrid {
+        gap: 24px;
+    }
+
+    .storyImage {
+        aspect-ratio: 16/9;
+        border-radius: 16px;
+    }
+
+    .storyContent h2 {
+        font-size: 1.3rem;
+        margin-bottom: 12px;
+    }
+
+    .storyContent p {
+        font-size: 0.85rem;
+        line-height: 1.6;
+        margin-bottom: 10px;
+    }
+
+    /* ---- Values ---- */
+    .values {
+        padding: 28px 0;
+    }
+
+    .sectionTitle {
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+    }
+
+    .valuesGrid {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .valueCard {
+        padding: 16px 12px;
+        border-radius: 12px;
+    }
+
+    .valueIcon {
+        font-size: 1.5rem;
+        margin-bottom: 8px;
+    }
+
+    .valueCard h3 {
+        font-size: 0.82rem;
+        margin-bottom: 4px;
+    }
+
+    .valueCard p {
+        font-size: 0.72rem;
+        line-height: 1.45;
+    }
+
+    /* ---- Timeline ---- */
+    .timeline {
+        padding: 28px 0;
+    }
+
+    .timelineGrid {
+        gap: 10px;
+    }
+
+    .milestoneCard {
+        padding: 14px 16px;
+        border-radius: 12px;
+        min-width: unset;
+        border-left-width: 3px;
+    }
+
+    .year {
+        font-size: 1.1rem;
+        margin-bottom: 4px;
+    }
+
+    .milestoneCard p {
+        font-size: 0.8rem;
+        line-height: 1.4;
+    }
+
+    /* ---- Stats ---- */
+    .stats {
+        padding: 28px 0;
+    }
+
+    .statsGrid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+    }
+
+    .statNumber {
+        font-size: 1.15rem;
+        margin-bottom: 2px;
+    }
+
+    .statLabel {
+        font-size: 0.63rem;
+    }
+
+    /* ---- CTA ---- */
+    .cta {
+        padding: 28px 0;
+    }
+
+    .ctaCard {
+        padding: 24px 16px;
+        border-radius: 14px;
+    }
+
+    .ctaCard h2 {
+        font-size: 1.15rem;
+        margin-bottom: 6px;
+    }
+
+    .ctaCard p {
+        font-size: 0.82rem;
+        margin-bottom: 16px;
+    }
+
+    .ctaButtons {
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .primaryBtn {
+        padding: 13px 24px;
+        font-size: 0.88rem;
+        border-radius: 10px;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .whatsappBtn {
+        padding: 13px 24px;
+        font-size: 0.88rem;
+        border-radius: 10px;
+        justify-content: center;
+        width: 100%;
+    }
+}

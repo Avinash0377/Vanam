@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
 async function createCombo(request: NextRequest, user: JWTPayload) {
     try {
         const body = await request.json();
-        const { name, description, includes, suitableFor, price, comparePrice, stock, images, featured, status } = body;
+        const { name, description, includes, suitableFor, price, comparePrice, stock, images, featured, showOnHome, displayOrder, status } = body;
 
         if (!name || !includes || !price) {
             return NextResponse.json(
@@ -83,6 +83,8 @@ async function createCombo(request: NextRequest, user: JWTPayload) {
                 stock: parseInt(stock) || 0,
                 images: images || [],
                 featured: featured || false,
+                showOnHome: showOnHome || false,
+                displayOrder: parseInt(displayOrder) || 0,
                 status: status || ProductStatus.ACTIVE,
             },
         });

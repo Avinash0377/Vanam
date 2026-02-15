@@ -22,6 +22,8 @@ export default function NewGiftHamperPage() {
         giftWrap: true,
         messageCard: true,
         featured: false,
+        showOnHome: false,
+        displayOrder: '0',
     });
     const [imageUrl, setImageUrl] = useState('');
     const [uploading, setUploading] = useState(false);
@@ -252,7 +254,7 @@ export default function NewGiftHamperPage() {
                         </div>
                     </div>
 
-                    {/* Featured */}
+                    {/* Featured & Homepage */}
                     <div className={styles.formGroup}>
                         <label className={styles.formCheck}>
                             <input
@@ -261,9 +263,34 @@ export default function NewGiftHamperPage() {
                                 checked={formData.featured}
                                 onChange={handleChange}
                             />
-                            <span>Featured Gift Hamper</span>
+                            <span>⭐ Best Seller</span>
                         </label>
                     </div>
+                    <div className={styles.formGroup}>
+                        <label className={styles.formCheck}>
+                            <input
+                                type="checkbox"
+                                name="showOnHome"
+                                checked={formData.showOnHome}
+                                onChange={handleChange}
+                            />
+                            <span>🏠 Show on Homepage</span>
+                        </label>
+                    </div>
+                    {formData.showOnHome && (
+                        <div className={styles.formGroup}>
+                            <label className={styles.formLabel}>Display Order</label>
+                            <input
+                                type="number"
+                                name="displayOrder"
+                                value={formData.displayOrder}
+                                onChange={handleChange}
+                                className={styles.formInput}
+                                min="0"
+                                style={{ width: '100px' }}
+                            />
+                        </div>
+                    )}
 
                     {error && <div className={styles.error}>{error}</div>}
 

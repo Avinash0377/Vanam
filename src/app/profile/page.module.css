@@ -45,22 +45,7 @@
     color: #64748b;
 }
 
-.logoutBtn {
-    padding: 10px 20px;
-    border: 1px solid #e2e8f0;
-    background: white;
-    color: #64748b;
-    font-weight: 600;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.logoutBtn:hover {
-    background: #fee2e2;
-    border-color: #fee2e2;
-    color: #ef4444;
-}
+/* logoutBtn styles are defined in the Account View section below */
 
 .layout {
     display: grid;
@@ -868,5 +853,186 @@
         padding: 10px 12px;
         font-size: 0.9rem;
         border-radius: 8px;
+    }
+}
+
+/* =============== ORDERS PAGE TITLE =============== */
+.ordersPageTitle {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+/* =============== ACCOUNT VIEW =============== */
+.profileCard {
+    background: white;
+    border-radius: 20px;
+    padding: 28px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    margin-bottom: 20px;
+}
+
+.profileTop {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.actionsGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.actionCard {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: white;
+    border-radius: 14px;
+    border: 1px solid #f1f5f9;
+    text-decoration: none;
+    color: #1e293b;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.actionCard:hover {
+    border-color: #1a4d2e;
+    box-shadow: 0 4px 12px rgba(26, 77, 46, 0.08);
+    transform: translateY(-1px);
+}
+
+.actionIcon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.actionLabel {
+    flex: 1;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #334155;
+}
+
+.actionArrow {
+    font-size: 1.25rem;
+    color: #94a3b8;
+    font-weight: 300;
+}
+
+.detailsCard {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    margin-bottom: 20px;
+}
+
+.detailsTitle {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.detailRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+}
+
+.detailRow+.detailRow {
+    border-top: 1px solid #f8fafc;
+}
+
+.detailLabel {
+    font-size: 0.875rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.detailValue {
+    font-size: 0.9rem;
+    color: #0f172a;
+    font-weight: 600;
+}
+
+.logoutBtn {
+    width: 100%;
+    padding: 14px 20px;
+    border: 1px solid #fee2e2;
+    background: #fff5f5;
+    color: #ef4444;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 40px;
+}
+
+.logoutBtn:hover {
+    background: #fee2e2;
+    border-color: #fca5a5;
+}
+
+/* ---- Account view mobile ---- */
+@media (max-width: 768px) {
+    .ordersPageTitle {
+        font-size: 1.25rem;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+    }
+
+    .profileCard {
+        padding: 20px 16px;
+        border-radius: 14px;
+        margin-bottom: 14px;
+    }
+
+    .profileTop {
+        gap: 14px;
+    }
+
+    .actionsGrid {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+
+    .actionCard {
+        padding: 14px 12px;
+        border-radius: 12px;
+    }
+
+    .actionIcon {
+        font-size: 1.25rem;
+    }
+
+    .actionLabel {
+        font-size: 0.82rem;
+    }
+
+    .detailsCard {
+        padding: 16px;
+        border-radius: 12px;
+        margin-bottom: 14px;
+    }
+
+    .detailsTitle {
+        font-size: 1rem;
+    }
+
+    .logoutBtn {
+        margin-bottom: 80px;
     }
 }

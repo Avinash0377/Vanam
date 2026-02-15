@@ -57,7 +57,7 @@ async function updateHamper(
 ) {
     try {
         const body = await request.json();
-        const { name, description, includes, giftWrap, messageCard, price, comparePrice, stock, images, featured } = body;
+        const { name, description, includes, giftWrap, messageCard, price, comparePrice, stock, images, featured, showOnHome, displayOrder } = body;
 
         const existing = await prisma.giftHamper.findUnique({ where: { id } });
         if (!existing) {
@@ -97,6 +97,8 @@ async function updateHamper(
                 stock: stock !== undefined ? parseInt(stock) : existing.stock,
                 images: images !== undefined ? images : existing.images,
                 featured: featured !== undefined ? featured : existing.featured,
+                showOnHome: showOnHome !== undefined ? showOnHome : existing.showOnHome,
+                displayOrder: displayOrder !== undefined ? parseInt(displayOrder) || 0 : existing.displayOrder,
             },
         });
 
