@@ -33,6 +33,7 @@ export interface ProductFormData {
     status: string;
     images: string[];
     sizeVariants: SizeVariant[];
+    tags: string[];
 
     // Legacy fields (for backward compatibility)
     price: string;
@@ -63,6 +64,7 @@ const defaultFormData: ProductFormData = {
     status: 'ACTIVE',
     images: [],
     sizeVariants: [],
+    tags: [],
 
     price: '',
     comparePrice: '',
@@ -79,6 +81,7 @@ export default function ProductForm({ initialData, categories, onSubmit, loading
     const [colorImageUploading, setColorImageUploading] = useState<{ [key: string]: boolean }>({});
     const [addingColor, setAddingColor] = useState<{ [size: string]: boolean }>({});
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [customTagInput, setCustomTagInput] = useState('');
 
     // Single size mode: auto-detect from initialData
     const [isSingleSize, setIsSingleSize] = useState(false);
@@ -575,6 +578,95 @@ export default function ProductForm({ initialData, categories, onSubmit, loading
                             </div>
                         </div>
                     )}
+
+                    {/* Product Tags */}
+                    <div className={styles.card}>
+                        <h2 className={styles.cardTitle}>Product Tags</h2>
+                        <p className={styles.tagHelp}>Select tags that best describe this product. These appear on product cards.</p>
+                        <div className={styles.tagChips}>
+                            {[
+                                'Bestseller', 'New Arrival', 'Low Maintenance', 'Air Purifying',
+                                'Pet Friendly', 'Beginner Friendly', 'Rare Find', 'Fast Growing',
+                                'Flowering', 'Fragrant', 'Drought Tolerant', 'Sun Loving',
+                                'Shade Loving', 'Ceramic', 'Handcrafted', 'Premium', 'Gift Ready'
+                            ].map(tag => (
+                                <button
+                                    key={tag}
+                                    type="button"
+                                    className={`${styles.tagChip} ${formData.tags?.includes(tag) ? styles.tagChipActive : ''}`}
+                                    onClick={() => {
+                                        setFormData(prev => ({
+                                            ...prev,
+                                            tags: prev.tags?.includes(tag)
+                                                ? prev.tags.filter(t => t !== tag)
+                                                : [...(prev.tags || []), tag]
+                                        }));
+                                    }}
+                                >
+                                    {tag}
+                                </button>
+                            ))}
+                        </div>
+                        <div className={styles.customTagRow}>
+                            <input
+                                type="text"
+                                className={styles.input}
+                                placeholder="Add custom tag..."
+                                value={customTagInput}
+                                onChange={(e) => setCustomTagInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && customTagInput.trim()) {
+                                        e.preventDefault();
+                                        const newTag = customTagInput.trim();
+                                        if (!formData.tags?.includes(newTag)) {
+                                            setFormData(prev => ({
+                                                ...prev,
+                                                tags: [...(prev.tags || []), newTag]
+                                            }));
+                                        }
+                                        setCustomTagInput('');
+                                    }
+                                }}
+                            />
+                            <button
+                                type="button"
+                                className={styles.addColorBtn}
+                                disabled={!customTagInput.trim()}
+                                onClick={() => {
+                                    const newTag = customTagInput.trim();
+                                    if (newTag && !formData.tags?.includes(newTag)) {
+                                        setFormData(prev => ({
+                                            ...prev,
+                                            tags: [...(prev.tags || []), newTag]
+                                        }));
+                                    }
+                                    setCustomTagInput('');
+                                }}
+                            >
+                                + Add
+                            </button>
+                        </div>
+                        {formData.tags && formData.tags.length > 0 && (
+                            <div className={styles.selectedTags}>
+                                <span className={styles.selectedTagsLabel}>Selected:</span>
+                                {formData.tags.map(tag => (
+                                    <span key={tag} className={styles.selectedTag}>
+                                        {tag}
+                                        <button
+                                            type="button"
+                                            className={styles.removeColorBtn}
+                                            onClick={() => setFormData(prev => ({
+                                                ...prev,
+                                                tags: prev.tags.filter(t => t !== tag)
+                                            }))}
+                                        >
+                                            ×
+                                        </button>
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+                    </div>
 
                     {/* Images - Hidden when multi-color is selected (they use per-color images) */}
                     {!isMultiColor && (

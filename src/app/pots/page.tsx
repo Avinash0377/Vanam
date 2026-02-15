@@ -32,6 +32,7 @@ interface Pot {
     images: string[];
     featured?: boolean;
     sizeVariants?: SizeVariant[];
+    tags?: string[];
 
 }
 
@@ -151,7 +152,7 @@ export default function PotsPage() {
                                         sizeVariants={pot.sizeVariants || []}
 
                                         productType="POT"
-                                        tags={[pot.material, pot.color].filter(Boolean) as string[]}
+                                        tags={pot.tags && pot.tags.length > 0 ? pot.tags : [pot.material, pot.color].filter(Boolean) as string[]}
                                         suitableFor="BOTH"
                                     />
                                 ))}

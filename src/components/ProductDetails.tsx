@@ -309,14 +309,13 @@ export default function ProductDetails({ type }: ProductDetailsProps) {
                                             key={idx}
                                             className={`${styles.colorBtn} ${selectedColor?.hex === color.hex ? styles.selected : ''}`}
                                             onClick={() => handleColorSelect(color)}
-                                            style={{ backgroundColor: color.hex }}
                                             title={color.name}
                                         >
-                                            {selectedColor?.hex === color.hex && (
-                                                <svg className={styles.checkIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                                                    <polyline points="20 6 9 17 4 12"></polyline>
-                                                </svg>
-                                            )}
+                                            <span
+                                                className={styles.colorSwatch}
+                                                style={{ backgroundColor: color.hex }}
+                                            />
+                                            <span className={styles.colorName}>{color.name}</span>
                                         </button>
                                     ))}
                                 </div>

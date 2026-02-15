@@ -17,6 +17,7 @@ interface Product {
     stock: number;
     images: string[];
     featured?: boolean;
+    tags?: string[];
 }
 
 export default function SeedsPage() {
@@ -164,7 +165,7 @@ export default function SeedsPage() {
                                         type="product"
                                         featured={product.featured}
                                         productType={product.productType}
-                                        tags={['Easy to Grow']}
+                                        tags={product.tags || []}
                                     />
                                 ))}
                             </div>

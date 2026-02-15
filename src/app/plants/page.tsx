@@ -32,6 +32,7 @@ interface Product {
     images: string[];
     featured?: boolean;
     sizeVariants?: SizeVariant[];
+    tags?: string[];
 
 }
 
@@ -202,7 +203,7 @@ export default function PlantsPage() {
                                         sizeVariants={product.sizeVariants || []}
 
                                         productType={product.productType}
-                                        tags={product.suitableFor === 'INDOOR' ? ['Low Maintenance'] : []}
+                                        tags={product.tags || []}
                                     />
                                 ))}
                             </div>

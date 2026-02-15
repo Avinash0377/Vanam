@@ -37,6 +37,7 @@ interface Product {
             images: string[];
         }>;
     }>;
+    tags?: string[];
 
 }
 
@@ -79,6 +80,7 @@ export default function EditProductPage() {
                     status: product.status,
                     images: product.images || [],
                     sizeVariants: product.sizeVariants || [],
+                    tags: product.tags || [],
 
                 });
             }

@@ -123,6 +123,7 @@ export async function PUT(
                     status,
                     images,
                     sizeVariants: sizeVariants !== undefined ? processedVariants : undefined,
+                    tags: body.tags || undefined,
 
                 },
             });

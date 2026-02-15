@@ -132,6 +132,7 @@ model Product {
   stock            Int           @default(0) // Total stock (sum of variants or single)
   status           ProductStatus @default(ACTIVE)
   featured         Boolean       @default(false)
+  tags             String[]      // Custom product tags (e.g., Bestseller, Pet Friendly)
   categoryId       String?       @db.ObjectId
   category         Category?     @relation(fields: [categoryId], references: [id])
   createdAt        DateTime      @default(now())

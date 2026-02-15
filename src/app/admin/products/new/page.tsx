@@ -39,6 +39,7 @@ export default function NewProductPage() {
         status: 'ACTIVE',
         images: [],
         sizeVariants: [],
+        tags: [],
 
     };
 

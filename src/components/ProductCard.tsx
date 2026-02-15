@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
+import { TagIcon, getTagColors } from './TagIcons';
 import styles from './ProductCard.module.css';
 
 interface VariantColor {
@@ -164,7 +165,7 @@ export default function ProductCard({
             if (!productTags.includes('Gift Ready')) productTags.push('Gift Ready');
         }
 
-        return productTags.slice(0, 2);
+        return productTags.slice(0, 3);
     };
 
     const productTags = getProductTags();
@@ -295,17 +296,23 @@ export default function ProductCard({
 
                     {productTags.length > 0 && (
                         <div className={styles.tagsRow}>
-                            {productTags.map((tag, index) => (
-                                <span key={index} className={styles.tag}>
-                                    {tag === 'Air Purifying' && <span className={styles.tagIcon}>🌿</span>}
-                                    {tag === 'Low Maintenance' && <span className={styles.tagIcon}>💪</span>}
-                                    {tag === 'Pet Safe' && <span className={styles.tagIcon}>🐾</span>}
-                                    {tag === 'Perfect Gift' && <span className={styles.tagIcon}>🎁</span>}
-                                    {tag === 'Best Seller' && <span className={styles.tagIcon}>⭐</span>}
-                                    {tag === 'Beginner Friendly' && <span className={styles.tagIcon}>👍</span>}
-                                    {tag}
-                                </span>
-                            ))}
+                            {productTags.map((tag, index) => {
+                                const colors = getTagColors(tag);
+                                return (
+                                    <span
+                                        key={index}
+                                        className={styles.tag}
+                                        style={{
+                                            background: colors.bg,
+                                            color: colors.text,
+                                            borderColor: colors.border,
+                                        }}
+                                    >
+                                        <span className={styles.tagIcon}><TagIcon tag={tag} size={12} /></span>
+                                        {tag}
+                                    </span>
+                                );
+                            })}
                         </div>
                     )}
                 </div>

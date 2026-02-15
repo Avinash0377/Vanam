@@ -79,6 +79,7 @@ async function createProduct(request: NextRequest, user: JWTPayload) {
             status,
             images,
             sizeVariants,
+            tags,
 
         } = body;
 
@@ -151,6 +152,7 @@ async function createProduct(request: NextRequest, user: JWTPayload) {
                 status: status || 'ACTIVE',
                 images: images || [],
                 sizeVariants: processedVariants,
+                tags: tags || [],
             },
         });
 

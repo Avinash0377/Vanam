@@ -145,6 +145,7 @@ export default async function HomePage() {
         featured: p.featured as boolean,
         productType: p.productType as string,
         sizeVariants: (p.sizeVariants || []) as { size: string; price: number; stock: number; colors: { name: string; hex: string; images: string[] }[] }[],
+        tags: (p.tags || []) as string[],
 
     });
 
@@ -355,6 +356,7 @@ export default async function HomePage() {
                                         sizeVariants={p.sizeVariants}
 
                                         productType={p.productType}
+                                        tags={p.tags}
                                     />
                                 </FadeIn>
                             );
@@ -402,7 +404,7 @@ export default async function HomePage() {
                                             sizeVariants={p.sizeVariants}
 
                                             productType={p.productType}
-                                            tags={['Air Purifying', 'Low Maintenance']}
+                                            tags={p.tags}
                                         />
                                     </FadeIn>
                                 );
@@ -451,7 +453,7 @@ export default async function HomePage() {
                                             sizeVariants={p.sizeVariants}
 
                                             productType={p.productType}
-                                            tags={['Flowering', 'Garden']}
+                                            tags={p.tags}
                                         />
                                     </FadeIn>
                                 );
@@ -499,7 +501,7 @@ export default async function HomePage() {
                                             sizeVariants={p.sizeVariants}
 
                                             productType={p.productType}
-                                            tags={['Designer', 'Premium']}
+                                            tags={p.tags}
                                         />
                                     </FadeIn>
                                 );

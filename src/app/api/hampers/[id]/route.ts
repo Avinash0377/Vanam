@@ -11,6 +11,14 @@ export async function GET(
     try {
         const { id } = await params;
 
+        // Check if 'id' looks like a valid MongoDB ObjectId (24 hex characters)
+        const isValidObjectId = /^[a-f\d]{24}$/i.test(id);
+
+        // Build the where clause - support both id and slug lookup
+        const whereClause = isValidObjectId
+            ? { OR: [{ id }, { slug: id }] }
+            : { slug: id };
+
         // Check if requester is admin — if not, only show ACTIVE hampers
         const token = extractTokenFromHeader(request.headers.get('authorization'));
         const user = token ? verifyToken(token) : null;
@@ -18,7 +26,7 @@ export async function GET(
 
         const hamper = await prisma.giftHamper.findFirst({
             where: {
-                id,
+                ...whereClause,
                 ...(!isAdmin && { status: 'ACTIVE' }),
             },
         });
