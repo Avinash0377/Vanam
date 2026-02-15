@@ -40,7 +40,8 @@ export default function NewProductPage() {
         images: [],
         sizeVariants: [],
         tags: [],
-
+        showOnHome: false,
+        displayOrder: 0,
     };
 
     // Get title based on product type
