@@ -85,7 +85,7 @@ export default function Navbar() {
 
                     {/* Logo (centered on mobile) */}
                     <Link href="/" className={styles.logo}>
-                        <img src="/logo.png" alt="Vanam Store" className={styles.logoImage} />
+                        <img src="/logo.png?v=2" alt="Vanam Store" className={styles.logoImage} />
                         <span className={styles.tagline}>ROOTED IN NATURE</span>
                     </Link>
 
