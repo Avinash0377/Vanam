@@ -32,7 +32,7 @@ interface CartContextType {
     summary: CartSummary;
     isLoading: boolean;
     addItem: (item: Omit<CartItem, 'quantity'>, quantity?: number) => void;
-    updateQuantity: (itemId: string, type: string, quantity: number) => void;
+    updateQuantity: (itemId: string, type: string, quantity: number) => Promise<string | null>;
     removeItem: (itemId: string, type: string) => void;
     clearCart: () => void;
     refreshCart: () => Promise<void>;
@@ -236,12 +236,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }
     };
 
-    const updateQuantity = async (itemId: string, type: string, quantity: number) => {
-        if (quantity < 1) return;
+    const updateQuantity = async (itemId: string, type: string, quantity: number): Promise<string | null> => {
+        if (quantity < 1) return null;
 
         if (isAuthenticated && token) {
             try {
-                await fetch(`/api/cart/${itemId}`, {
+                const res = await fetch(`/api/cart/${itemId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -249,9 +249,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
                     },
                     body: JSON.stringify({ quantity, type }),
                 });
+
+                if (!res.ok) {
+                    const data = await res.json();
+                    return data.error || 'Failed to update quantity';
+                }
+
                 await refreshCart();
+                return null;
             } catch (error) {
                 console.error('Failed to update cart:', error);
+                return 'Failed to update cart';
             }
         } else {
             const newItems = items.map(item =>
@@ -261,6 +269,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             );
             setItems(newItems);
             saveGuestCart(newItems);
+            return null;
         }
     };
 

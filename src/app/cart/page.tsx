@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
@@ -15,6 +15,7 @@ export default function CartPage() {
     const [pincodeStatus, setPincodeStatus] = useState<'idle' | 'checking' | 'valid' | 'invalid'>('idle');
     const [pincodeMessage, setPincodeMessage] = useState('');
     const [validatedPincode, setValidatedPincode] = useState('');
+    const [stockError, setStockError] = useState('');
 
     const handlePincodeCheck = async () => {
         const trimmed = pincode.trim();
@@ -93,6 +94,12 @@ export default function CartPage() {
                     <span className={styles.itemCount}>{items.length} items</span>
                 </div>
 
+                {stockError && (
+                    <div className={styles.stockToast}>
+                        ⚠️ {stockError}
+                    </div>
+                )}
+
                 <div className={styles.layout}>
                     {/* Cart Items */}
                     <div className={styles.cartItems}>
@@ -166,7 +173,13 @@ export default function CartPage() {
                                             <span className={styles.qtyValue}>{item.quantity}</span>
                                             <button
                                                 className={styles.qtyBtn}
-                                                onClick={() => updateQuantity(item.id!, item.type, item.quantity + 1)}
+                                                onClick={async () => {
+                                                    const error = await updateQuantity(item.id!, item.type, item.quantity + 1);
+                                                    if (error) {
+                                                        setStockError(error);
+                                                        setTimeout(() => setStockError(''), 3000);
+                                                    }
+                                                }}
                                             >
                                                 +
                                             </button>
