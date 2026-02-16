@@ -72,6 +72,16 @@ export async function finalizePayment(
             return { success: false, error: 'Payment has already failed' };
         }
 
+        // 2b. Reject expired pending payments
+        if (pendingPayment.expiresAt && new Date() > new Date(pendingPayment.expiresAt)) {
+            console.log(`[${source}] Payment session expired: ${razorpayOrderId}`);
+            await prisma.pendingPayment.update({
+                where: { razorpayOrderId },
+                data: { status: 'FAILED' },
+            });
+            return { success: false, error: 'Payment session expired. Please try again.' };
+        }
+
         // 3. Parse cart snapshot
         const cartSnapshot: CartSnapshotItem[] = JSON.parse(pendingPayment.cartSnapshot);
 

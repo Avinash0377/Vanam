@@ -217,6 +217,7 @@ export default function CheckoutPage() {
                             );
                         }
                     } catch (verifyErr) {
+                        setLoading(false);
                         setError(
                             `Payment verification failed. Reference: ${paymentData.razorpayOrderId}. ` +
                             `Please contact support with this reference.`
@@ -342,8 +343,8 @@ export default function CheckoutPage() {
                                         <div
                                             key={issue.itemId}
                                             className={`${styles.validationIssue} ${issue.issue === 'OUT_OF_STOCK' || issue.issue === 'NOT_FOUND' || issue.issue === 'INACTIVE'
-                                                    ? styles.critical
-                                                    : ''
+                                                ? styles.critical
+                                                : ''
                                                 }`}
                                         >
                                             {issue.issue === 'OUT_OF_STOCK' || issue.issue === 'NOT_FOUND' || issue.issue === 'INACTIVE'

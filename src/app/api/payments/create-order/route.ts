@@ -196,6 +196,7 @@ async function createPaymentOrder(request: NextRequest, user: JWTPayload) {
                 notes: notes || null,
                 paymentMethod: paymentMethod || 'RAZORPAY',
                 cartSnapshot: JSON.stringify(cartSnapshot),
+                expiresAt: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes
             },
         });
 

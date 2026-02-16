@@ -8,6 +8,7 @@ const requiredVars = [
     'JWT_SECRET',
     'RAZORPAY_KEY_ID',
     'RAZORPAY_KEY_SECRET',
+    'RAZORPAY_WEBHOOK_SECRET',
     'CLOUDINARY_CLOUD_NAME',
     'CLOUDINARY_API_KEY',
     'CLOUDINARY_API_SECRET',
@@ -15,7 +16,6 @@ const requiredVars = [
 
 const optionalVars = [
     'JWT_EXPIRES_IN',
-    'RAZORPAY_WEBHOOK_SECRET',
     'NEXT_PUBLIC_APP_URL',
     'NEXT_PUBLIC_WHATSAPP_NUMBER',
 ] as const;
