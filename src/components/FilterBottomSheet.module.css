@@ -247,23 +247,9 @@
     padding: 0 6px;
 }
 
-/* Mobile Search Input */
+/* Mobile Search Input — HIDDEN (navbar already has search) */
 .mobileSearchWrapper {
     display: none;
-}
-
-@media (max-width: 767px) {
-    .mobileSearchWrapper {
-        display: flex;
-        align-items: center;
-        flex: 1;
-        max-width: 180px;
-        height: 40px;
-        background: #f3f4f6;
-        border-radius: 20px;
-        padding: 0 12px;
-        gap: 8px;
-    }
 }
 
 .searchIcon {

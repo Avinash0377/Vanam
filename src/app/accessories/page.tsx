@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import ProductCard from '@/components/ProductCard';
-import FilterBottomSheet, { FilterButton, MobileSearchInput } from '@/components/FilterBottomSheet';
+import FilterBottomSheet, { FilterButton } from '@/components/FilterBottomSheet';
 import styles from './page.module.css';
 
 interface VariantColor {
@@ -41,7 +41,6 @@ export default function AccessoriesPage() {
 
     // Mobile filter state
     const [filterOpen, setFilterOpen] = useState(false);
-    const [mobileSearch, setMobileSearch] = useState('');
     const [mobileSort, setMobileSort] = useState('');
 
     useEffect(() => {
@@ -64,10 +63,7 @@ export default function AccessoriesPage() {
         fetchProducts();
     }, []);
 
-    const filteredProducts = products.filter(product => {
-        const matchesSearch = !mobileSearch || product.name.toLowerCase().includes(mobileSearch.toLowerCase());
-        return matchesSearch;
-    });
+    const filteredProducts = products;
 
     // Apply mobile sort if set
     const effectiveSort = mobileSort || sortBy;
@@ -100,13 +96,6 @@ export default function AccessoriesPage() {
                     <main className={styles.main}>
                         {/* Top Bar */}
                         <div className={styles.topBar}>
-                            {/* Mobile Search (left) */}
-                            <MobileSearchInput
-                                value={mobileSearch}
-                                onChange={setMobileSearch}
-                                placeholder="Search accessories..."
-                            />
-
                             <span className={styles.resultCount}>{sortedProducts.length} accessories</span>
 
                             {/* Mobile Sort Button (right) */}

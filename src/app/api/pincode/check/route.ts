@@ -1,10 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 // GET /api/pincode/check?pincode=XXXXXX
 // Public endpoint — no auth required
 export async function GET(request: NextRequest) {
     try {
+        // Rate limit: 30 checks per minute per IP
+        const ip = getClientIp(request);
+        const rateCheck = checkRateLimit(`pincode:${ip}`, { maxRequests: 30, windowSeconds: 60 });
+        if (!rateCheck.allowed) {
+            return NextResponse.json(
+                { available: false, error: 'Too many requests. Please try again later.' },
+                { status: 429 }
+            );
+        }
+
         const { searchParams } = new URL(request.url);
         const pincode = searchParams.get('pincode');
 

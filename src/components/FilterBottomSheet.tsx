@@ -159,3 +159,17 @@ export function MobileSearchInput({ value, onChange, placeholder = "Search..." }
     );
 }
 
+// Mobile Filter Button Component (left side — opens filter options)
+export function MobileFilterButton({ onClick, activeCount }: { onClick: () => void; activeCount?: number }) {
+    return (
+        <button className={styles.filterButton} onClick={onClick}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+            </svg>
+            <span>Filter</span>
+            {activeCount && activeCount > 0 && (
+                <span className={styles.filterBadge}>{activeCount}</span>
+            )}
+        </button>
+    );
+}

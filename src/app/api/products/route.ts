@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
         const maxPrice = searchParams.get('maxPrice');
         const sortBy = searchParams.get('sortBy') || 'createdAt';
         const sortOrder = searchParams.get('sortOrder') || 'desc';
+        const safeSortOrder = sortOrder === 'asc' ? 'asc' : 'desc';
 
         // Whitelist allowed sort fields to prevent data leakage
         const allowedSortFields = ['createdAt', 'price', 'name', 'stock', 'featured'];
@@ -75,7 +76,7 @@ export async function GET(request: NextRequest) {
                     },
                 },
                 orderBy: {
-                    [safeSortBy]: sortOrder,
+                    [safeSortBy]: safeSortOrder,
                 },
                 skip,
                 take: limit,

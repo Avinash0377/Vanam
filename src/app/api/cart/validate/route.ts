@@ -114,9 +114,7 @@ async function validateCart(request: NextRequest, user: JWTPayload) {
                     });
                 }
 
-                // Check if price has changed
-                const currentPrice = getVariantPrice(item.product, item.size);
-                // We don't block on price changes, just inform
+                // Price change detection could be added here in future
             }
 
             // Combo validation

@@ -184,15 +184,29 @@
     margin-bottom: 24px;
     padding: 12px 0;
     background: transparent;
-    /* Changed to transparent */
     box-shadow: none;
-    /* Removed shadow */
+}
+
+@media (max-width: 767px) {
+    .topBar {
+        margin-bottom: 12px;
+        padding: 6px 0;
+        gap: 8px;
+    }
 }
 
 .resultCount {
     font-size: 0.85rem;
     font-weight: 600;
     color: #64748b;
+}
+
+@media (max-width: 767px) {
+    .resultCount {
+        font-size: 0.75rem;
+        flex: 1;
+        text-align: center;
+    }
 }
 
 @media (min-width: 768px) {

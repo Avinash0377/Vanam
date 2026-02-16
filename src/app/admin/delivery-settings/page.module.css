@@ -392,23 +392,161 @@
     }
 }
 
-/* Responsive */
-@media (max-width: 768px) {
+/* ─── Mobile Responsive ─── */
+@media (max-width: 767px) {
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .headerLeft {
+        gap: 0.625rem;
+    }
+
+    .headerLeft svg {
+        width: 22px;
+        height: 22px;
+    }
+
+    .title {
+        font-size: 1.15rem;
+    }
+
+    .subtitle {
+        font-size: 0.75rem;
+    }
+
+    /* Add Section */
+    .addSection {
+        padding: 1rem;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+    }
+
+    .sectionTitle {
+        font-size: 0.875rem;
+        margin-bottom: 0.75rem;
+    }
+
     .addForm {
         flex-direction: column;
+        gap: 0.625rem;
     }
 
     .input {
         min-width: 100%;
+        padding: 0.5625rem 0.75rem;
+        font-size: 0.8125rem;
+        border-radius: 8px;
     }
 
-    .title {
-        font-size: 1.25rem;
+    .addBtn {
+        width: 100%;
+        padding: 0.625rem;
+        font-size: 0.8125rem;
+        border-radius: 8px;
     }
 
-    .table th,
+    /* Search */
+    .searchBar {
+        padding: 0.5rem 0.75rem;
+        gap: 0.5rem;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+    }
+
+    .searchInput {
+        font-size: 0.8125rem;
+    }
+
+    .searchBtn {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.75rem;
+        border-radius: 6px;
+    }
+
+    .clearBtn {
+        padding: 0.375rem 0.625rem;
+        font-size: 0.75rem;
+    }
+
+    /* Table */
+    .tableWrapper {
+        border-radius: 12px;
+    }
+
+    .table {
+        font-size: 0.75rem;
+    }
+
+    .table th {
+        padding: 0.625rem 0.5rem;
+        font-size: 0.625rem;
+        letter-spacing: 0.03em;
+    }
+
     .table td {
-        padding: 0.75rem;
+        padding: 0.625rem 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    .pincodeCell code {
+        font-size: 0.8125rem;
+        padding: 0.125rem 0.375rem;
+    }
+
+    .dateCell {
+        font-size: 0.6875rem;
+    }
+
+    .badge {
+        padding: 0.125rem 0.5rem;
+        font-size: 0.625rem;
+    }
+
+    .actions {
+        gap: 0.25rem;
+    }
+
+    .actionBtn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.625rem;
+        border-radius: 6px;
+    }
+
+    .deleteBtn {
+        padding: 0.25rem 0.375rem;
+    }
+
+    /* Pagination */
+    .pagination {
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .pageBtn {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.75rem;
+        border-radius: 6px;
+    }
+
+    .pageInfo {
+        font-size: 0.75rem;
+    }
+
+    /* Loading / Empty */
+    .loadingState,
+    .emptyState {
+        padding: 2.5rem 1rem;
+    }
+
+    .emptyState h3 {
+        font-size: 1rem;
+    }
+
+    .emptyState p {
         font-size: 0.8125rem;
     }
 }

@@ -364,47 +364,226 @@
     font-weight: 500;
 }
 
-/* Mobile Checkout Optimization */
+/* ==============================================
+   MOBILE CHECKOUT — PREMIUM COMPACT LAYOUT
+   ============================================== */
 @media (max-width: 768px) {
+
+    /* ---- Page & Layout ---- */
     .page {
-        padding: 1.5rem 0;
+        padding: 1.25rem 0 0;
+        padding-bottom: 80px;
+        min-height: auto;
     }
 
+    .title {
+        font-size: 1.35rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .layout {
+        gap: 1.25rem;
+    }
+
+    /* ---- Error ---- */
+    .error {
+        padding: 10px 14px;
+        margin-bottom: 1rem;
+        font-size: 0.82rem;
+        border-radius: 10px;
+    }
+
+    /* ---- Form Section ---- */
     .formSection {
         padding: 1.25rem;
         border-radius: 14px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+        border: 1px solid #f1f5f9;
     }
 
     .sectionTitle {
-        font-size: 1.1rem;
+        font-size: 1.05rem;
         margin-bottom: 1rem;
-        padding-bottom: 0.75rem;
+        padding-bottom: 0.625rem;
+        font-weight: 600;
+    }
+
+    .formGrid {
+        gap: 1rem;
+    }
+
+    .label {
+        font-size: 0.78rem;
+        margin-bottom: 4px;
+        font-weight: 600;
+        color: var(--neutral-600);
     }
 
     .input,
     .textarea {
         min-height: 44px;
-        padding: 0.75rem 1rem;
-        font-size: 0.9375rem;
+        padding: 11px 14px;
+        font-size: 0.9rem;
+        border-radius: 10px;
+        border-width: 1.5px;
+        border-color: var(--neutral-200);
+        background: #fafafa;
     }
 
+    .input:focus,
+    .textarea:focus {
+        background: white;
+    }
+
+    .textarea {
+        min-height: 72px;
+    }
+
+    /* ---- Order Summary ---- */
     .summary {
         padding: 1.25rem;
         border-radius: 14px;
+        position: static;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+        border: 1px solid #f1f5f9;
     }
 
+    .summaryItems {
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.75rem;
+    }
+
+    .summaryItem {
+        padding: 6px 0;
+        font-size: 0.85rem;
+    }
+
+    .summaryItemName {
+        font-size: 0.82rem;
+        max-width: 60%;
+    }
+
+    .summaryRow {
+        padding: 5px 0;
+        font-size: 0.85rem;
+    }
+
+    .summaryTotal {
+        padding: 0.75rem 0;
+        margin: 0.5rem 0 1rem;
+        font-size: 1.1rem;
+    }
+
+    .paymentNote {
+        margin-top: 0.75rem;
+        font-size: 0.72rem;
+    }
+
+    /* ---- Validation States ---- */
+    .validationBanner {
+        padding: 12px;
+        margin-bottom: 1rem;
+        border-radius: 10px;
+    }
+
+    .validationBanner h3 {
+        font-size: 0.88rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .validationIssue {
+        font-size: 0.78rem;
+        padding: 8px 10px;
+    }
+
+    .validatingText,
+    .validationSuccess {
+        padding: 10px 12px;
+        margin-bottom: 1rem;
+        font-size: 0.8rem;
+        border-radius: 10px;
+    }
+
+    /* ---- Login Card ---- */
     .loginCard {
-        padding: 2rem 1.25rem;
+        padding: 1.5rem 1.25rem;
         border-radius: 14px;
+        border: 1px solid #f1f5f9;
+    }
+
+    .loginIcon {
+        font-size: 2.25rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .loginCard h2 {
+        font-size: 1.25rem;
+        margin-bottom: 4px;
+    }
+
+    .loginCard>p {
+        font-size: 0.85rem;
+        margin-bottom: 1.25rem;
     }
 
     .loginBenefits {
         grid-template-columns: 1fr;
-        gap: 0.5rem;
+        gap: 6px;
+        margin-bottom: 1.25rem;
     }
 
     .benefit {
-        padding: 0.75rem;
+        padding: 10px 12px;
+        font-size: 0.8rem;
         min-height: 44px;
+        border-radius: 8px;
+    }
+
+    .loginButtons {
+        gap: 8px;
+    }
+
+    .loginButtons .btn {
+        min-width: unset;
+        width: 100%;
+        min-height: 44px;
+        font-size: 0.9rem;
+    }
+
+    .guestNote {
+        margin-top: 1rem;
+        font-size: 0.75rem;
+    }
+
+    /* ---- Summary Preview ---- */
+    .summaryPreview {
+        padding: 1.25rem;
+        border-radius: 14px;
+        border: 1px solid #f1f5f9;
+    }
+
+    .summaryPreview h3 {
+        font-size: 1rem;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.5rem;
+    }
+
+    /* ---- Empty State ---- */
+    .empty {
+        min-height: 50vh;
+        padding: 0 1rem;
+    }
+
+    .emptyIcon {
+        font-size: 3.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .empty h2 {
+        font-size: 1.25rem;
+    }
+
+    .empty p {
+        font-size: 0.85rem;
     }
 }

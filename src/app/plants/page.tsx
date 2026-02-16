@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import ProductCard from '@/components/ProductCard';
-import FilterBottomSheet, { FilterButton, MobileSearchInput } from '@/components/FilterBottomSheet';
+import FilterBottomSheet, { FilterButton, MobileFilterButton } from '@/components/FilterBottomSheet';
 import styles from './page.module.css';
 
 interface VariantColor {
@@ -45,8 +45,10 @@ export default function PlantsPage() {
 
     // Mobile filter state
     const [filterOpen, setFilterOpen] = useState(false);
-    const [mobileSearch, setMobileSearch] = useState('');
     const [mobileSort, setMobileSort] = useState('');
+    const [mobileSuitableFor, setMobileSuitableFor] = useState('');
+    const [mobileSize, setMobileSize] = useState('');
+    const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
     // Try to fetch from API
     useEffect(() => {
@@ -70,11 +72,11 @@ export default function PlantsPage() {
     }, []);
 
     const filteredProducts = products.filter(product => {
-        const matchesSuitable = !suitableFor || product.suitableFor === suitableFor;
-        const matchesSize = !size || product.size === size;
-        // Mobile search filter
-        const matchesSearch = !mobileSearch || product.name.toLowerCase().includes(mobileSearch.toLowerCase());
-        return matchesSuitable && matchesSize && matchesSearch;
+        const effectiveSuitable = mobileSuitableFor || suitableFor;
+        const effectiveSize = mobileSize || size;
+        const matchesSuitable = !effectiveSuitable || product.suitableFor === effectiveSuitable;
+        const matchesSize = !effectiveSize || product.size === effectiveSize;
+        return matchesSuitable && matchesSize;
     });
 
     // Apply mobile sort if set
@@ -92,7 +94,7 @@ export default function PlantsPage() {
         }
     });
 
-    const activeFilterCount = (mobileSearch ? 1 : 0) + (mobileSort ? 1 : 0);
+    const mobileFilterCount = (mobileSuitableFor ? 1 : 0) + (mobileSize ? 1 : 0);
 
     return (
         <div className={styles.page}>
@@ -144,12 +146,8 @@ export default function PlantsPage() {
                     <main className={styles.main}>
                         {/* Top Bar */}
                         <div className={styles.topBar}>
-                            {/* Mobile Search (left) */}
-                            <MobileSearchInput
-                                value={mobileSearch}
-                                onChange={setMobileSearch}
-                                placeholder="Search..."
-                            />
+                            {/* Mobile Filter Button (left) */}
+                            <MobileFilterButton onClick={() => setMobileFilterOpen(true)} activeCount={mobileFilterCount} />
 
                             <span className={styles.resultCount}>{sortedProducts.length} plants</span>
 
@@ -220,6 +218,77 @@ export default function PlantsPage() {
                 onSortChange={setMobileSort}
                 onApply={() => setFilterOpen(false)}
             />
+
+            {/* Mobile Filter Bottom Sheet */}
+            {mobileFilterOpen && (
+                <>
+                    <div
+                        style={{
+                            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+                            zIndex: 200, animation: 'fadeIn 0.2s ease'
+                        }}
+                        onClick={() => setMobileFilterOpen(false)}
+                    />
+                    <div style={{
+                        position: 'fixed', bottom: 0, left: 0, right: 0,
+                        background: '#fff', borderRadius: '20px 20px 0 0',
+                        zIndex: 201, padding: '20px 16px',
+                        paddingBottom: 'calc(20px + env(safe-area-inset-bottom, 0px))',
+                        animation: 'slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                    }}>
+                        <div style={{ width: 40, height: 4, background: '#e5e7eb', borderRadius: 2, margin: '0 auto 16px' }} />
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                            <h3 style={{ fontSize: 18, fontWeight: 600, color: '#1f2937', margin: 0 }}>Filter</h3>
+                            <button
+                                onClick={() => setMobileFilterOpen(false)}
+                                style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', padding: 8 }}
+                            >
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M18 6L6 18M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div style={{ marginBottom: 16 }}>
+                            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Suitable For</label>
+                            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                {['', 'INDOOR', 'OUTDOOR', 'BOTH'].map(val => (
+                                    <button key={val} onClick={() => setMobileSuitableFor(val)} style={{
+                                        padding: '10px 18px', fontSize: 13, fontWeight: 500, borderRadius: 50,
+                                        border: mobileSuitableFor === val ? '1.5px solid #1a4d2e' : '1px solid #d1d5db',
+                                        background: mobileSuitableFor === val ? '#1a4d2e' : '#f9fafb',
+                                        color: mobileSuitableFor === val ? '#fff' : '#374151',
+                                        cursor: 'pointer', transition: 'all 0.2s'
+                                    }}>{val || 'All'}</button>
+                                ))}
+                            </div>
+                        </div>
+                        <div style={{ marginBottom: 20 }}>
+                            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Size</label>
+                            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                {['', 'SMALL', 'MEDIUM', 'BIG'].map(val => (
+                                    <button key={val} onClick={() => setMobileSize(val)} style={{
+                                        padding: '10px 18px', fontSize: 13, fontWeight: 500, borderRadius: 50,
+                                        border: mobileSize === val ? '1.5px solid #1a4d2e' : '1px solid #d1d5db',
+                                        background: mobileSize === val ? '#1a4d2e' : '#f9fafb',
+                                        color: mobileSize === val ? '#fff' : '#374151',
+                                        cursor: 'pointer', transition: 'all 0.2s'
+                                    }}>{val || 'All'}</button>
+                                ))}
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: 12 }}>
+                            <button onClick={() => { setMobileSuitableFor(''); setMobileSize(''); }} style={{
+                                flex: 1, padding: '14px', fontSize: 14, fontWeight: 600,
+                                color: '#6b7280', background: '#f3f4f6', border: 'none', borderRadius: 12, cursor: 'pointer'
+                            }}>Clear</button>
+                            <button onClick={() => setMobileFilterOpen(false)} style={{
+                                flex: 2, padding: '14px', fontSize: 14, fontWeight: 600,
+                                color: '#fff', background: '#1a4d2e', border: 'none', borderRadius: 12, cursor: 'pointer'
+                            }}>Apply</button>
+                        </div>
+                    </div>
+                </>
+            )}
         </div>
     );
 }

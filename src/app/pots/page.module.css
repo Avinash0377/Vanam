@@ -195,6 +195,20 @@
     color: #64748b;
 }
 
+@media (max-width: 767px) {
+    .topBar {
+        margin-bottom: 12px;
+        padding: 6px 0;
+        gap: 8px;
+    }
+
+    .resultCount {
+        font-size: 0.75rem;
+        flex: 1;
+        text-align: center;
+    }
+}
+
 @media (min-width: 768px) {
     .resultCount {
         font-size: 1rem;

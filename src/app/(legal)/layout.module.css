@@ -156,11 +156,83 @@
 }
 
 @media (max-width: 768px) {
+    .page {
+        padding: 1.5rem 0;
+        padding-bottom: 80px;
+    }
+
+    .header {
+        margin-bottom: 1.5rem;
+    }
+
     .title {
-        font-size: 2rem;
+        font-size: 1.5rem;
+    }
+
+    .subtitle {
+        font-size: 0.9rem;
+    }
+
+    .lastUpdated {
+        font-size: 0.78rem;
     }
 
     .content {
-        padding: 1.5rem;
+        padding: 1.25rem;
+        border-radius: 14px;
+    }
+
+    .section {
+        margin-bottom: 1.5rem;
+    }
+
+    .sectionTitle {
+        font-size: 1.05rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .sectionTitle::before {
+        height: 20px;
+        width: 3px;
+    }
+
+    .text {
+        font-size: 0.875rem;
+        line-height: 1.7;
+    }
+
+    .text li {
+        margin-bottom: 0.5rem;
+    }
+
+    .highlight {
+        padding: 0.875rem 1.125rem;
+        margin: 1rem 0;
+    }
+
+    .contactBox {
+        padding: 1.25rem;
+        border-radius: 12px;
+        margin-top: 1.5rem;
+    }
+
+    .contactBox h3 {
+        font-size: 1rem;
+    }
+
+    .contactBox p {
+        font-size: 0.85rem;
+    }
+
+    .contactLinks {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .contactLinks a {
+        padding: 0.625rem 1rem;
+        font-size: 0.85rem;
+        width: 100%;
+        justify-content: center;
     }
 }

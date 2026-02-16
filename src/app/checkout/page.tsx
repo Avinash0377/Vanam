@@ -341,11 +341,10 @@ export default function CheckoutPage() {
                                     {validationIssues.map((issue) => (
                                         <div
                                             key={issue.itemId}
-                                            className={`${styles.validationIssue} ${
-                                                issue.issue === 'OUT_OF_STOCK' || issue.issue === 'NOT_FOUND' || issue.issue === 'INACTIVE'
+                                            className={`${styles.validationIssue} ${issue.issue === 'OUT_OF_STOCK' || issue.issue === 'NOT_FOUND' || issue.issue === 'INACTIVE'
                                                     ? styles.critical
                                                     : ''
-                                            }`}
+                                                }`}
                                         >
                                             {issue.issue === 'OUT_OF_STOCK' || issue.issue === 'NOT_FOUND' || issue.issue === 'INACTIVE'
                                                 ? '❌'
@@ -372,6 +371,7 @@ export default function CheckoutPage() {
                                             id="customerName"
                                             type="text"
                                             name="customerName"
+                                            autoComplete="name"
                                             value={formData.customerName}
                                             onChange={handleChange}
                                             className={styles.input}
@@ -386,6 +386,7 @@ export default function CheckoutPage() {
                                             id="mobile"
                                             type="tel"
                                             name="mobile"
+                                            autoComplete="tel"
                                             value={formData.mobile}
                                             onChange={handleChange}
                                             className={styles.input}
@@ -400,6 +401,7 @@ export default function CheckoutPage() {
                                             id="email"
                                             type="email"
                                             name="email"
+                                            autoComplete="email"
                                             value={formData.email}
                                             onChange={handleChange}
                                             className={styles.input}
@@ -427,6 +429,7 @@ export default function CheckoutPage() {
                                             id="city"
                                             type="text"
                                             name="city"
+                                            autoComplete="address-level2"
                                             value={formData.city}
                                             onChange={handleChange}
                                             className={styles.input}
@@ -441,6 +444,7 @@ export default function CheckoutPage() {
                                             id="state"
                                             type="text"
                                             name="state"
+                                            autoComplete="address-level1"
                                             value={formData.state}
                                             onChange={handleChange}
                                             className={styles.input}
@@ -455,6 +459,8 @@ export default function CheckoutPage() {
                                             id="pincode"
                                             type="text"
                                             name="pincode"
+                                            autoComplete="postal-code"
+                                            inputMode="numeric"
                                             value={formData.pincode}
                                             onChange={handleChange}
                                             className={styles.input}

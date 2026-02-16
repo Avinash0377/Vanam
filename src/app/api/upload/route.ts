@@ -21,7 +21,9 @@ async function handleUpload(request: NextRequest, user: JWTPayload) {
 
         const formData = await request.formData();
         const file = formData.get('file') as File | null;
-        const folder = formData.get('folder') as string || 'vanam-store/products';
+        const rawFolder = formData.get('folder') as string || 'vanam-store/products';
+        const allowedFolders = ['vanam-store/products', 'vanam-store/categories', 'vanam-store/banners'];
+        const folder = allowedFolders.includes(rawFolder) ? rawFolder : 'vanam-store/products';
 
         if (!file) {
             return NextResponse.json(

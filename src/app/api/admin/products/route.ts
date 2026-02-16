@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { withAdmin } from '@/lib/middleware';
 import { JWTPayload } from '@/lib/auth';
+import { ProductStatus, SuitableFor } from '@prisma/client';
 
 // Helper function to wrap admin-only GET routes
 async function getProducts(request: NextRequest, user: JWTPayload) {
@@ -18,14 +19,15 @@ async function getProducts(request: NextRequest, user: JWTPayload) {
         if (search) {
             where.name = { contains: search, mode: 'insensitive' };
         }
-        if (status) {
+        if (status && Object.values(ProductStatus).includes(status as ProductStatus)) {
             where.status = status;
         }
         if (type) {
             where.productType = type;
         }
-        if (searchParams.get('suitable')) {
-            where.suitableFor = searchParams.get('suitable');
+        const suitable = searchParams.get('suitable');
+        if (suitable && Object.values(SuitableFor).includes(suitable as SuitableFor)) {
+            where.suitableFor = suitable;
         }
 
         const [products, total] = await Promise.all([
