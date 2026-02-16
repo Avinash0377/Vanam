@@ -8,7 +8,6 @@ const requiredVars = [
     'JWT_SECRET',
     'RAZORPAY_KEY_ID',
     'RAZORPAY_KEY_SECRET',
-    'RAZORPAY_WEBHOOK_SECRET',
     'CLOUDINARY_CLOUD_NAME',
     'CLOUDINARY_API_KEY',
     'CLOUDINARY_API_SECRET',
@@ -16,6 +15,7 @@ const requiredVars = [
 
 const optionalVars = [
     'JWT_EXPIRES_IN',
+    'RAZORPAY_WEBHOOK_SECRET',
     'NEXT_PUBLIC_APP_URL',
     'NEXT_PUBLIC_WHATSAPP_NUMBER',
 ] as const;
@@ -43,6 +43,17 @@ export function validateEnv(): void {
     ) {
         console.warn(
             '⚠️  JWT_SECRET is too short for production. Use at least 32 characters.'
+        );
+    }
+
+    // Warn if webhook secret is missing/placeholder in production
+    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+    if (
+        process.env.NODE_ENV === 'production' &&
+        (!webhookSecret || webhookSecret.startsWith('your_'))
+    ) {
+        console.warn(
+            '⚠️  RAZORPAY_WEBHOOK_SECRET is not configured! Payment recovery (when users close browser mid-payment) will NOT work. Set up webhooks at https://dashboard.razorpay.com/app/webhooks'
         );
     }
 
