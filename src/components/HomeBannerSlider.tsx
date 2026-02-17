@@ -20,18 +20,16 @@ interface BannerData {
     textColor: string;
 }
 
-export default function HomeBannerSlider() {
-    const [banners, setBanners] = useState<BannerData[]>([]);
+interface HomeBannerSliderProps {
+    initialBanners: BannerData[];
+}
+
+export default function HomeBannerSlider({ initialBanners }: HomeBannerSliderProps) {
+    // Use server-fetched banners directly — no client-side API call needed
+    const banners = initialBanners;
     const [current, setCurrent] = useState(0);
     const [paused, setPaused] = useState(false);
     const [imagesLoaded, setImagesLoaded] = useState<Set<number>>(new Set([0]));
-
-    useEffect(() => {
-        fetch('/api/banners')
-            .then(res => res.json())
-            .then(data => setBanners(data.banners || []))
-            .catch(() => { });
-    }, []);
 
     const total = banners.length;
 

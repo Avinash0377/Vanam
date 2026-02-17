@@ -11,8 +11,9 @@ import {
 import HomeBannerSlider from '@/components/HomeBannerSlider';
 import styles from './page.module.css';
 
-// Force dynamic rendering to always fetch fresh data
-export const dynamic = 'force-dynamic';
+// Cache page for 60s, then refresh in background (ISR)
+// This means most visitors get an instant cached page instead of waiting for DB
+export const revalidate = 60;
 
 const categories = [
     { name: 'Indoor Plants', slug: 'plants', icon: 'leaf', description: 'Air-purifying plants perfect for your living space', key: 'indoor', color: '#1a4d2e' },
@@ -62,8 +63,9 @@ const getFeatureIcon = (iconName: string) => {
 };
 
 export default async function HomePage() {
-    // Fetch all data server-side in parallel
+    // Fetch all data server-side in parallel (including banners)
     const [
+        activeBanners,
         featuredProducts,
         allPlants,
         pots,
@@ -75,6 +77,11 @@ export default async function HomePage() {
         potsCount,
         combosCount,
     ] = await Promise.all([
+        // Banners — fetched server-side so they appear instantly (no client-side delay)
+        prisma.banner.findMany({
+            where: { isActive: true },
+            orderBy: { displayOrder: 'asc' },
+        }),
         // Bestsellers: products marked as featured (star badge)
         prisma.product.findMany({
             where: { status: 'ACTIVE', featured: true },
@@ -137,7 +144,23 @@ export default async function HomePage() {
         combos: combosCount,
     };
 
-    // Serialize Prisma objects for client components (strips non-serializable fields, convert null→undefined)
+    // Serialize banners for the client component (strip Prisma internals, keep only what's needed)
+    const serializedBanners = activeBanners.map(b => ({
+        id: b.id,
+        title: b.title,
+        subtitle: b.subtitle,
+        highlightText: b.highlightText,
+        accentBadge: b.accentBadge,
+        primaryBtnText: b.primaryBtnText,
+        primaryBtnLink: b.primaryBtnLink,
+        secondaryBtnText: b.secondaryBtnText,
+        secondaryBtnLink: b.secondaryBtnLink,
+        bgGradient: b.bgGradient,
+        imageUrl: (b as Record<string, unknown>).imageUrl as string | null ?? null,
+        textColor: (b as Record<string, unknown>).textColor as string ?? '#ffffff',
+    }));
+
+    // Serialize Prisma objects for client components
     const serializeProduct = (p: Record<string, unknown>) => ({
         id: p.id as string,
         name: p.name as string,
@@ -157,8 +180,8 @@ export default async function HomePage() {
 
     return (
         <>
-            {/* Mobile Banner Slider — fetches admin banners, hidden on desktop */}
-            <HomeBannerSlider />
+            {/* Mobile Banner Slider — pre-fetched server-side for instant load */}
+            <HomeBannerSlider initialBanners={serializedBanners} />
 
             {/* Hero Section */}
             <section className={styles.hero}>
