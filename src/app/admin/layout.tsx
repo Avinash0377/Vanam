@@ -23,6 +23,7 @@ const navItems = [
     { href: '/admin/products', icon: PlantIcon, label: 'Products' },
     { href: '/admin/combos', icon: PackageIcon, label: 'Combos' },
     { href: '/admin/gift-hampers', icon: GiftIcon, label: 'Gift Hampers' },
+    { href: '/admin/banners', icon: HomeIcon, label: 'Banners' },
     { href: '/admin/orders', icon: PackageIcon, label: 'Orders' },
     { href: '/admin/analytics', icon: FolderIcon, label: 'Analytics' },
     { href: '/admin/customers', icon: UsersIcon, label: 'Customers' },

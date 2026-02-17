@@ -357,3 +357,25 @@ model ServiceablePincode {
 
   @@index([pincode, isActive])
 }
+
+// ==================== HOMEPAGE BANNER ====================
+model Banner {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  title            String
+  subtitle         String?
+  highlightText    String?
+  accentBadge      String?
+  primaryBtnText   String
+  primaryBtnLink   String
+  secondaryBtnText String?
+  secondaryBtnLink String?
+  bgGradient       String   @default("linear-gradient(165deg, #e8f5e9 0%, #c8e6c9 40%, #81c784 100%)")
+  imageUrl         String?
+  textColor        String   @default("#ffffff")
+  isActive         Boolean  @default(true)
+  displayOrder     Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([isActive, displayOrder])
+}

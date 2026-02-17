@@ -8,6 +8,7 @@ import {
     GiftIcon, CheckIcon, TreeIcon, PotIcon,
     WhatsAppIcon, ArrowRightIcon, ShieldIcon,
 } from '@/components/Icons';
+import HomeBannerSlider from '@/components/HomeBannerSlider';
 import styles from './page.module.css';
 
 // Force dynamic rendering to always fetch fresh data
@@ -156,6 +157,9 @@ export default async function HomePage() {
 
     return (
         <>
+            {/* Mobile Banner Slider — fetches admin banners, hidden on desktop */}
+            <HomeBannerSlider />
+
             {/* Hero Section */}
             <section className={styles.hero}>
                 <div className={styles.heroBackground}>
