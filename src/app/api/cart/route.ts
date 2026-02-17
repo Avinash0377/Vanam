@@ -4,6 +4,7 @@ import { withAuth } from '@/lib/middleware';
 import { JWTPayload } from '@/lib/auth';
 import { ProductStatus } from '@prisma/client';
 import { SizeVariant, getVariantPrice, getVariantStock } from '@/lib/variants';
+import { getDeliverySettings, getDeliveryCharge } from '@/lib/order-utils';
 
 // GET user's cart
 async function getCart(request: NextRequest, user: JWTPayload) {
@@ -97,6 +98,10 @@ async function getCart(request: NextRequest, user: JWTPayload) {
             }
         });
 
+        // Fetch delivery settings from DB (replaces hardcoded ₹999/₹99)
+        const deliverySettings = await getDeliverySettings();
+        const shipping = getDeliveryCharge(subtotal, deliverySettings);
+
         return NextResponse.json({
             cart: {
                 items,
@@ -106,8 +111,10 @@ async function getCart(request: NextRequest, user: JWTPayload) {
             summary: {
                 itemCount,
                 subtotal,
-                shipping: subtotal >= 999 ? 0 : 99,
-                total: subtotal >= 999 ? subtotal : subtotal + 99,
+                shipping,
+                total: Math.max(0, subtotal + shipping),
+                freeDeliveryMinAmount: deliverySettings.freeDeliveryEnabled ? deliverySettings.freeDeliveryMinAmount : null,
+                freeDeliveryEnabled: deliverySettings.freeDeliveryEnabled,
             },
         });
 

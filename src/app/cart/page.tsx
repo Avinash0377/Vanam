@@ -1,14 +1,18 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
-import { TrashIcon, CartIcon, LeafIcon, ArrowRightIcon, TruckIcon, ShieldIcon } from '@/components/Icons';
+import { useAuth } from '@/context/AuthContext';
+import { TrashIcon, CartIcon, LeafIcon, ArrowRightIcon, TruckIcon, ShieldIcon, TagIcon } from '@/components/Icons';
 import styles from './page.module.css';
 
 export default function CartPage() {
+    const router = useRouter();
     const { items, summary, updateQuantity, removeItem, isLoading } = useCart();
+    const { token } = useAuth();
 
     // Pincode checker state
     const [pincode, setPincode] = useState('');
@@ -16,6 +20,12 @@ export default function CartPage() {
     const [pincodeMessage, setPincodeMessage] = useState('');
     const [validatedPincode, setValidatedPincode] = useState('');
     const [stockError, setStockError] = useState('');
+
+    // Coupon state
+    const [couponCode, setCouponCode] = useState('');
+    const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discountAmount: number } | null>(null);
+    const [couponLoading, setCouponLoading] = useState(false);
+    const [couponError, setCouponError] = useState('');
 
     const handlePincodeCheck = async () => {
         const trimmed = pincode.trim();
@@ -52,13 +62,64 @@ export default function CartPage() {
     const handlePincodeChange = (value: string) => {
         const digits = value.replace(/\D/g, '').slice(0, 6);
         setPincode(digits);
-        // Reset validation if pincode changes after being validated
         if (validatedPincode && digits !== validatedPincode) {
             setPincodeStatus('idle');
             setPincodeMessage('');
             setValidatedPincode('');
         }
     };
+
+    // Coupon handlers
+    const handleApplyCoupon = async () => {
+        const code = couponCode.trim().toUpperCase();
+        if (!code) return;
+
+        setCouponLoading(true);
+        setCouponError('');
+
+        try {
+            const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+            if (token) headers.Authorization = `Bearer ${token}`;
+
+            const res = await fetch('/api/coupons/validate', {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ couponCode: code, cartSubtotal: summary.subtotal }),
+            });
+            const data = await res.json();
+
+            if (!res.ok || !data.valid) {
+                setCouponError(data.message || data.error || 'Invalid coupon');
+                setAppliedCoupon(null);
+            } else {
+                setAppliedCoupon({ code, discountAmount: data.discountAmount });
+                setCouponError('');
+            }
+        } catch {
+            setCouponError('Unable to validate coupon');
+        } finally {
+            setCouponLoading(false);
+        }
+    };
+
+    const handleRemoveCoupon = () => {
+        setAppliedCoupon(null);
+        setCouponCode('');
+        setCouponError('');
+    };
+
+    const handleCheckout = () => {
+        // Store coupon in sessionStorage so checkout page can re-validate server-side
+        if (appliedCoupon) {
+            sessionStorage.setItem('vanam_coupon', JSON.stringify(appliedCoupon));
+        } else {
+            sessionStorage.removeItem('vanam_coupon');
+        }
+        router.push('/checkout');
+    };
+
+    const effectiveDiscount = appliedCoupon?.discountAmount || 0;
+    const effectiveTotal = Math.max(0, summary.total - effectiveDiscount);
 
     if (isLoading) {
         return (
@@ -213,10 +274,60 @@ export default function CartPage() {
                             </span>
                         </div>
 
-                        {summary.subtotal < 999 && (
+                        {summary.freeDeliveryEnabled && summary.subtotal < summary.freeDeliveryMinAmount && (
                             <div className={styles.shippingNote}>
                                 <TruckIcon size={16} />
-                                <span>Add <b>₹{(999 - summary.subtotal).toLocaleString('en-IN')}</b> for free shipping!</span>
+                                <span>Add <b>₹{(summary.freeDeliveryMinAmount - summary.subtotal).toLocaleString('en-IN')}</b> for free shipping!</span>
+                            </div>
+                        )}
+
+                        {/* Coupon Section */}
+                        <div className={styles.couponSection}>
+                            <div className={styles.couponLabel}>
+                                <TagIcon size={16} />
+                                <span>Have a coupon?</span>
+                            </div>
+                            {appliedCoupon ? (
+                                <div className={styles.couponApplied}>
+                                    <div className={styles.couponAppliedInfo}>
+                                        <span className={styles.couponBadge}>{appliedCoupon.code}</span>
+                                        <span className={styles.couponSaved}>
+                                            You save ₹{appliedCoupon.discountAmount.toLocaleString('en-IN')}
+                                        </span>
+                                    </div>
+                                    <button className={styles.couponRemoveBtn} onClick={handleRemoveCoupon}>
+                                        Remove
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className={styles.couponInputRow}>
+                                    <input
+                                        type="text"
+                                        value={couponCode}
+                                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                                        placeholder="Enter code"
+                                        className={styles.couponInput}
+                                        onKeyDown={(e) => { if (e.key === 'Enter') handleApplyCoupon(); }}
+                                    />
+                                    <button
+                                        onClick={handleApplyCoupon}
+                                        className={styles.couponApplyBtn}
+                                        disabled={couponLoading || !couponCode.trim()}
+                                    >
+                                        {couponLoading ? '...' : 'Apply'}
+                                    </button>
+                                </div>
+                            )}
+                            {couponError && (
+                                <div className={styles.couponError}>{couponError}</div>
+                            )}
+                        </div>
+
+                        {/* Discount line */}
+                        {effectiveDiscount > 0 && (
+                            <div className={`${styles.summaryRow} ${styles.discountRow}`}>
+                                <span>Coupon Discount</span>
+                                <span className={styles.discountAmount}>-₹{effectiveDiscount.toLocaleString('en-IN')}</span>
                             </div>
                         )}
 
@@ -224,7 +335,7 @@ export default function CartPage() {
 
                         <div className={styles.summaryTotal}>
                             <span>Total</span>
-                            <span>₹{summary.total.toLocaleString('en-IN')}</span>
+                            <span>₹{effectiveTotal.toLocaleString('en-IN')}</span>
                         </div>
 
                         {/* Pincode Checker */}
@@ -259,10 +370,10 @@ export default function CartPage() {
                         </div>
 
                         {canCheckout ? (
-                            <Link href="/checkout" className={styles.checkoutBtn}>
+                            <button onClick={handleCheckout} className={styles.checkoutBtn}>
                                 Proceed to Checkout
                                 <ArrowRightIcon size={20} />
-                            </Link>
+                            </button>
                         ) : (
                             <button className={styles.checkoutBtnDisabled} disabled>
                                 {pincodeStatus === 'idle' ? 'Enter pincode to proceed' : 'Delivery not available'}

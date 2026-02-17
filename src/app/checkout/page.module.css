@@ -148,6 +148,66 @@
     text-align: center;
 }
 
+/* Coupon Row in Summary */
+.couponRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.625rem 0;
+    font-size: 0.9375rem;
+    color: #16a34a;
+    font-weight: 600;
+}
+
+.couponRowLabel {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    flex-wrap: wrap;
+}
+
+.couponRowCode {
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    background: #dcfce7;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.8125rem;
+    letter-spacing: 0.03em;
+}
+
+.couponRemoveBtn {
+    background: none;
+    border: none;
+    color: #dc2626;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-decoration: underline;
+    padding: 2px 4px;
+    transition: color 0.2s;
+}
+
+.couponRemoveBtn:hover {
+    color: #991b1b;
+}
+
+.couponRowAmount {
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* Pay Button */
+.payBtn {
+    width: 100%;
+    min-height: 48px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
 /* Empty State */
 .empty {
     display: flex;
@@ -477,6 +537,36 @@
     .paymentNote {
         margin-top: 0.75rem;
         font-size: 0.72rem;
+    }
+
+    /* ---- Coupon Row ---- */
+    .couponRow {
+        padding: 5px 0;
+        font-size: 0.82rem;
+    }
+
+    .couponRowLabel {
+        gap: 4px;
+    }
+
+    .couponRowCode {
+        font-size: 0.72rem;
+        padding: 2px 5px;
+    }
+
+    .couponRemoveBtn {
+        font-size: 0.68rem;
+    }
+
+    .couponRowAmount {
+        font-size: 0.82rem;
+    }
+
+    /* ---- Pay Button ---- */
+    .payBtn {
+        min-height: 46px;
+        font-size: 0.9rem;
+        border-radius: 12px;
     }
 
     /* ---- Validation States ---- */

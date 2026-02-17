@@ -4,6 +4,9 @@
  * 
  * This ensures order creation is NEVER duplicated and follows
  * the same logic regardless of how payment is confirmed.
+ * 
+ * COUPON POLICY: Honors coupon that was valid at payment initiation time.
+ * COUPON INCREMENT: Only happens after successful order creation (never at PendingPayment stage).
  */
 
 import prisma from '@/lib/prisma';
@@ -13,8 +16,14 @@ import {
     generateOrderNumber,
     createOrderItems,
     decrementStock,
-    validateStockAvailability
+    validateStockAvailability,
+    getDeliverySettings,
 } from '@/lib/order-utils';
+import {
+    normalizeCouponCode,
+    validateCoupon,
+    atomicIncrementUsage,
+} from '@/lib/coupon-utils';
 
 export interface FinalizePaymentResult {
     success: boolean;
@@ -28,6 +37,7 @@ export interface FinalizePaymentResult {
  * 
  * IDEMPOTENCY: If payment is already SUCCESS, returns existing order info.
  * ATOMICITY: All operations happen in a single transaction.
+ * COUPON: Honored if valid at initiation, incremented atomically inside transaction.
  * 
  * @param razorpayOrderId - The Razorpay order ID
  * @param razorpayPaymentId - The Razorpay payment ID
@@ -99,16 +109,46 @@ export async function finalizePayment(
             return { success: false, error: 'Delivery not available in this area.' };
         }
 
-        // 5. Calculate totals
-        const { subtotal, shippingCost, totalAmount } = calculateOrderTotals(cartSnapshot);
+        // 5. Fetch delivery settings from DB
+        const deliverySettings = await getDeliverySettings();
 
-        // 6. Generate order number
+        // 6. Handle coupon from PendingPayment
+        const couponCode = normalizeCouponCode(pendingPayment.couponCode);
+        let discountAmount = pendingPayment.discountAmount || 0;
+
+        // Re-validate coupon if present (honor initiation-time validity)
+        if (couponCode) {
+            const couponResult = await validateCoupon({
+                code: couponCode,
+                subtotal: cartSnapshot.reduce((sum, item) => sum + item.price * item.quantity, 0),
+                userId: pendingPayment.userId,
+                honorInitiationTime: true, // Honor coupon valid at payment initiation
+            });
+
+            if (!couponResult.valid) {
+                // Coupon became invalid (e.g., deactivated) — proceed without discount
+                console.log(`[${source}] Coupon ${couponCode} no longer valid, proceeding without discount`);
+                discountAmount = 0;
+            } else {
+                discountAmount = couponResult.discountAmount;
+            }
+        }
+
+        // 7. Calculate totals with coupon and delivery settings
+        const { subtotal, shippingCost, totalAmount } = calculateOrderTotals(cartSnapshot, { discountAmount, deliverySettings });
+
+        // 8. Generate order number
         const orderNumber = generateOrderNumber();
 
-        // 7. ATOMIC TRANSACTION: Validate stock, create order, payment, decrement stock, clear cart
+        // 9. ATOMIC TRANSACTION: Validate stock, create order, payment, decrement stock, clear cart
         const order = await prisma.$transaction(async (tx) => {
             // Re-validate stock INSIDE transaction to prevent TOCTOU race conditions
             await validateStockAvailability(cartSnapshot, tx);
+
+            // ATOMIC coupon usage increment (only after successful order creation is guaranteed)
+            if (couponCode && discountAmount > 0) {
+                await atomicIncrementUsage(couponCode, tx);
+            }
 
             // Create order
             const newOrder = await tx.order.create({
@@ -122,6 +162,8 @@ export async function finalizePayment(
                     city: pendingPayment.city,
                     state: pendingPayment.state,
                     pincode: pendingPayment.pincode,
+                    couponCode: couponCode || null,
+                    discountAmount,
                     subtotal,
                     shippingCost,
                     totalAmount,

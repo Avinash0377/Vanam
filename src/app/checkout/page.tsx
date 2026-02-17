@@ -65,6 +65,10 @@ export default function CheckoutPage() {
     const [cartValid, setCartValid] = useState<boolean | null>(null);
     const [validationIssues, setValidationIssues] = useState<ValidationIssue[]>([]);
 
+    // Coupon state (read from sessionStorage, re-validated server-side)
+    const [couponCode, setCouponCode] = useState<string | null>(null);
+    const [discountAmount, setDiscountAmount] = useState(0);
+
     const [formData, setFormData] = useState({
         customerName: '',
         mobile: '',
@@ -82,6 +86,55 @@ export default function CheckoutPage() {
             [e.target.name]: e.target.value,
         }));
     };
+
+    // Read coupon from sessionStorage on mount and re-validate server-side
+    useEffect(() => {
+        if (!token || !isAuthenticated) return;
+
+        try {
+            const stored = sessionStorage.getItem('vanam_coupon');
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                if (parsed?.code && summary.subtotal > 0) {
+                    // Re-validate coupon server-side (NEVER trust cached discount amount)
+                    fetch('/api/coupons/validate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${token}`,
+                        },
+                        body: JSON.stringify({ couponCode: parsed.code, cartSubtotal: summary.subtotal }),
+                    })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.valid) {
+                                setCouponCode(parsed.code);
+                                setDiscountAmount(data.discountAmount);
+                            } else {
+                                // Coupon no longer valid — clear it
+                                sessionStorage.removeItem('vanam_coupon');
+                                setCouponCode(null);
+                                setDiscountAmount(0);
+                            }
+                        })
+                        .catch(() => {
+                            // Validation failed — ignore coupon
+                            sessionStorage.removeItem('vanam_coupon');
+                        });
+                }
+            }
+        } catch {
+            // sessionStorage parse error — ignore
+        }
+    }, [token, isAuthenticated, summary.subtotal]);
+
+    const handleRemoveCoupon = () => {
+        setCouponCode(null);
+        setDiscountAmount(0);
+        sessionStorage.removeItem('vanam_coupon');
+    };
+
+    const effectiveTotal = Math.max(0, summary.total - discountAmount);
 
     // Validate cart contents against database before allowing payment
     const validateCartContents = useCallback(async () => {
@@ -165,8 +218,9 @@ export default function CheckoutPage() {
         setLoading(true);
 
         try {
-            // SECURE FLOW: Send shipping info only - backend fetches cart and calculates total
-            // Frontend does NOT send price - backend is source of truth
+            // SECURE FLOW: Send shipping info + coupon code only
+            // Backend fetches cart, re-validates coupon, and calculates total
+            // Frontend does NOT send price — backend is source of truth
             const paymentRes = await fetch('/api/payments/create-order', {
                 method: 'POST',
                 headers: {
@@ -176,11 +230,17 @@ export default function CheckoutPage() {
                 body: JSON.stringify({
                     ...formData,
                     paymentMethod: 'RAZORPAY',
+                    couponCode: couponCode || undefined,
                 }),
             });
 
             const paymentData = await paymentRes.json();
             if (!paymentRes.ok) throw new Error(paymentData.error);
+
+            // Update displayed amounts from server response
+            if (paymentData.discountAmount !== undefined) {
+                setDiscountAmount(paymentData.discountAmount);
+            }
 
             // Load Razorpay SDK
             const loaded = await loadRazorpay();
@@ -208,6 +268,8 @@ export default function CheckoutPage() {
 
                         const verifyData = await verifyRes.json();
                         if (verifyRes.ok && verifyData.success) {
+                            // Clean up coupon from sessionStorage
+                            sessionStorage.removeItem('vanam_coupon');
                             clearCart();
                             router.replace(`/order-confirmation?orderNumber=${verifyData.orderNumber}`);
                         } else {
@@ -510,15 +572,31 @@ export default function CheckoutPage() {
                                     <span>{summary.shipping === 0 ? 'FREE' : `₹${summary.shipping}`}</span>
                                 </div>
 
+                                {/* Coupon discount display */}
+                                {couponCode && discountAmount > 0 && (
+                                    <div className={styles.couponRow}>
+                                        <span className={styles.couponRowLabel}>
+                                            Coupon <span className={styles.couponRowCode}>{couponCode}</span>
+                                            <button
+                                                type="button"
+                                                onClick={handleRemoveCoupon}
+                                                className={styles.couponRemoveBtn}
+                                            >
+                                                Remove
+                                            </button>
+                                        </span>
+                                        <span className={styles.couponRowAmount}>-₹{discountAmount.toLocaleString('en-IN')}</span>
+                                    </div>
+                                )}
+
                                 <div className={styles.summaryTotal}>
                                     <span>Total</span>
-                                    <span>₹{summary.total.toLocaleString('en-IN')}</span>
+                                    <span>₹{effectiveTotal.toLocaleString('en-IN')}</span>
                                 </div>
 
                                 <button
                                     type="submit"
-                                    className="btn btn-primary btn-lg"
-                                    style={{ width: '100%' }}
+                                    className={`btn btn-primary btn-lg ${styles.payBtn}`}
                                     disabled={loading || validating || cartValid !== true}
                                 >
                                     {validating
@@ -527,7 +605,7 @@ export default function CheckoutPage() {
                                             ? 'Cart Not Verified'
                                             : loading
                                                 ? 'Processing...'
-                                                : `Pay ₹${summary.total.toLocaleString('en-IN')}`}
+                                                : `Pay ₹${effectiveTotal.toLocaleString('en-IN')}`}
                                 </button>
 
                                 <p className={styles.paymentNote}>

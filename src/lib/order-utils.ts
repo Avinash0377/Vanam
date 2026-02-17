@@ -19,23 +19,79 @@ export interface CartSnapshotItem {
 
 export interface OrderTotals {
     subtotal: number;
+    discountAmount: number;
     shippingCost: number;
     totalAmount: number;
 }
 
+// ==================== DELIVERY SETTINGS ====================
+
+/** Default delivery settings when no DB record exists */
+const DEFAULT_DELIVERY_SETTINGS = {
+    freeDeliveryEnabled: true,
+    freeDeliveryMinAmount: 999,
+    flatDeliveryCharge: 99,
+    deliveryChargeType: 'FLAT' as const,
+};
+
 /**
- * Calculate order totals
+ * Fetch the singleton DeliverySettings record (or return defaults).
  */
-export function calculateOrderTotals(items: CartSnapshotItem[]): OrderTotals {
+export async function getDeliverySettings(tx?: Prisma.TransactionClient): Promise<{
+    freeDeliveryEnabled: boolean;
+    freeDeliveryMinAmount: number;
+    flatDeliveryCharge: number;
+}> {
+    const db = tx || prisma;
+    const settings = await db.deliverySettings.findUnique({ where: { id: 'default' } });
+    return settings || DEFAULT_DELIVERY_SETTINGS;
+}
+
+/**
+ * Calculate delivery charge based on settings.
+ * FREE DELIVERY ELIGIBILITY: based on ORIGINAL subtotal (pre-discount).
+ */
+export function getDeliveryCharge(
+    originalSubtotal: number,
+    settings: { freeDeliveryEnabled: boolean; freeDeliveryMinAmount: number; flatDeliveryCharge: number },
+): number {
+    if (settings.freeDeliveryEnabled && originalSubtotal >= settings.freeDeliveryMinAmount) {
+        return 0;
+    }
+    return settings.flatDeliveryCharge;
+}
+
+// ==================== ORDER TOTALS ====================
+
+/**
+ * Calculate order totals with optional coupon discount.
+ * Uses DB-driven delivery settings.
+ * Protects against negative totals.
+ */
+export function calculateOrderTotals(
+    items: CartSnapshotItem[],
+    options?: {
+        discountAmount?: number;
+        deliverySettings?: { freeDeliveryEnabled: boolean; freeDeliveryMinAmount: number; flatDeliveryCharge: number };
+    },
+): OrderTotals {
     const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const shippingCost = subtotal >= 999 ? 0 : 99;
+    const discountAmount = options?.discountAmount || 0;
+
+    const settings = options?.deliverySettings || DEFAULT_DELIVERY_SETTINGS;
+    const shippingCost = getDeliveryCharge(subtotal, settings);
+
+    // Never allow negative total
+    const totalAmount = Math.max(0, subtotal - discountAmount + shippingCost);
 
     return {
         subtotal,
+        discountAmount,
         shippingCost,
-        totalAmount: subtotal + shippingCost
+        totalAmount: Math.round(totalAmount * 100) / 100,
     };
 }
+
 
 /**
  * Generate a unique order number

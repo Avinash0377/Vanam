@@ -63,6 +63,22 @@ enum PaymentMethod {
   WHATSAPP
 }
 
+enum DiscountType {
+  PERCENTAGE
+  FIXED
+}
+
+enum CouponScope {
+  ALL
+  CATEGORY
+  PRODUCT
+}
+
+enum DeliveryChargeType {
+  FLAT
+  CONDITIONAL
+}
+
 // ==================== USER ====================
 model User {
   id          String    @id @default(auto()) @map("_id") @db.ObjectId
@@ -208,6 +224,8 @@ model Order {
   deliveredAt     DateTime?
 
   notes         String?
+  couponCode    String?
+  discountAmount Float        @default(0)
   subtotal      Float
   shippingCost  Float         @default(0)
   totalAmount   Float
@@ -223,6 +241,7 @@ model Order {
   @@index([orderStatus])
   @@index([createdAt])
   @@index([userId])
+  @@index([userId, couponCode])
 }
 
 // ==================== ORDER ITEM ====================
@@ -284,6 +303,8 @@ model PendingPayment {
   state             String
   pincode           String
   notes             String?
+  couponCode        String?
+  discountAmount    Float         @default(0)
   paymentMethod     PaymentMethod @default(RAZORPAY)
   
   // Cart snapshot (JSON string of cart items at time of payment)
@@ -378,4 +399,38 @@ model Banner {
   updatedAt        DateTime @updatedAt
 
   @@index([isActive, displayOrder])
+}
+
+// ==================== COUPON ====================
+model Coupon {
+  id                String       @id @default(auto()) @map("_id") @db.ObjectId
+  code              String       @unique
+  description       String?
+  discountType      DiscountType
+  discountValue     Float
+  minOrderValue     Float        @default(0)
+  maxDiscountAmount Float?
+  usageLimit        Int?
+  usagePerUser      Int          @default(1)
+  usedCount         Int          @default(0)
+  applicableTo      CouponScope  @default(ALL)
+  applicableIds     String[]
+  isActive          Boolean      @default(true)
+  startDate         DateTime
+  expiryDate        DateTime
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@index([isActive])
+  @@index([expiryDate])
+}
+
+// ==================== DELIVERY SETTINGS (Singleton) ====================
+model DeliverySettings {
+  id                    String             @id @map("_id")
+  freeDeliveryEnabled   Boolean            @default(true)
+  freeDeliveryMinAmount Float              @default(999)
+  flatDeliveryCharge    Float              @default(99)
+  deliveryChargeType    DeliveryChargeType @default(FLAT)
+  updatedAt             DateTime           @updatedAt
 }

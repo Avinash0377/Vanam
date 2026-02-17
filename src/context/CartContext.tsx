@@ -25,6 +25,8 @@ interface CartSummary {
     subtotal: number;
     shipping: number;
     total: number;
+    freeDeliveryMinAmount: number;
+    freeDeliveryEnabled: boolean;
 }
 
 interface CartContextType {
@@ -44,12 +46,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const { token, isAuthenticated } = useAuth();
     const [items, setItems] = useState<CartItem[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [deliveryData, setDeliveryData] = useState<{ shipping: number; freeDeliveryMinAmount: number; freeDeliveryEnabled: boolean }>({ shipping: 99, freeDeliveryMinAmount: 999, freeDeliveryEnabled: true });
 
     const calculateSummary = (cartItems: CartItem[]): CartSummary => {
         const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
         const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-        const shipping = subtotal >= 999 ? 0 : 99;
-        return { itemCount, subtotal, shipping, total: subtotal + shipping };
+        const shipping = deliveryData.freeDeliveryEnabled && subtotal >= deliveryData.freeDeliveryMinAmount ? 0 : deliveryData.shipping;
+        return { itemCount, subtotal, shipping, total: subtotal + shipping, freeDeliveryMinAmount: deliveryData.freeDeliveryMinAmount, freeDeliveryEnabled: deliveryData.freeDeliveryEnabled };
     };
 
     const summary = calculateSummary(items);
@@ -136,6 +139,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
                 });
 
                 setItems(cartItems);
+
+                // Store server-provided delivery settings
+                if (data.summary) {
+                    setDeliveryData({
+                        shipping: data.summary.shipping ?? 99,
+                        freeDeliveryMinAmount: data.summary.freeDeliveryMinAmount ?? 999,
+                        freeDeliveryEnabled: data.summary.freeDeliveryEnabled ?? true,
+                    });
+                }
             }
         } catch (error) {
             console.error('Failed to fetch cart:', error);

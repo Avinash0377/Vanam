@@ -5,7 +5,9 @@ import { JWTPayload } from '@/lib/auth';
 import { createRazorpayOrder } from '@/lib/razorpay';
 import { orderSchema } from '@/lib/validators';
 import { ProductWithVariants, getVariantPrice, getVariantStock } from '@/lib/variants';
-import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { getDeliverySettings, getDeliveryCharge } from '@/lib/order-utils';
+import { normalizeCouponCode, validateCoupon } from '@/lib/coupon-utils';
 
 // POST create Razorpay order for payment
 // SECURITY: Backend fetches cart and calculates total - frontend is UNTRUSTED
@@ -44,6 +46,9 @@ async function createPaymentOrder(request: NextRequest, user: JWTPayload) {
             paymentMethod,
         } = validation.data;
 
+        // Extract coupon code from request (optional, will be re-validated server-side)
+        const rawCouponCode = body.couponCode;
+
         // Validate pincode is serviceable
         const serviceablePincode = await prisma.serviceablePincode.findFirst({
             where: { pincode, isActive: true },
@@ -73,7 +78,7 @@ async function createPaymentOrder(request: NextRequest, user: JWTPayload) {
             );
         }
 
-        // SECURITY: Calculate total from DB prices (variant-aware)
+        // SECURITY: Calculate subtotal from DB prices (variant-aware)
         let subtotal = 0;
         const cartSnapshot: Array<{
             productId?: string;
@@ -160,13 +165,37 @@ async function createPaymentOrder(request: NextRequest, user: JWTPayload) {
             });
         }
 
-        const shippingCost = subtotal >= 999 ? 0 : 99;
-        const totalAmount = subtotal + shippingCost;
+        // SECURITY: Fetch delivery settings from DB (not hardcoded)
+        const deliverySettings = await getDeliverySettings();
+        const shippingCost = getDeliveryCharge(subtotal, deliverySettings);
+
+        // SECURITY: Server-side coupon validation (NEVER trust frontend discount amount)
+        let couponCode: string | null = null;
+        let discountAmount = 0;
+
+        const normalizedCoupon = normalizeCouponCode(rawCouponCode);
+        if (normalizedCoupon) {
+            const couponResult = await validateCoupon({
+                code: normalizedCoupon,
+                subtotal,
+                userId: user.userId,
+            });
+
+            if (couponResult.valid) {
+                couponCode = normalizedCoupon;
+                discountAmount = couponResult.discountAmount;
+            }
+            // If coupon is invalid, silently ignore — don't block checkout
+            // The user may have applied a coupon that expired between cart and checkout
+        }
+
+        // SECURITY: Calculate final total server-side (never negative)
+        const totalAmount = Math.max(0, Math.round((subtotal - discountAmount + shippingCost) * 100) / 100);
 
         // Generate unique receipt ID
         const receiptId = `VAN${Date.now()}${Math.random().toString(36).substring(2, 5).toUpperCase()}`;
 
-        // Create Razorpay order
+        // Create Razorpay order with CORRECT amount (including discount)
         const razorpayOrder = await createRazorpayOrder({
             amount: totalAmount,
             currency: 'INR',
@@ -178,7 +207,7 @@ async function createPaymentOrder(request: NextRequest, user: JWTPayload) {
             },
         });
 
-        // Save PendingPayment record with shipping info and cart snapshot
+        // Save PendingPayment record with shipping info, coupon, and cart snapshot
         await prisma.pendingPayment.create({
             data: {
                 userId: user.userId,
@@ -194,6 +223,8 @@ async function createPaymentOrder(request: NextRequest, user: JWTPayload) {
                 state,
                 pincode,
                 notes: notes || null,
+                couponCode,
+                discountAmount,
                 paymentMethod: paymentMethod || 'RAZORPAY',
                 cartSnapshot: JSON.stringify(cartSnapshot),
                 expiresAt: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes
@@ -208,6 +239,12 @@ async function createPaymentOrder(request: NextRequest, user: JWTPayload) {
             currency: razorpayOrder.currency,
             keyId: process.env.RAZORPAY_KEY_ID,
             receiptId,
+            // Return server-computed values so checkout shows correct amounts
+            subtotal,
+            shippingCost,
+            couponCode,
+            discountAmount,
+            totalAmount,
             prefill: {
                 name: customerName,
                 email: email || '',
@@ -227,3 +264,4 @@ async function createPaymentOrder(request: NextRequest, user: JWTPayload) {
 export async function POST(request: NextRequest) {
     return withAuth(request, createPaymentOrder);
 }
+

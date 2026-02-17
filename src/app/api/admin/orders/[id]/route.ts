@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { withAdmin } from '@/lib/middleware';
 import { restoreStock } from '@/lib/order-utils';
+import { decrementCouponUsage } from '@/lib/coupon-utils';
 
 // GET single order
 async function getOrder(
@@ -83,9 +84,14 @@ async function updateOrder(
                 );
             }
 
-            // Restore stock within a transaction
+            // Restore stock and decrement coupon usage within a transaction
             const order = await prisma.$transaction(async (tx) => {
                 await restoreStock(tx, existingOrder.items);
+
+                // Decrement coupon usage if order had a coupon applied
+                if (existingOrder.couponCode) {
+                    await decrementCouponUsage(existingOrder.couponCode, tx);
+                }
 
                 return tx.order.update({
                     where: { id },

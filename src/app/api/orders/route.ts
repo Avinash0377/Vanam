@@ -9,8 +9,14 @@ import {
     generateOrderNumber,
     createOrderItems,
     decrementStock,
-    validateStockAvailability
+    validateStockAvailability,
+    getDeliverySettings,
 } from '@/lib/order-utils';
+import {
+    normalizeCouponCode,
+    validateCoupon,
+    atomicIncrementUsage,
+} from '@/lib/coupon-utils';
 
 // GET orders (user gets their orders, admin gets all)
 async function getOrders(request: NextRequest, user: JWTPayload) {
@@ -109,6 +115,9 @@ async function createOrder(request: NextRequest, user: JWTPayload) {
             notes,
         } = validation.data;
 
+        // Normalize coupon code if provided
+        const couponCode = normalizeCouponCode(body.couponCode);
+
         // Validate pincode is serviceable
         const serviceablePincode = await prisma.serviceablePincode.findFirst({
             where: { pincode, isActive: true },
@@ -196,16 +205,58 @@ async function createOrder(request: NextRequest, user: JWTPayload) {
             };
         });
 
-        // 1. Calculate Totals (Shared Logic)
-        const { subtotal, shippingCost, totalAmount } = calculateOrderTotals(cartSnapshot);
+        // Fetch delivery settings from DB
+        const deliverySettings = await getDeliverySettings();
 
-        // 2. Generate Order Number (Shared Logic)
+        // Pre-calculate subtotal for coupon validation
+        const subtotal = cartSnapshot.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+        // Validate coupon if provided (pre-validation, will re-validate inside transaction)
+        let discountAmount = 0;
+        if (couponCode) {
+            const couponResult = await validateCoupon({
+                code: couponCode,
+                subtotal,
+                userId: user.userId,
+            });
+
+            if (!couponResult.valid) {
+                return NextResponse.json(
+                    { error: couponResult.message },
+                    { status: 400 }
+                );
+            }
+            discountAmount = couponResult.discountAmount;
+        }
+
+        // Calculate Totals with coupon and delivery settings
+        const { subtotal: computedSubtotal, shippingCost, totalAmount, discountAmount: computedDiscount } = calculateOrderTotals(cartSnapshot, { discountAmount, deliverySettings });
+
+        // Generate Order Number
         const orderNumber = generateOrderNumber();
 
-        // 3. Create Order Transaction with stock validation INSIDE the transaction
+        // Create Order Transaction with stock validation INSIDE the transaction
         const order = await prisma.$transaction(async (tx) => {
             // Validate stock inside transaction to prevent race conditions
             await validateStockAvailability(cartSnapshot, tx);
+
+            // ATOMIC coupon usage check + increment (race condition protection)
+            if (couponCode) {
+                // Re-validate coupon inside transaction
+                const txCouponResult = await validateCoupon({
+                    code: couponCode,
+                    subtotal: computedSubtotal,
+                    userId: user.userId,
+                    tx,
+                });
+
+                if (!txCouponResult.valid) {
+                    throw new Error(txCouponResult.message);
+                }
+
+                // Atomic increment (re-checks usageLimit inside transaction)
+                await atomicIncrementUsage(couponCode, tx);
+            }
 
             // Create order
             const newOrder = await tx.order.create({
@@ -219,7 +270,9 @@ async function createOrder(request: NextRequest, user: JWTPayload) {
                     city,
                     state,
                     pincode,
-                    subtotal,
+                    couponCode: couponCode || null,
+                    discountAmount: computedDiscount,
+                    subtotal: computedSubtotal,
                     shippingCost,
                     totalAmount,
                     paymentMethod,
@@ -260,8 +313,13 @@ async function createOrder(request: NextRequest, user: JWTPayload) {
         }, { status: 201 });
 
     } catch (error) {
-        // Check if it's a stock validation error (thrown from inside transaction)
-        if (error instanceof Error && (error.message.includes('Insufficient stock') || error.message.includes('no longer exists'))) {
+        // Check if it's a stock validation or coupon error
+        if (error instanceof Error && (
+            error.message.includes('Insufficient stock') ||
+            error.message.includes('no longer exists') ||
+            error.message.includes('Coupon') ||
+            error.message.includes('coupon')
+        )) {
             return NextResponse.json(
                 { error: error.message },
                 { status: 400 }
