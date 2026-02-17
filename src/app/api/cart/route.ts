@@ -24,6 +24,9 @@ async function getCart(request: NextRequest, user: JWTPayload) {
                         status: true,
                         size: true,
                         sizeVariants: true,
+                        category: {
+                            select: { name: true },
+                        },
                     },
                 },
                 combo: {

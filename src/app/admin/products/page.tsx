@@ -387,7 +387,7 @@ export default function AdminProductsPage() {
                                                 <td>
                                                     <div className={styles.actions}>
                                                         <Link
-                                                            href={`/product/${product.slug}`}
+                                                            href={`/${product.productType === 'POT' || product.productType === 'PLANTER' ? 'pots' : product.productType === 'PLANT' ? 'plants' : 'product'}/${product.slug}`}
                                                             className={styles.actionBtn}
                                                             target="_blank"
                                                         >

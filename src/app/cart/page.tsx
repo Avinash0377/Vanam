@@ -137,8 +137,8 @@ export default function CartPage() {
                     <CartIcon size={64} color="#94a3b8" />
                 </div>
                 <h2>Your cart is empty</h2>
-                <p>Looks like you haven&apos;t added any plants yet.</p>
-                <Link href="/plants" className="btn btn-primary btn-lg">
+                <p>Looks like you haven&apos;t added any items yet.</p>
+                <Link href="/" className="btn btn-primary btn-lg">
                     Start Shopping
                 </Link>
             </div>
@@ -185,7 +185,7 @@ export default function CartPage() {
                                 <div className={styles.itemDetails}>
                                     <div className={styles.itemHeader}>
                                         <h3 className={styles.itemName}>
-                                            <Link href={`/${item.type === 'product' ? 'plants' : item.type === 'hamper' ? 'gift-hampers' : 'combos'}/${item.slug}`}>
+                                            <Link href={`/${item.type === 'combo' ? 'combos' : item.type === 'hamper' ? 'gift-hampers' : (item.category || '').toLowerCase() === 'pots' ? 'pots' : 'plants'}/${item.slug}`}>
                                                 {item.name}
                                             </Link>
                                         </h3>
@@ -199,7 +199,7 @@ export default function CartPage() {
                                     </div>
 
                                     <span className={styles.itemType}>
-                                        {item.type === 'combo' ? 'Combo' : item.type === 'hamper' ? 'Gift Hamper' : 'Plant'}
+                                        {item.category || (item.type === 'combo' ? 'Combo' : item.type === 'hamper' ? 'Gift Hamper' : 'Plant')}
                                     </span>
 
                                     {/* Variant Details */}

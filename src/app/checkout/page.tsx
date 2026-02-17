@@ -309,7 +309,7 @@ export default function CheckoutPage() {
             <div className={styles.empty}>
                 <span className={styles.emptyIcon}>🛒</span>
                 <h2>Your cart is empty</h2>
-                <p>Add some plants before checkout</p>
+                <p>Add some items before checkout</p>
             </div>
         );
     }

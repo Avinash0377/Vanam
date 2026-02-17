@@ -189,6 +189,7 @@ export default function ProductCard({
             size: selectedSize,
             color: selectedColor?.name,
             colorHex: selectedColor?.hex,
+            category: type === 'pot' ? 'Pot' : type === 'combo' ? 'Combo' : type === 'hamper' ? 'Gift Hamper' : 'Plant',
             productId: undefined as string | undefined,
             comboId: undefined as string | undefined,
             hamperId: undefined as string | undefined,

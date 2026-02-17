@@ -83,7 +83,7 @@ function OrderConfirmationContent() {
                             <PackageIcon size={24} color="#16a34a" />
                             <div>
                                 <h3>What's Next?</h3>
-                                <p>Your plants are being prepared with love. You'll receive a shipping notification soon!</p>
+                                <p>Your order is being prepared with love. You&apos;ll receive a shipping notification soon!</p>
                             </div>
                         </div>
 
@@ -108,7 +108,7 @@ function OrderConfirmationContent() {
                         <Link href="/profile" className="btn btn-primary">
                             View My Orders
                         </Link>
-                        <Link href="/plants" className="btn btn-secondary">
+                        <Link href="/" className="btn btn-secondary">
                             Continue Shopping
                         </Link>
                     </div>
@@ -128,12 +128,12 @@ function OrderConfirmationContent() {
                 </div>
 
                 <div className={styles.tips}>
-                    <h3>🌱 Plant Care Tips</h3>
+                    <h3>🌱 Care Tips</h3>
                     <ul>
                         <li>When your plants arrive, let them rest for 24 hours before repotting</li>
-                        <li>Place in indirect light initially to help them adjust</li>
-                        <li>Water lightly and avoid direct sunlight for the first few days</li>
-                        <li>Keep the care guide handy - it's included with your order!</li>
+                        <li>For pots and planters, clean with a damp cloth before first use</li>
+                        <li>Place plants in indirect light initially to help them adjust</li>
+                        <li>Keep the care guide handy - it&apos;s included with your order!</li>
                     </ul>
                 </div>
             </div>

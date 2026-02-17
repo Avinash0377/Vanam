@@ -145,6 +145,7 @@ export default function ProductPage() {
             size: selectedSize || product.size,
             color: selectedColor?.name,
             colorHex: selectedColor?.hex,
+            category: product.category?.name || 'Plant',
         }, quantity);
 
         // Show success toast
@@ -176,7 +177,7 @@ export default function ProductPage() {
             <div className={styles.notFound}>
                 <span>🌱</span>
                 <h2>Product not found</h2>
-                <p>The plant you're looking for doesn't exist</p>
+                <p>The product you&apos;re looking for doesn&apos;t exist</p>
             </div>
         );
     }

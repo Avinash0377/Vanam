@@ -18,6 +18,7 @@ interface CartItem {
     color?: string;
     colorHex?: string;
     customMessage?: string;
+    category?: string;
 }
 
 interface CartSummary {
@@ -96,7 +97,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             if (data.cart) {
                 const cartItems: CartItem[] = [];
 
-                data.cart.items?.forEach((item: { id: string; quantity: number; size?: string; selectedColor?: string; colorImage?: string; product: { id: string; name: string; slug: string; price: number; images: string[]; size?: string } }) => {
+                data.cart.items?.forEach((item: { id: string; quantity: number; size?: string; selectedColor?: string; colorImage?: string; product: { id: string; name: string; slug: string; price: number; images: string[]; size?: string; category?: { name: string } } }) => {
                     cartItems.push({
                         id: item.id,
                         productId: item.product.id,
@@ -108,6 +109,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
                         type: 'product',
                         size: item.size || item.product.size,
                         color: item.selectedColor,
+                        category: item.product.category?.name || 'Plant',
                     });
                 });
 
@@ -121,6 +123,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
                         quantity: item.quantity,
                         image: item.combo.images?.[0] || '/placeholder-plant.jpg',
                         type: 'combo',
+                        category: 'Combo',
                     });
                 });
 
@@ -135,6 +138,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
                         image: item.hamper.images?.[0] || '/placeholder-plant.jpg',
                         type: 'hamper',
                         customMessage: item.customMessage,
+                        category: 'Gift Hamper',
                     });
                 });
 
@@ -169,6 +173,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
                 size: i.size,
                 color: i.color,
                 colorHex: i.colorHex,
+                category: i.category,
             })),
             comboItems: cartItems.filter(i => i.type === 'combo').map(i => ({
                 id: i.id,
