@@ -18,6 +18,7 @@ import {
     TagIcon,
     UserIcon,
     BellIcon,
+    ActivityIcon,
 } from '@/components/Icons';
 import styles from './layout.module.css';
 
@@ -33,6 +34,7 @@ const navItems = [
     { href: '/admin/sales-reports', icon: TrendingUpIcon, label: 'Reports' },
     { href: '/admin/delivery-settings', icon: TruckIcon, label: 'Delivery' },
     { href: '/admin/coupons', icon: TagIcon, label: 'Coupons' },
+    { href: '/admin/payment-logs', icon: ActivityIcon, label: 'Pay Logs' },
     { href: '/admin/notification-settings', icon: BellIcon, label: 'Notifications' },
     { href: '/admin/profile', icon: UserIcon, label: 'Profile' },
 ];

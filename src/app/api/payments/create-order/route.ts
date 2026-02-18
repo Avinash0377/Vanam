@@ -8,6 +8,7 @@ import { ProductWithVariants, getVariantPrice, getVariantStock } from '@/lib/var
 import { checkRateLimit } from '@/lib/rate-limit';
 import { getDeliverySettings, getDeliveryCharge } from '@/lib/order-utils';
 import { normalizeCouponCode, validateCoupon } from '@/lib/coupon-utils';
+import { logPaymentEvent } from '@/lib/payment-logger';
 
 // POST create Razorpay order for payment
 // SECURITY: Backend fetches cart and calculates total - frontend is UNTRUSTED
@@ -208,7 +209,7 @@ async function createPaymentOrder(request: NextRequest, user: JWTPayload) {
         });
 
         // Save PendingPayment record with shipping info, coupon, and cart snapshot
-        await prisma.pendingPayment.create({
+        const pendingPaymentRecord = await prisma.pendingPayment.create({
             data: {
                 userId: user.userId,
                 razorpayOrderId: razorpayOrder.id,
@@ -230,6 +231,18 @@ async function createPaymentOrder(request: NextRequest, user: JWTPayload) {
                 expiresAt: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes
             },
         });
+
+        // Log INITIATED event — fire-and-forget, never blocks payment flow
+        logPaymentEvent({
+            eventType: 'INITIATED',
+            status: 'PENDING',
+            correlationId: razorpayOrder.id,
+            pendingPaymentId: pendingPaymentRecord.id,
+            razorpayOrderId: razorpayOrder.id,
+            amount: totalAmount,
+            message: `Payment initiated for ${customerName}`,
+            request,
+        }).catch(() => null);
 
         // SECURITY: Return only necessary data
         // Frontend receives razorpayOrderId and keyId - NOT the secret
@@ -253,7 +266,6 @@ async function createPaymentOrder(request: NextRequest, user: JWTPayload) {
         });
 
     } catch (error) {
-        console.error('Create payment order error:', error);
         return NextResponse.json(
             { error: 'Failed to create payment order' },
             { status: 500 }

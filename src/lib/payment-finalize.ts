@@ -1,10 +1,10 @@
 /**
  * Shared Payment Finalization Logic
  * Used by both /api/payments/verify AND /api/webhooks/razorpay
- * 
+ *
  * This ensures order creation is NEVER duplicated and follows
  * the same logic regardless of how payment is confirmed.
- * 
+ *
  * COUPON POLICY: Honors coupon that was valid at payment initiation time.
  * COUPON INCREMENT: Only happens after successful order creation (never at PendingPayment stage).
  */
@@ -29,6 +29,7 @@ import {
     sendAdminNewOrderAlert,
     checkAndSendLowStockAlerts,
 } from '@/lib/email';
+import { logPaymentEvent } from '@/lib/payment-logger';
 
 export interface FinalizePaymentResult {
     success: boolean;
@@ -39,11 +40,11 @@ export interface FinalizePaymentResult {
 
 /**
  * Finalize a payment and create an order.
- * 
+ *
  * IDEMPOTENCY: If payment is already SUCCESS, returns existing order info.
  * ATOMICITY: All operations happen in a single transaction.
  * COUPON: Honored if valid at initiation, incremented atomically inside transaction.
- * 
+ *
  * @param razorpayOrderId - The Razorpay order ID
  * @param razorpayPaymentId - The Razorpay payment ID
  * @param razorpaySignature - The Razorpay signature (optional for webhooks)
@@ -62,7 +63,6 @@ export async function finalizePayment(
         });
 
         if (!pendingPayment) {
-            console.log(`[${source}] PendingPayment not found: ${razorpayOrderId}`);
             return { success: false, error: 'Payment record not found' };
         }
 
@@ -74,7 +74,6 @@ export async function finalizePayment(
                 include: { order: true },
             });
 
-            console.log(`[${source}] Payment already processed: ${razorpayOrderId}`);
             return {
                 success: true,
                 orderNumber: existingPayment?.order?.orderNumber,
@@ -83,13 +82,11 @@ export async function finalizePayment(
         }
 
         if (pendingPayment.status === 'FAILED') {
-            console.log(`[${source}] Payment already failed: ${razorpayOrderId}`);
             return { success: false, error: 'Payment has already failed' };
         }
 
         // 2b. Reject expired pending payments
         if (pendingPayment.expiresAt && new Date() > new Date(pendingPayment.expiresAt)) {
-            console.log(`[${source}] Payment session expired: ${razorpayOrderId}`);
             await prisma.pendingPayment.update({
                 where: { razorpayOrderId },
                 data: { status: 'FAILED' },
@@ -110,7 +107,6 @@ export async function finalizePayment(
         });
 
         if (!serviceablePincode) {
-            console.log(`[${source}] Pincode ${pendingPayment.pincode} no longer serviceable`);
             return { success: false, error: 'Delivery not available in this area.' };
         }
 
@@ -132,7 +128,6 @@ export async function finalizePayment(
 
             if (!couponResult.valid) {
                 // Coupon became invalid (e.g., deactivated) — proceed without discount
-                console.log(`[${source}] Coupon ${couponCode} no longer valid, proceeding without discount`);
                 discountAmount = 0;
             } else {
                 discountAmount = couponResult.discountAmount;
@@ -144,6 +139,18 @@ export async function finalizePayment(
 
         // 8. Generate order number
         const orderNumber = generateOrderNumber();
+
+        // Log VERIFIED_SUCCESS before transaction — fire-and-forget
+        logPaymentEvent({
+            eventType: 'VERIFIED_SUCCESS',
+            status: 'SUCCESS',
+            correlationId: razorpayOrderId,
+            pendingPaymentId: pendingPayment.id,
+            razorpayOrderId,
+            razorpayPaymentId,
+            amount: pendingPayment.amount,
+            message: `Payment verified via ${source}`,
+        }).catch(() => null);
 
         // 9. ATOMIC TRANSACTION: Validate stock, create order, payment, decrement stock, clear cart
         const order = await prisma.$transaction(async (tx) => {
@@ -209,7 +216,18 @@ export async function finalizePayment(
             return newOrder;
         });
 
-        console.log(`[${source}] Payment finalized successfully: ${razorpayOrderId} -> ${order.orderNumber}`);
+        // Log ORDER_CREATED after successful transaction — fire-and-forget
+        logPaymentEvent({
+            eventType: 'ORDER_CREATED',
+            status: 'SUCCESS',
+            correlationId: razorpayOrderId,
+            orderId: order.id,
+            pendingPaymentId: pendingPayment.id,
+            razorpayOrderId,
+            razorpayPaymentId,
+            amount: totalAmount,
+            message: `Order ${order.orderNumber} created via ${source}`,
+        }).catch(() => null);
 
         // Fire-and-forget: Send emails (never block order flow)
         const orderEmailData = {
@@ -236,9 +254,7 @@ export async function finalizePayment(
             })),
         };
 
-        sendOrderConfirmationEmail(orderEmailData).catch(err =>
-            console.error('[email] Order confirmation email failed:', err)
-        );
+        sendOrderConfirmationEmail(orderEmailData).catch(() => null);
         sendAdminNewOrderAlert({
             orderNumber: order.orderNumber,
             customerName: pendingPayment.customerName,
@@ -246,12 +262,8 @@ export async function finalizePayment(
             city: pendingPayment.city,
             state: pendingPayment.state,
             paymentMethod: pendingPayment.paymentMethod,
-        }).catch(err =>
-            console.error('[email] Admin new order alert failed:', err)
-        );
-        checkAndSendLowStockAlerts(cartSnapshot).catch(err =>
-            console.error('[email] Low stock alert check failed:', err)
-        );
+        }).catch(() => null);
+        checkAndSendLowStockAlerts(cartSnapshot).catch(() => null);
 
         return {
             success: true,
@@ -259,7 +271,16 @@ export async function finalizePayment(
         };
 
     } catch (error) {
-        console.error(`[${source}] Error finalizing payment:`, error);
+        // Log FAILED — fire-and-forget
+        logPaymentEvent({
+            eventType: 'FAILED',
+            status: 'FAILED',
+            correlationId: razorpayOrderId,
+            razorpayOrderId,
+            razorpayPaymentId,
+            message: `Finalization failed via ${source}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        }).catch(() => null);
+
         return { success: false, error: 'Failed to finalize payment' };
     }
 }
@@ -269,15 +290,14 @@ export async function finalizePayment(
  */
 export async function markPendingPaymentFailed(
     razorpayOrderId: string,
-    source: 'verify' | 'webhook'
 ): Promise<void> {
     try {
         await prisma.pendingPayment.updateMany({
             where: { razorpayOrderId, status: 'PENDING' },
             data: { status: 'FAILED' },
         });
-        console.log(`[${source}] Marked payment as FAILED: ${razorpayOrderId}`);
     } catch (e) {
-        console.error(`[${source}] Failed to mark payment as failed:`, e);
+        // Silently handle — failure to mark as failed should not propagate
+        void e;
     }
 }

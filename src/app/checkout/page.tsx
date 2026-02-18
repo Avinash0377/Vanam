@@ -298,6 +298,15 @@ export default function CheckoutPage() {
                     ondismiss: () => {
                         setLoading(false);
                         setPaymentCancelled(true);
+                        // Log cancellation — fire-and-forget, never blocks UI
+                        fetch('/api/payments/cancel', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                Authorization: `Bearer ${token}`,
+                            },
+                            body: JSON.stringify({ razorpayOrderId: paymentData.razorpayOrderId }),
+                        }).catch(() => null);
                     }
                 }
             });

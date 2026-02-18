@@ -57,6 +57,26 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum PaymentEventType {
+  INITIATED
+  VERIFICATION_STARTED
+  VERIFIED_SUCCESS
+  SIGNATURE_FAILED
+  DUPLICATE_ATTEMPT
+  ORDER_CREATED
+  FAILED
+  WEBHOOK_RECEIVED
+  WEBHOOK_CONFIRMED
+  CANCELED
+}
+
+enum PaymentLogStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  INFO
+}
+
 enum PaymentMethod {
   RAZORPAY
   COD
@@ -446,4 +466,29 @@ model NotificationSettings {
   customerEmailsEnabled Boolean  @default(true)
   lowStockThreshold     Int      @default(5)
   updatedAt             DateTime @updatedAt
+}
+
+// ==================== PAYMENT LOG (Append-Only Audit Trail) ====================
+model PaymentLog {
+  id                String           @id @default(auto()) @map("_id") @db.ObjectId
+  correlationId     String?          // razorpayOrderId — groups all events for one payment
+  orderId           String?          // Set after order is created
+  pendingPaymentId  String?          // PendingPayment._id
+  razorpayOrderId   String?
+  razorpayPaymentId String?
+  eventType         PaymentEventType
+  status            PaymentLogStatus
+  amount            Float?
+  message           String?
+  rawPayload        Json?            // Sanitized, size-controlled payload only
+  ipAddress         String?          // For fraud analysis
+  userAgent         String?          // For fraud analysis
+  createdAt         DateTime         @default(now())
+
+  @@index([correlationId])
+  @@index([orderId])
+  @@index([razorpayOrderId])
+  @@index([eventType])
+  @@index([status])
+  @@index([createdAt])
 }

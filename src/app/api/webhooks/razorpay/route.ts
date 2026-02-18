@@ -1,18 +1,18 @@
 /**
  * Razorpay Webhook Handler
- * 
+ *
  * BACKUP PAYMENT CONFIRMATION SYSTEM
- * 
+ *
  * This webhook ensures payment is finalized even if:
  * - User closes the browser before verification
  * - Network issues prevent frontend verification
  * - Any other frontend failure
- * 
+ *
  * SECURITY:
  * - Verifies webhook signature using RAZORPAY_WEBHOOK_SECRET
  * - Uses raw body for signature verification
  * - Never trusts frontend data
- * 
+ *
  * IDEMPOTENCY:
  * - Uses shared finalizePayment() function
  * - Never creates duplicate orders
@@ -24,6 +24,7 @@ import crypto from 'crypto';
 import prisma from '@/lib/prisma';
 import { finalizePayment, markPendingPaymentFailed } from '@/lib/payment-finalize';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { logPaymentEvent } from '@/lib/payment-logger';
 
 // Disable body parsing - we need raw body for signature verification
 export const dynamic = 'force-dynamic';
@@ -49,14 +50,11 @@ interface RazorpayWebhookEvent {
 }
 
 export async function POST(request: NextRequest) {
-    const timestamp = new Date().toISOString();
-
     try {
         // 0. IP-based rate limit: 200 requests/min (Razorpay retries are ~5/event max)
         const ip = getClientIp(request);
         const rateCheck = checkRateLimit(`webhook:${ip}`, { maxRequests: 200, windowSeconds: 60 });
         if (!rateCheck.allowed) {
-            console.warn(`[webhook] ${timestamp} Rate limit exceeded for IP: ${ip}`);
             return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
         }
 
@@ -65,7 +63,6 @@ export async function POST(request: NextRequest) {
         const signature = request.headers.get('x-razorpay-signature');
 
         if (!signature) {
-            console.log(`[webhook] ${timestamp} Missing signature`);
             return NextResponse.json(
                 { error: 'Missing signature' },
                 { status: 400 }
@@ -75,7 +72,6 @@ export async function POST(request: NextRequest) {
         // 2. Verify webhook signature
         const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
         if (!webhookSecret) {
-            console.error(`[webhook] ${timestamp} RAZORPAY_WEBHOOK_SECRET not configured`);
             return NextResponse.json(
                 { error: 'Webhook not configured' },
                 { status: 500 }
@@ -91,7 +87,6 @@ export async function POST(request: NextRequest) {
         const sigBuffer = Buffer.from(signature, 'hex');
         const expectedBuffer = Buffer.from(expectedSignature, 'hex');
         if (sigBuffer.length !== expectedBuffer.length || !crypto.timingSafeEqual(sigBuffer, expectedBuffer)) {
-            console.log(`[webhook] ${timestamp} Invalid signature`);
             return NextResponse.json(
                 { error: 'Invalid signature' },
                 { status: 400 }
@@ -104,11 +99,8 @@ export async function POST(request: NextRequest) {
         const payment = event.payload?.payment?.entity;
 
         if (!payment) {
-            console.log(`[webhook] ${timestamp} No payment entity in event: ${eventType}`);
             return NextResponse.json({ status: 'ignored' });
         }
-
-        console.log(`[webhook] ${timestamp} Processing event: ${eventType}, order: ${payment.order_id}`);
 
         // 4. Handle events
         // NOTE: UPI payments fire 'payment.authorized' (NOT 'payment.captured')
@@ -117,21 +109,21 @@ export async function POST(request: NextRequest) {
         switch (eventType) {
             case 'payment.captured':
             case 'payment.authorized':
-                await handlePaymentCaptured(payment, timestamp);
+                await handlePaymentCaptured(payment, request);
                 break;
 
             case 'payment.failed':
-                await handlePaymentFailed(payment, timestamp);
+                await handlePaymentFailed(payment, request);
                 break;
 
             default:
-                console.log(`[webhook] ${timestamp} Ignoring event: ${eventType}`);
+                // Silently ignore other events
+                break;
         }
 
         return NextResponse.json({ status: 'ok' });
 
-    } catch (error) {
-        console.error(`[webhook] ${timestamp} Error:`, error);
+    } catch {
         // Return 200 to prevent Razorpay retries on server errors
         return NextResponse.json({ status: 'error', message: 'Internal error' });
     }
@@ -143,11 +135,29 @@ export async function POST(request: NextRequest) {
  */
 async function handlePaymentCaptured(
     payment: RazorpayPaymentEntity,
-    timestamp: string
+    request: NextRequest
 ) {
     const { id: paymentId, order_id: razorpayOrderId, amount } = payment;
 
-    console.log(`[webhook] ${timestamp} payment.captured: ${razorpayOrderId}, amount: ${amount}`);
+    // Log WEBHOOK_RECEIVED — sanitized payload, fire-and-forget
+    logPaymentEvent({
+        eventType: 'WEBHOOK_RECEIVED',
+        status: 'INFO',
+        correlationId: razorpayOrderId,
+        razorpayOrderId,
+        razorpayPaymentId: paymentId,
+        amount: amount / 100, // Convert paise to rupees for log
+        message: 'payment.captured webhook received',
+        rawPayload: {
+            event: 'payment.captured',
+            paymentId,
+            razorpayOrderId,
+            amount,
+            currency: payment.currency,
+            method: payment.method,
+        },
+        request,
+    }).catch(() => null);
 
     // Check if PendingPayment exists
     const pendingPayment = await prisma.pendingPayment.findUnique({
@@ -155,15 +165,23 @@ async function handlePaymentCaptured(
     });
 
     if (!pendingPayment) {
-        console.log(`[webhook] ${timestamp} PendingPayment not found: ${razorpayOrderId}`);
         return;
     }
 
     // Validate amount matches (convert paise to rupees)
     const expectedAmountPaise = Math.round(pendingPayment.amount * 100);
     if (amount !== expectedAmountPaise) {
-        console.error(`[webhook] ${timestamp} Amount mismatch! Expected: ${expectedAmountPaise}, Got: ${amount}`);
-        await markPendingPaymentFailed(razorpayOrderId, 'webhook');
+        logPaymentEvent({
+            eventType: 'FAILED',
+            status: 'FAILED',
+            correlationId: razorpayOrderId,
+            razorpayOrderId,
+            razorpayPaymentId: paymentId,
+            amount: amount / 100,
+            message: `Amount mismatch: expected ${expectedAmountPaise} paise, got ${amount} paise`,
+        }).catch(() => null);
+
+        await markPendingPaymentFailed(razorpayOrderId);
         return;
     }
 
@@ -175,10 +193,17 @@ async function handlePaymentCaptured(
         'webhook'
     );
 
-    if (result.success) {
-        console.log(`[webhook] ${timestamp} Order ${result.alreadyProcessed ? 'already exists' : 'created'}: ${result.orderNumber}`);
-    } else {
-        console.error(`[webhook] ${timestamp} Finalization failed: ${result.error}`);
+    if (result.success && !result.alreadyProcessed) {
+        // Log WEBHOOK_CONFIRMED — fire-and-forget
+        logPaymentEvent({
+            eventType: 'WEBHOOK_CONFIRMED',
+            status: 'SUCCESS',
+            correlationId: razorpayOrderId,
+            razorpayOrderId,
+            razorpayPaymentId: paymentId,
+            amount: amount / 100,
+            message: `Order ${result.orderNumber} confirmed via webhook`,
+        }).catch(() => null);
     }
 }
 
@@ -188,11 +213,27 @@ async function handlePaymentCaptured(
  */
 async function handlePaymentFailed(
     payment: RazorpayPaymentEntity,
-    timestamp: string
+    request: NextRequest
 ) {
-    const { order_id: razorpayOrderId, error_code, error_description } = payment;
+    const { id: paymentId, order_id: razorpayOrderId, error_code, error_description } = payment;
 
-    console.log(`[webhook] ${timestamp} payment.failed: ${razorpayOrderId}, error: ${error_code} - ${error_description}`);
+    // Log WEBHOOK_RECEIVED first — fire-and-forget
+    logPaymentEvent({
+        eventType: 'WEBHOOK_RECEIVED',
+        status: 'INFO',
+        correlationId: razorpayOrderId,
+        razorpayOrderId,
+        razorpayPaymentId: paymentId,
+        message: 'payment.failed webhook received',
+        rawPayload: {
+            event: 'payment.failed',
+            paymentId,
+            razorpayOrderId,
+            error_code,
+            error_description,
+        },
+        request,
+    }).catch(() => null);
 
     // Check if PendingPayment exists
     const pendingPayment = await prisma.pendingPayment.findUnique({
@@ -200,15 +241,23 @@ async function handlePaymentFailed(
     });
 
     if (!pendingPayment) {
-        console.log(`[webhook] ${timestamp} PendingPayment not found: ${razorpayOrderId}`);
         return;
     }
 
     // Only mark as failed if still PENDING
     if (pendingPayment.status === 'PENDING') {
-        await markPendingPaymentFailed(razorpayOrderId, 'webhook');
-        console.log(`[webhook] ${timestamp} Marked as FAILED: ${razorpayOrderId}`);
-    } else {
-        console.log(`[webhook] ${timestamp} Already processed (${pendingPayment.status}): ${razorpayOrderId}`);
+        await markPendingPaymentFailed(razorpayOrderId);
+
+        // Log FAILED — fire-and-forget
+        logPaymentEvent({
+            eventType: 'FAILED',
+            status: 'FAILED',
+            correlationId: razorpayOrderId,
+            pendingPaymentId: pendingPayment.id,
+            razorpayOrderId,
+            razorpayPaymentId: paymentId,
+            amount: pendingPayment.amount,
+            message: `Payment failed: ${error_code ?? 'unknown'} — ${error_description ?? ''}`.trim(),
+        }).catch(() => null);
     }
 }
