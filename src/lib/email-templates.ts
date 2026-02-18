@@ -1,54 +1,95 @@
 /**
  * HTML Email Templates for Vanam Store
- * 
- * All templates are mobile-responsive, branded, and inline-styled
- * for maximum email client compatibility.
+ *
+ * Premium, professional templates with:
+ * - No emojis
+ * - Mobile-first responsive design
+ * - Inline styles for maximum email client compatibility
+ * - Clean typographic hierarchy
  */
+
+// ==================== BRAND TOKENS ====================
+
+const BRAND_GREEN = '#2d6a4f';
+const BRAND_LIGHT = '#52b788';
+const BRAND_DARK = '#1b4332';
+const TEXT_PRIMARY = '#1a1a2e';
+const TEXT_SECONDARY = '#4a5568';
+const TEXT_MUTED = '#718096';
+const BG_PAGE = '#f4f6f4';
+const BG_CARD = '#ffffff';
+const BORDER_COLOR = '#e2e8f0';
 
 // ==================== SHARED LAYOUT ====================
 
-const BRAND_COLOR = '#16a34a';
-const BRAND_DARK = '#1a4d2e';
-const BG_COLOR = '#f8faf9';
-
 function emailLayout(title: string, content: string): string {
     return `<!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>${title}</title>
+    <style>
+        @media only screen and (max-width: 600px) {
+            .email-wrapper { padding: 12px 8px !important; }
+            .email-card { border-radius: 8px !important; }
+            .email-header { padding: 28px 20px !important; }
+            .email-body { padding: 28px 20px !important; }
+            .email-footer { padding: 20px !important; }
+            .order-table td, .order-table th { font-size: 13px !important; padding: 8px 4px !important; }
+            .total-row td { font-size: 16px !important; }
+            .order-number { font-size: 20px !important; }
+            .section-title { font-size: 13px !important; }
+            .item-name { font-size: 13px !important; }
+        }
+    </style>
 </head>
-<body style="margin:0;padding:0;background-color:${BG_COLOR};font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:${BG_COLOR};">
+<body style="margin:0;padding:0;background-color:${BG_PAGE};font-family:Georgia,'Times New Roman',serif;-webkit-font-smoothing:antialiased;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${BG_PAGE};">
         <tr>
-            <td align="center" style="padding:24px 16px;">
-                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+            <td class="email-wrapper" align="center" style="padding:40px 16px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;">
+
                     <!-- Header -->
                     <tr>
-                        <td style="background:linear-gradient(135deg,${BRAND_DARK},${BRAND_COLOR});padding:28px 32px;text-align:center;">
-                            <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:700;letter-spacing:1px;">🌿 Vanam Store</h1>
+                        <td class="email-header" style="background-color:${BRAND_DARK};padding:36px 40px;text-align:center;border-radius:12px 12px 0 0;">
+                            <p style="margin:0 0 6px;color:${BRAND_LIGHT};font-size:11px;letter-spacing:3px;text-transform:uppercase;font-family:Arial,Helvetica,sans-serif;">Rooted in Nature</p>
+                            <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:normal;letter-spacing:2px;font-family:Georgia,'Times New Roman',serif;">VANAM STORE</h1>
                         </td>
                     </tr>
-                    <!-- Content -->
+
+                    <!-- Body -->
                     <tr>
-                        <td style="padding:32px 28px;">
-                            ${content}
+                        <td class="email-card" style="background-color:${BG_CARD};border-left:1px solid ${BORDER_COLOR};border-right:1px solid ${BORDER_COLOR};">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td class="email-body" style="padding:40px;">
+                                        ${content}
+                                    </td>
+                                </tr>
+                            </table>
                         </td>
                     </tr>
+
                     <!-- Footer -->
                     <tr>
-                        <td style="background-color:#f1f5f9;padding:20px 28px;text-align:center;border-top:1px solid #e2e8f0;">
-                            <p style="margin:0 0 8px;color:#64748b;font-size:13px;">Need help? Contact us</p>
-                            <p style="margin:0 0 4px;color:#64748b;font-size:13px;">
-                                📧 vanamstore@gmail.com &nbsp;|&nbsp; 📞 8897249374
+                        <td class="email-footer" style="background-color:#f8faf8;padding:28px 40px;text-align:center;border:1px solid ${BORDER_COLOR};border-top:none;border-radius:0 0 12px 12px;">
+                            <p style="margin:0 0 6px;color:${TEXT_MUTED};font-size:12px;font-family:Arial,Helvetica,sans-serif;letter-spacing:0.5px;">Questions? We are here to help.</p>
+                            <p style="margin:0 0 4px;color:${TEXT_MUTED};font-size:12px;font-family:Arial,Helvetica,sans-serif;">
+                                <a href="mailto:vanamstore@gmail.com" style="color:${BRAND_GREEN};text-decoration:none;">vanamstore@gmail.com</a>
+                                &nbsp;&nbsp;|&nbsp;&nbsp;
+                                <a href="tel:+918897249374" style="color:${BRAND_GREEN};text-decoration:none;">+91 88972 49374</a>
                             </p>
-                            <p style="margin:8px 0 0;color:#64748b;font-size:13px;">
-                                <a href="https://wa.me/918897249374" style="color:${BRAND_COLOR};text-decoration:none;">💬 Chat on WhatsApp</a>
+                            <p style="margin:8px 0 0;color:${TEXT_MUTED};font-size:12px;font-family:Arial,Helvetica,sans-serif;">
+                                <a href="https://wa.me/918897249374" style="color:${BRAND_GREEN};text-decoration:none;">Chat on WhatsApp</a>
                             </p>
-                            <p style="margin:12px 0 0;color:#94a3b8;font-size:11px;">© ${new Date().getFullYear()} Vanam Store. All rights reserved.</p>
+                            <p style="margin:16px 0 0;color:#a0aec0;font-size:11px;font-family:Arial,Helvetica,sans-serif;letter-spacing:0.5px;">
+                                &copy; ${new Date().getFullYear()} Vanam Store. All rights reserved.
+                            </p>
                         </td>
                     </tr>
+
                 </table>
             </td>
         </tr>
@@ -83,68 +124,97 @@ interface OrderConfirmationData {
 export function orderConfirmationTemplate(data: OrderConfirmationData): string {
     const itemRows = data.items.map(item => `
         <tr>
-            <td style="padding:10px 0;border-bottom:1px solid #f1f5f9;">
-                <strong style="color:#1e293b;font-size:14px;">${item.name}</strong>
-                ${item.size ? `<br/><span style="color:#64748b;font-size:12px;">Size: ${item.size}</span>` : ''}
-                ${item.selectedColor ? `<br/><span style="color:#64748b;font-size:12px;">Color: ${item.selectedColor}</span>` : ''}
+            <td class="order-table" style="padding:14px 0;border-bottom:1px solid ${BORDER_COLOR};vertical-align:top;">
+                <p class="item-name" style="margin:0 0 3px;color:${TEXT_PRIMARY};font-size:14px;font-family:Arial,Helvetica,sans-serif;font-weight:600;">${item.name}</p>
+                ${item.size ? `<p style="margin:0;color:${TEXT_MUTED};font-size:12px;font-family:Arial,Helvetica,sans-serif;">Size: ${item.size}</p>` : ''}
+                ${item.selectedColor ? `<p style="margin:0;color:${TEXT_MUTED};font-size:12px;font-family:Arial,Helvetica,sans-serif;">Colour: ${item.selectedColor}</p>` : ''}
             </td>
-            <td style="padding:10px 0;border-bottom:1px solid #f1f5f9;text-align:center;color:#64748b;font-size:14px;">x${item.quantity}</td>
-            <td style="padding:10px 0;border-bottom:1px solid #f1f5f9;text-align:right;color:#1e293b;font-size:14px;font-weight:600;">₹${(item.price * item.quantity).toLocaleString('en-IN')}</td>
+            <td class="order-table" style="padding:14px 8px;border-bottom:1px solid ${BORDER_COLOR};text-align:center;vertical-align:top;color:${TEXT_SECONDARY};font-size:14px;font-family:Arial,Helvetica,sans-serif;white-space:nowrap;">${item.quantity}</td>
+            <td class="order-table" style="padding:14px 0;border-bottom:1px solid ${BORDER_COLOR};text-align:right;vertical-align:top;color:${TEXT_PRIMARY};font-size:14px;font-family:Arial,Helvetica,sans-serif;font-weight:600;white-space:nowrap;">Rs. ${(item.price * item.quantity).toLocaleString('en-IN')}</td>
         </tr>
     `).join('');
 
     const content = `
-        <div style="text-align:center;margin-bottom:24px;">
-            <span style="font-size:48px;">✅</span>
-            <h2 style="margin:12px 0 4px;color:#1e293b;font-size:22px;">Order Confirmed!</h2>
-            <p style="margin:0;color:#64748b;font-size:14px;">Thank you for shopping with Vanam Store</p>
-        </div>
+        <!-- Greeting -->
+        <p style="margin:0 0 4px;color:${TEXT_MUTED};font-size:12px;font-family:Arial,Helvetica,sans-serif;letter-spacing:1px;text-transform:uppercase;">Order Confirmation</p>
+        <h2 style="margin:0 0 8px;color:${TEXT_PRIMARY};font-size:26px;font-weight:normal;font-family:Georgia,'Times New Roman',serif;">Thank you, ${data.customerName}.</h2>
+        <p style="margin:0 0 32px;color:${TEXT_SECONDARY};font-size:15px;font-family:Arial,Helvetica,sans-serif;line-height:1.6;">Your order has been received and is being prepared. We will notify you once it is on its way.</p>
 
-        <div style="background-color:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;margin-bottom:24px;text-align:center;">
-            <span style="color:#64748b;font-size:12px;text-transform:uppercase;letter-spacing:1px;">Order Number</span>
-            <p style="margin:4px 0 0;font-size:20px;font-weight:700;color:${BRAND_DARK};">${data.orderNumber}</p>
-        </div>
-
-        <h3 style="margin:0 0 12px;color:#1e293b;font-size:16px;border-bottom:2px solid ${BRAND_COLOR};padding-bottom:8px;">Order Summary</h3>
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-            <tr style="background-color:#f8fafc;">
-                <th style="padding:8px 0;text-align:left;color:#64748b;font-size:12px;text-transform:uppercase;">Item</th>
-                <th style="padding:8px 0;text-align:center;color:#64748b;font-size:12px;text-transform:uppercase;">Qty</th>
-                <th style="padding:8px 0;text-align:right;color:#64748b;font-size:12px;text-transform:uppercase;">Amount</th>
+        <!-- Order Number Banner -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:32px;">
+            <tr>
+                <td style="background-color:#f0f7f4;border-left:4px solid ${BRAND_GREEN};padding:16px 20px;border-radius:0 6px 6px 0;">
+                    <p style="margin:0 0 2px;color:${TEXT_MUTED};font-size:11px;letter-spacing:2px;text-transform:uppercase;font-family:Arial,Helvetica,sans-serif;">Order Reference</p>
+                    <p class="order-number" style="margin:0;font-size:22px;font-weight:700;color:${BRAND_DARK};font-family:Arial,Helvetica,sans-serif;letter-spacing:1px;">${data.orderNumber}</p>
+                </td>
             </tr>
-            ${itemRows}
         </table>
 
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;">
+        <!-- Order Items -->
+        <p class="section-title" style="margin:0 0 12px;color:${TEXT_MUTED};font-size:11px;letter-spacing:2px;text-transform:uppercase;font-family:Arial,Helvetica,sans-serif;border-bottom:1px solid ${BORDER_COLOR};padding-bottom:10px;">Items Ordered</p>
+        <table class="order-table" role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:0;">
+            <thead>
+                <tr>
+                    <th style="padding:0 0 10px;text-align:left;color:${TEXT_MUTED};font-size:11px;letter-spacing:1px;text-transform:uppercase;font-family:Arial,Helvetica,sans-serif;font-weight:normal;">Product</th>
+                    <th style="padding:0 8px 10px;text-align:center;color:${TEXT_MUTED};font-size:11px;letter-spacing:1px;text-transform:uppercase;font-family:Arial,Helvetica,sans-serif;font-weight:normal;">Qty</th>
+                    <th style="padding:0 0 10px;text-align:right;color:${TEXT_MUTED};font-size:11px;letter-spacing:1px;text-transform:uppercase;font-family:Arial,Helvetica,sans-serif;font-weight:normal;">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${itemRows}
+            </tbody>
+        </table>
+
+        <!-- Totals -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:16px;">
             <tr>
-                <td style="padding:6px 0;color:#64748b;font-size:14px;">Subtotal</td>
-                <td style="padding:6px 0;text-align:right;color:#1e293b;font-size:14px;">₹${data.subtotal.toLocaleString('en-IN')}</td>
+                <td style="padding:6px 0;color:${TEXT_SECONDARY};font-size:13px;font-family:Arial,Helvetica,sans-serif;">Subtotal</td>
+                <td style="padding:6px 0;text-align:right;color:${TEXT_PRIMARY};font-size:13px;font-family:Arial,Helvetica,sans-serif;">Rs. ${data.subtotal.toLocaleString('en-IN')}</td>
             </tr>
             ${data.discountAmount > 0 ? `
             <tr>
-                <td style="padding:6px 0;color:${BRAND_COLOR};font-size:14px;">Discount${data.couponCode ? ` (${data.couponCode})` : ''}</td>
-                <td style="padding:6px 0;text-align:right;color:${BRAND_COLOR};font-size:14px;">-₹${data.discountAmount.toLocaleString('en-IN')}</td>
+                <td style="padding:6px 0;color:${BRAND_GREEN};font-size:13px;font-family:Arial,Helvetica,sans-serif;">Discount${data.couponCode ? ` (${data.couponCode})` : ''}</td>
+                <td style="padding:6px 0;text-align:right;color:${BRAND_GREEN};font-size:13px;font-family:Arial,Helvetica,sans-serif;">- Rs. ${data.discountAmount.toLocaleString('en-IN')}</td>
             </tr>` : ''}
             <tr>
-                <td style="padding:6px 0;color:#64748b;font-size:14px;">Delivery</td>
-                <td style="padding:6px 0;text-align:right;color:#1e293b;font-size:14px;">${data.shippingCost === 0 ? '<span style="color:' + BRAND_COLOR + ';">FREE</span>' : '₹' + data.shippingCost.toLocaleString('en-IN')}</td>
+                <td style="padding:6px 0;color:${TEXT_SECONDARY};font-size:13px;font-family:Arial,Helvetica,sans-serif;">Delivery</td>
+                <td style="padding:6px 0;text-align:right;color:${data.shippingCost === 0 ? BRAND_GREEN : TEXT_PRIMARY};font-size:13px;font-family:Arial,Helvetica,sans-serif;">${data.shippingCost === 0 ? 'Free' : 'Rs. ' + data.shippingCost.toLocaleString('en-IN')}</td>
             </tr>
-            <tr>
-                <td style="padding:12px 0 0;color:#1e293b;font-size:18px;font-weight:700;border-top:2px solid #e2e8f0;">Total</td>
-                <td style="padding:12px 0 0;text-align:right;color:${BRAND_DARK};font-size:18px;font-weight:700;border-top:2px solid #e2e8f0;">₹${data.totalAmount.toLocaleString('en-IN')}</td>
+            <tr class="total-row">
+                <td style="padding:14px 0 0;color:${TEXT_PRIMARY};font-size:18px;font-weight:700;border-top:2px solid ${TEXT_PRIMARY};font-family:Arial,Helvetica,sans-serif;">Total Paid</td>
+                <td style="padding:14px 0 0;text-align:right;color:${BRAND_DARK};font-size:18px;font-weight:700;border-top:2px solid ${TEXT_PRIMARY};font-family:Arial,Helvetica,sans-serif;">Rs. ${data.totalAmount.toLocaleString('en-IN')}</td>
             </tr>
         </table>
 
-        <h3 style="margin:24px 0 12px;color:#1e293b;font-size:16px;border-bottom:2px solid ${BRAND_COLOR};padding-bottom:8px;">Delivery Address</h3>
-        <p style="margin:0;color:#475569;font-size:14px;line-height:1.6;">
-            ${data.customerName}<br/>
-            ${data.address}<br/>
-            ${data.city}, ${data.state} — ${data.pincode}
+        <!-- Divider -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:32px 0;">
+            <tr><td style="border-top:1px solid ${BORDER_COLOR};"></td></tr>
+        </table>
+
+        <!-- Delivery Address -->
+        <p class="section-title" style="margin:0 0 12px;color:${TEXT_MUTED};font-size:11px;letter-spacing:2px;text-transform:uppercase;font-family:Arial,Helvetica,sans-serif;">Delivery Address</p>
+        <p style="margin:0;color:${TEXT_SECONDARY};font-size:14px;font-family:Arial,Helvetica,sans-serif;line-height:1.8;">
+            <strong style="color:${TEXT_PRIMARY};">${data.customerName}</strong><br>
+            ${data.address}<br>
+            ${data.city}, ${data.state} &mdash; ${data.pincode}
         </p>
 
-        <div style="margin-top:24px;padding:16px;background-color:#eff6ff;border-radius:8px;text-align:center;">
-            <p style="margin:0;color:#1e40af;font-size:14px;">📦 Expected delivery within 3–7 business days</p>
-        </div>
+        <!-- Divider -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:32px 0;">
+            <tr><td style="border-top:1px solid ${BORDER_COLOR};"></td></tr>
+        </table>
+
+        <!-- Delivery Notice -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+                <td style="background-color:#f8faf8;border:1px solid #d1e7d8;border-radius:6px;padding:16px 20px;text-align:center;">
+                    <p style="margin:0;color:${BRAND_DARK};font-size:13px;font-family:Arial,Helvetica,sans-serif;line-height:1.6;">
+                        Estimated delivery within <strong>3 to 7 business days</strong>.<br>
+                        <span style="color:${TEXT_MUTED};font-size:12px;">You will receive a shipping notification once your order is dispatched.</span>
+                    </p>
+                </td>
+            </tr>
+        </table>
     `;
 
     return emailLayout('Order Confirmed — Vanam Store', content);
@@ -164,57 +234,65 @@ interface OrderStatusData {
 
 export function orderStatusUpdateTemplate(data: OrderStatusData): string {
     const statusColors: Record<string, string> = {
-        'PACKING': '#f59e0b',
-        'SHIPPED': '#3b82f6',
-        'DELIVERED': '#16a34a',
-        'CANCELLED': '#ef4444',
-        'REFUNDED': '#8b5cf6',
+        'PACKING': '#b45309',
+        'SHIPPED': '#1d4ed8',
+        'DELIVERED': BRAND_GREEN,
+        'CANCELLED': '#b91c1c',
+        'REFUNDED': '#6d28d9',
     };
 
-    const statusEmoji: Record<string, string> = {
-        'PACKING': '📦',
-        'SHIPPED': '🚚',
-        'DELIVERED': '✅',
-        'CANCELLED': '❌',
-        'REFUNDED': '💰',
+    const statusDescriptions: Record<string, string> = {
+        'PACKING': 'Your order is being carefully packed and will be dispatched soon.',
+        'SHIPPED': 'Your order is on its way. Please keep an eye out for delivery.',
+        'DELIVERED': 'Your order has been delivered. We hope you love your plants.',
+        'CANCELLED': 'Your order has been cancelled. If you have any questions, please contact us.',
+        'REFUNDED': 'Your refund has been processed. It may take 5 to 7 business days to reflect.',
     };
 
-    const color = statusColors[data.status] || BRAND_COLOR;
-    const emoji = statusEmoji[data.status] || '📋';
+    const color = statusColors[data.status] || BRAND_GREEN;
+    const description = statusDescriptions[data.status] || 'Your order status has been updated.';
 
     const trackingInfo = data.status === 'SHIPPED' && data.trackingNumber ? `
-        <div style="margin-top:16px;padding:16px;background-color:#eff6ff;border-radius:8px;">
-            <p style="margin:0 0 4px;color:#1e40af;font-size:14px;font-weight:600;">Tracking Details</p>
-            ${data.courierName ? `<p style="margin:0 0 4px;color:#475569;font-size:14px;">Courier: ${data.courierName}</p>` : ''}
-            <p style="margin:0;color:#475569;font-size:14px;">Tracking Number: <strong>${data.trackingNumber}</strong></p>
-        </div>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;">
+            <tr>
+                <td style="background-color:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:16px 20px;">
+                    <p style="margin:0 0 8px;color:#1e40af;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-family:Arial,Helvetica,sans-serif;">Tracking Information</p>
+                    ${data.courierName ? `<p style="margin:0 0 4px;color:${TEXT_SECONDARY};font-size:13px;font-family:Arial,Helvetica,sans-serif;">Courier: <strong>${data.courierName}</strong></p>` : ''}
+                    <p style="margin:0;color:${TEXT_SECONDARY};font-size:13px;font-family:Arial,Helvetica,sans-serif;">Tracking Number: <strong style="color:${TEXT_PRIMARY};letter-spacing:1px;">${data.trackingNumber}</strong></p>
+                </td>
+            </tr>
+        </table>
     ` : '';
 
     const content = `
-        <div style="text-align:center;margin-bottom:24px;">
-            <span style="font-size:48px;">${emoji}</span>
-            <h2 style="margin:12px 0 4px;color:#1e293b;font-size:22px;">${data.statusLabel}</h2>
-            <p style="margin:0;color:#64748b;font-size:14px;">Hi ${data.customerName}, here's an update on your order</p>
-        </div>
+        <!-- Greeting -->
+        <p style="margin:0 0 4px;color:${TEXT_MUTED};font-size:12px;font-family:Arial,Helvetica,sans-serif;letter-spacing:1px;text-transform:uppercase;">Order Update</p>
+        <h2 style="margin:0 0 8px;color:${TEXT_PRIMARY};font-size:26px;font-weight:normal;font-family:Georgia,'Times New Roman',serif;">Hello, ${data.customerName}.</h2>
+        <p style="margin:0 0 32px;color:${TEXT_SECONDARY};font-size:15px;font-family:Arial,Helvetica,sans-serif;line-height:1.6;">${description}</p>
 
-        <div style="background-color:#f8fafc;border-radius:8px;padding:16px;margin-bottom:16px;">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                    <td style="color:#64748b;font-size:13px;">Order Number</td>
-                    <td style="text-align:right;font-weight:700;color:#1e293b;font-size:14px;">${data.orderNumber}</td>
-                </tr>
-                <tr>
-                    <td style="padding-top:8px;color:#64748b;font-size:13px;">Order Total</td>
-                    <td style="padding-top:8px;text-align:right;font-weight:700;color:#1e293b;font-size:14px;">₹${data.totalAmount.toLocaleString('en-IN')}</td>
-                </tr>
-                <tr>
-                    <td style="padding-top:8px;color:#64748b;font-size:13px;">Status</td>
-                    <td style="padding-top:8px;text-align:right;">
-                        <span style="display:inline-block;padding:4px 12px;background-color:${color};color:white;border-radius:12px;font-size:12px;font-weight:600;">${data.status}</span>
-                    </td>
-                </tr>
-            </table>
-        </div>
+        <!-- Status Card -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px;">
+            <tr>
+                <td style="background-color:#f8faf8;border:1px solid ${BORDER_COLOR};border-radius:8px;padding:20px 24px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                        <tr>
+                            <td style="color:${TEXT_MUTED};font-size:12px;font-family:Arial,Helvetica,sans-serif;padding-bottom:10px;">Order Reference</td>
+                            <td style="text-align:right;font-weight:700;color:${TEXT_PRIMARY};font-size:14px;font-family:Arial,Helvetica,sans-serif;padding-bottom:10px;">${data.orderNumber}</td>
+                        </tr>
+                        <tr>
+                            <td style="color:${TEXT_MUTED};font-size:12px;font-family:Arial,Helvetica,sans-serif;padding-bottom:10px;border-top:1px solid ${BORDER_COLOR};padding-top:10px;">Order Total</td>
+                            <td style="text-align:right;font-weight:700;color:${TEXT_PRIMARY};font-size:14px;font-family:Arial,Helvetica,sans-serif;border-top:1px solid ${BORDER_COLOR};padding-top:10px;">Rs. ${data.totalAmount.toLocaleString('en-IN')}</td>
+                        </tr>
+                        <tr>
+                            <td style="color:${TEXT_MUTED};font-size:12px;font-family:Arial,Helvetica,sans-serif;border-top:1px solid ${BORDER_COLOR};padding-top:10px;">Status</td>
+                            <td style="text-align:right;border-top:1px solid ${BORDER_COLOR};padding-top:10px;">
+                                <span style="display:inline-block;padding:4px 14px;background-color:${color};color:#ffffff;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;font-family:Arial,Helvetica,sans-serif;">${data.statusLabel}</span>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
 
         ${trackingInfo}
     `;
@@ -231,22 +309,28 @@ interface PasswordResetData {
 
 export function passwordResetTemplate(data: PasswordResetData): string {
     const content = `
-        <div style="text-align:center;margin-bottom:24px;">
-            <span style="font-size:48px;">🔑</span>
-            <h2 style="margin:12px 0 4px;color:#1e293b;font-size:22px;">Reset Your Password</h2>
-            <p style="margin:0;color:#64748b;font-size:14px;">Hi ${data.userName}, we received a request to reset your password</p>
-        </div>
+        <p style="margin:0 0 4px;color:${TEXT_MUTED};font-size:12px;font-family:Arial,Helvetica,sans-serif;letter-spacing:1px;text-transform:uppercase;">Account Security</p>
+        <h2 style="margin:0 0 8px;color:${TEXT_PRIMARY};font-size:26px;font-weight:normal;font-family:Georgia,'Times New Roman',serif;">Reset Your Password</h2>
+        <p style="margin:0 0 32px;color:${TEXT_SECONDARY};font-size:15px;font-family:Arial,Helvetica,sans-serif;line-height:1.6;">Hello ${data.userName}, we received a request to reset the password for your Vanam Store account. Click the button below to proceed.</p>
 
-        <div style="text-align:center;margin:24px 0;">
-            <a href="${data.resetLink}" style="display:inline-block;padding:14px 32px;background-color:${BRAND_COLOR};color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600;font-size:16px;">Reset Password</a>
-        </div>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:28px;">
+            <tr>
+                <td align="center">
+                    <a href="${data.resetLink}" style="display:inline-block;padding:14px 36px;background-color:${BRAND_DARK};color:#ffffff;text-decoration:none;border-radius:4px;font-weight:700;font-size:14px;letter-spacing:1px;text-transform:uppercase;font-family:Arial,Helvetica,sans-serif;">Reset Password</a>
+                </td>
+            </tr>
+        </table>
 
-        <div style="padding:16px;background-color:#fef3c7;border-radius:8px;margin:16px 0;">
-            <p style="margin:0;color:#92400e;font-size:13px;">⏰ This link will expire in <strong>30 minutes</strong>. If you didn't request a password reset, you can safely ignore this email.</p>
-        </div>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px;">
+            <tr>
+                <td style="background-color:#fefce8;border:1px solid #fde68a;border-radius:6px;padding:14px 18px;">
+                    <p style="margin:0;color:#78350f;font-size:13px;font-family:Arial,Helvetica,sans-serif;line-height:1.6;">This link will expire in <strong>30 minutes</strong>. If you did not request a password reset, please disregard this email. Your account remains secure.</p>
+                </td>
+            </tr>
+        </table>
 
-        <p style="margin:16px 0 0;color:#94a3b8;font-size:12px;text-align:center;">If the button doesn't work, copy and paste this link:<br/>
-            <a href="${data.resetLink}" style="color:${BRAND_COLOR};word-break:break-all;font-size:11px;">${data.resetLink}</a>
+        <p style="margin:0;color:${TEXT_MUTED};font-size:12px;font-family:Arial,Helvetica,sans-serif;line-height:1.6;text-align:center;">If the button above does not work, copy and paste the following link into your browser:<br>
+            <a href="${data.resetLink}" style="color:${BRAND_GREEN};word-break:break-all;font-size:11px;">${data.resetLink}</a>
         </p>
     `;
 
@@ -267,39 +351,46 @@ interface AdminNewOrderData {
 
 export function adminNewOrderTemplate(data: AdminNewOrderData): string {
     const content = `
-        <div style="text-align:center;margin-bottom:24px;">
-            <span style="font-size:48px;">🛒</span>
-            <h2 style="margin:12px 0 4px;color:#1e293b;font-size:22px;">New Order Received!</h2>
-        </div>
+        <p style="margin:0 0 4px;color:${TEXT_MUTED};font-size:12px;font-family:Arial,Helvetica,sans-serif;letter-spacing:1px;text-transform:uppercase;">Admin Notification</p>
+        <h2 style="margin:0 0 8px;color:${TEXT_PRIMARY};font-size:26px;font-weight:normal;font-family:Georgia,'Times New Roman',serif;">New Order Received</h2>
+        <p style="margin:0 0 28px;color:${TEXT_SECONDARY};font-size:15px;font-family:Arial,Helvetica,sans-serif;">A new order has been placed and is awaiting processing.</p>
 
-        <div style="background-color:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;margin-bottom:16px;">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                    <td style="color:#64748b;font-size:13px;">Order Number</td>
-                    <td style="text-align:right;font-weight:700;color:${BRAND_DARK};font-size:16px;">${data.orderNumber}</td>
-                </tr>
-                <tr>
-                    <td style="padding-top:8px;color:#64748b;font-size:13px;">Customer</td>
-                    <td style="padding-top:8px;text-align:right;color:#1e293b;font-size:14px;">${data.customerName}</td>
-                </tr>
-                <tr>
-                    <td style="padding-top:8px;color:#64748b;font-size:13px;">Location</td>
-                    <td style="padding-top:8px;text-align:right;color:#1e293b;font-size:14px;">${data.city}, ${data.state}</td>
-                </tr>
-                <tr>
-                    <td style="padding-top:8px;color:#64748b;font-size:13px;">Payment</td>
-                    <td style="padding-top:8px;text-align:right;color:#1e293b;font-size:14px;">${data.paymentMethod}</td>
-                </tr>
-                <tr>
-                    <td style="padding-top:12px;color:#1e293b;font-size:16px;font-weight:700;border-top:1px solid #bbf7d0;">Total</td>
-                    <td style="padding-top:12px;text-align:right;color:${BRAND_DARK};font-size:18px;font-weight:700;border-top:1px solid #bbf7d0;">₹${data.totalAmount.toLocaleString('en-IN')}</td>
-                </tr>
-            </table>
-        </div>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px;">
+            <tr>
+                <td style="background-color:#f0f7f4;border:1px solid #c6e6d4;border-radius:8px;padding:20px 24px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                        <tr>
+                            <td style="color:${TEXT_MUTED};font-size:12px;font-family:Arial,Helvetica,sans-serif;padding-bottom:10px;">Order Reference</td>
+                            <td style="text-align:right;font-weight:700;color:${BRAND_DARK};font-size:16px;font-family:Arial,Helvetica,sans-serif;padding-bottom:10px;">${data.orderNumber}</td>
+                        </tr>
+                        <tr>
+                            <td style="color:${TEXT_MUTED};font-size:12px;font-family:Arial,Helvetica,sans-serif;border-top:1px solid #c6e6d4;padding-top:10px;padding-bottom:10px;">Customer</td>
+                            <td style="text-align:right;color:${TEXT_PRIMARY};font-size:14px;font-family:Arial,Helvetica,sans-serif;border-top:1px solid #c6e6d4;padding-top:10px;padding-bottom:10px;">${data.customerName}</td>
+                        </tr>
+                        <tr>
+                            <td style="color:${TEXT_MUTED};font-size:12px;font-family:Arial,Helvetica,sans-serif;border-top:1px solid #c6e6d4;padding-top:10px;padding-bottom:10px;">Location</td>
+                            <td style="text-align:right;color:${TEXT_PRIMARY};font-size:14px;font-family:Arial,Helvetica,sans-serif;border-top:1px solid #c6e6d4;padding-top:10px;padding-bottom:10px;">${data.city}, ${data.state}</td>
+                        </tr>
+                        <tr>
+                            <td style="color:${TEXT_MUTED};font-size:12px;font-family:Arial,Helvetica,sans-serif;border-top:1px solid #c6e6d4;padding-top:10px;padding-bottom:10px;">Payment Method</td>
+                            <td style="text-align:right;color:${TEXT_PRIMARY};font-size:14px;font-family:Arial,Helvetica,sans-serif;border-top:1px solid #c6e6d4;padding-top:10px;padding-bottom:10px;">${data.paymentMethod}</td>
+                        </tr>
+                        <tr>
+                            <td style="color:${TEXT_PRIMARY};font-size:16px;font-weight:700;font-family:Arial,Helvetica,sans-serif;border-top:2px solid ${BRAND_GREEN};padding-top:12px;">Order Total</td>
+                            <td style="text-align:right;color:${BRAND_DARK};font-size:20px;font-weight:700;font-family:Arial,Helvetica,sans-serif;border-top:2px solid ${BRAND_GREEN};padding-top:12px;">Rs. ${data.totalAmount.toLocaleString('en-IN')}</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
 
-        <div style="text-align:center;margin-top:20px;">
-            <a href="${data.adminUrl}/admin/orders" style="display:inline-block;padding:12px 24px;background-color:${BRAND_COLOR};color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600;font-size:14px;">View in Admin Panel</a>
-        </div>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+                <td align="center">
+                    <a href="${data.adminUrl}/admin/orders" style="display:inline-block;padding:12px 28px;background-color:${BRAND_DARK};color:#ffffff;text-decoration:none;border-radius:4px;font-weight:700;font-size:13px;letter-spacing:1px;text-transform:uppercase;font-family:Arial,Helvetica,sans-serif;">View in Admin Panel</a>
+                </td>
+            </tr>
+        </table>
     `;
 
     return emailLayout('New Order Alert — Vanam Store', content);
@@ -315,33 +406,39 @@ interface LowStockData {
 export function adminLowStockTemplate(data: LowStockData): string {
     const rows = data.products.map(p => `
         <tr>
-            <td style="padding:10px 0;border-bottom:1px solid #f1f5f9;color:#1e293b;font-size:14px;">
-                ${p.name}${p.size ? ` <span style="color:#64748b;">(${p.size})</span>` : ''}
+            <td style="padding:12px 0;border-bottom:1px solid ${BORDER_COLOR};color:${TEXT_PRIMARY};font-size:14px;font-family:Arial,Helvetica,sans-serif;">
+                ${p.name}${p.size ? ` <span style="color:${TEXT_MUTED};font-size:12px;">(${p.size})</span>` : ''}
             </td>
-            <td style="padding:10px 0;border-bottom:1px solid #f1f5f9;text-align:right;">
-                <span style="display:inline-block;padding:3px 10px;background-color:${p.currentStock === 0 ? '#fef2f2' : '#fef3c7'};color:${p.currentStock === 0 ? '#dc2626' : '#d97706'};border-radius:12px;font-size:13px;font-weight:600;">${p.currentStock} left</span>
+            <td style="padding:12px 0;border-bottom:1px solid ${BORDER_COLOR};text-align:right;">
+                <span style="display:inline-block;padding:3px 12px;background-color:${p.currentStock === 0 ? '#fef2f2' : '#fefce8'};color:${p.currentStock === 0 ? '#b91c1c' : '#78350f'};border-radius:4px;font-size:12px;font-weight:700;font-family:Arial,Helvetica,sans-serif;letter-spacing:0.5px;">${p.currentStock === 0 ? 'Out of Stock' : `${p.currentStock} remaining`}</span>
             </td>
         </tr>
     `).join('');
 
     const content = `
-        <div style="text-align:center;margin-bottom:24px;">
-            <span style="font-size:48px;">⚠️</span>
-            <h2 style="margin:12px 0 4px;color:#1e293b;font-size:22px;">Low Stock Alert</h2>
-            <p style="margin:0;color:#64748b;font-size:14px;">${data.products.length} product(s) need restocking</p>
-        </div>
+        <p style="margin:0 0 4px;color:${TEXT_MUTED};font-size:12px;font-family:Arial,Helvetica,sans-serif;letter-spacing:1px;text-transform:uppercase;">Inventory Alert</p>
+        <h2 style="margin:0 0 8px;color:${TEXT_PRIMARY};font-size:26px;font-weight:normal;font-family:Georgia,'Times New Roman',serif;">Low Stock Warning</h2>
+        <p style="margin:0 0 28px;color:${TEXT_SECONDARY};font-size:15px;font-family:Arial,Helvetica,sans-serif;">${data.products.length} product${data.products.length > 1 ? 's' : ''} require${data.products.length === 1 ? 's' : ''} restocking.</p>
 
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-            <tr style="background-color:#f8fafc;">
-                <th style="padding:8px 0;text-align:left;color:#64748b;font-size:12px;text-transform:uppercase;">Product</th>
-                <th style="padding:8px 0;text-align:right;color:#64748b;font-size:12px;text-transform:uppercase;">Stock</th>
-            </tr>
-            ${rows}
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px;">
+            <thead>
+                <tr>
+                    <th style="padding:0 0 10px;text-align:left;color:${TEXT_MUTED};font-size:11px;letter-spacing:1px;text-transform:uppercase;font-family:Arial,Helvetica,sans-serif;font-weight:normal;border-bottom:1px solid ${BORDER_COLOR};">Product</th>
+                    <th style="padding:0 0 10px;text-align:right;color:${TEXT_MUTED};font-size:11px;letter-spacing:1px;text-transform:uppercase;font-family:Arial,Helvetica,sans-serif;font-weight:normal;border-bottom:1px solid ${BORDER_COLOR};">Stock Level</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${rows}
+            </tbody>
         </table>
 
-        <div style="text-align:center;margin-top:20px;">
-            <a href="${data.adminUrl}/admin/products" style="display:inline-block;padding:12px 24px;background-color:${BRAND_COLOR};color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600;font-size:14px;">Manage Products</a>
-        </div>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+                <td align="center">
+                    <a href="${data.adminUrl}/admin/products" style="display:inline-block;padding:12px 28px;background-color:${BRAND_DARK};color:#ffffff;text-decoration:none;border-radius:4px;font-weight:700;font-size:13px;letter-spacing:1px;text-transform:uppercase;font-family:Arial,Helvetica,sans-serif;">Manage Inventory</a>
+                </td>
+            </tr>
+        </table>
     `;
 
     return emailLayout('Low Stock Alert — Vanam Store', content);
@@ -351,16 +448,18 @@ export function adminLowStockTemplate(data: LowStockData): string {
 
 export function testEmailTemplate(): string {
     const content = `
-        <div style="text-align:center;margin-bottom:24px;">
-            <span style="font-size:48px;">✅</span>
-            <h2 style="margin:12px 0 4px;color:#1e293b;font-size:22px;">Email Configuration Working!</h2>
-            <p style="margin:0;color:#64748b;font-size:14px;">Your Vanam Store email notifications are set up correctly.</p>
-        </div>
+        <p style="margin:0 0 4px;color:${TEXT_MUTED};font-size:12px;font-family:Arial,Helvetica,sans-serif;letter-spacing:1px;text-transform:uppercase;">System Check</p>
+        <h2 style="margin:0 0 8px;color:${TEXT_PRIMARY};font-size:26px;font-weight:normal;font-family:Georgia,'Times New Roman',serif;">Email Configuration Verified</h2>
+        <p style="margin:0 0 28px;color:${TEXT_SECONDARY};font-size:15px;font-family:Arial,Helvetica,sans-serif;line-height:1.6;">Your Vanam Store email notifications are configured correctly. This is a test message sent from the admin notification settings panel.</p>
 
-        <div style="padding:16px;background-color:#f0fdf4;border-radius:8px;text-align:center;">
-            <p style="margin:0;color:${BRAND_DARK};font-size:14px;">This is a test email sent from the admin notification settings panel.</p>
-        </div>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+                <td style="background-color:#f0f7f4;border:1px solid #c6e6d4;border-radius:6px;padding:16px 20px;text-align:center;">
+                    <p style="margin:0;color:${BRAND_DARK};font-size:14px;font-family:Arial,Helvetica,sans-serif;">All systems operational. No further action required.</p>
+                </td>
+            </tr>
+        </table>
     `;
 
-    return emailLayout('Test Email — Vanam Store', content);
+    return emailLayout('Email Configuration Test — Vanam Store', content);
 }
