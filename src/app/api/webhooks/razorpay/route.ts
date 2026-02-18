@@ -23,6 +23,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import prisma from '@/lib/prisma';
 import { finalizePayment, markPendingPaymentFailed } from '@/lib/payment-finalize';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 // Disable body parsing - we need raw body for signature verification
 export const dynamic = 'force-dynamic';
@@ -51,6 +52,14 @@ export async function POST(request: NextRequest) {
     const timestamp = new Date().toISOString();
 
     try {
+        // 0. IP-based rate limit: 200 requests/min (Razorpay retries are ~5/event max)
+        const ip = getClientIp(request);
+        const rateCheck = checkRateLimit(`webhook:${ip}`, { maxRequests: 200, windowSeconds: 60 });
+        if (!rateCheck.allowed) {
+            console.warn(`[webhook] ${timestamp} Rate limit exceeded for IP: ${ip}`);
+            return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+        }
+
         // 1. Read raw body for signature verification
         const rawBody = await request.text();
         const signature = request.headers.get('x-razorpay-signature');
@@ -101,9 +110,13 @@ export async function POST(request: NextRequest) {
 
         console.log(`[webhook] ${timestamp} Processing event: ${eventType}, order: ${payment.order_id}`);
 
-        // 4. Handle events (ONLY payment.captured and payment.failed)
+        // 4. Handle events
+        // NOTE: UPI payments fire 'payment.authorized' (NOT 'payment.captured')
+        // Card/netbanking payments fire 'payment.captured'
+        // We handle BOTH to ensure orders are created for all payment methods
         switch (eventType) {
             case 'payment.captured':
+            case 'payment.authorized':
                 await handlePaymentCaptured(payment, timestamp);
                 break;
 

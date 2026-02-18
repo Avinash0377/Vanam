@@ -208,6 +208,123 @@
     transition: all 0.2s ease;
 }
 
+/* Button inner loading layout */
+.btnLoading {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+/* Spinner used inside button and validating text */
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.spinner,
+.btnSpinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+}
+
+/* Payment Cancelled Banner */
+.cancelledBanner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.875rem 1.25rem;
+    margin-bottom: 1.25rem;
+    background: #fef9c3;
+    border: 1px solid #fde047;
+    border-radius: var(--radius-lg);
+    font-size: 0.9375rem;
+    color: #713f12;
+    font-weight: 500;
+}
+
+.retryBtn {
+    flex-shrink: 0;
+    padding: 0.375rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    background: #713f12;
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+}
+
+.retryBtn:hover {
+    background: #92400e;
+}
+
+/* Payment Failed Banner */
+.paymentFailedBanner {
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    background: #fff7ed;
+    border: 1.5px solid #fed7aa;
+    border-radius: var(--radius-lg);
+}
+
+.paymentFailedTitle {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #9a3412;
+    margin-bottom: 0.5rem;
+}
+
+.paymentFailedMsg {
+    font-size: 0.875rem;
+    color: #7c2d12;
+    line-height: 1.5;
+    margin-bottom: 0.75rem;
+}
+
+.paymentFailedRef {
+    font-size: 0.8125rem;
+    color: #9a3412;
+    margin-bottom: 0.875rem;
+}
+
+.paymentFailedRef code {
+    font-family: monospace;
+    background: #ffedd5;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.8125rem;
+    word-break: break-all;
+}
+
+.paymentFailedWhatsapp {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1.25rem;
+    background: #25D366;
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    transition: background 0.15s;
+}
+
+.paymentFailedWhatsapp:hover {
+    background: #20BA5C;
+}
+
 /* Empty State */
 .empty {
     display: flex;
@@ -567,6 +684,44 @@
         min-height: 46px;
         font-size: 0.9rem;
         border-radius: 12px;
+    }
+
+    .cancelledBanner {
+        padding: 0.75rem 1rem;
+        margin-bottom: 1rem;
+        font-size: 0.82rem;
+        border-radius: 10px;
+        flex-wrap: wrap;
+    }
+
+    .retryBtn {
+        padding: 0.3rem 0.875rem;
+        font-size: 0.8rem;
+    }
+
+    .paymentFailedBanner {
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-radius: 10px;
+    }
+
+    .paymentFailedTitle {
+        font-size: 0.9rem;
+    }
+
+    .paymentFailedMsg {
+        font-size: 0.8rem;
+    }
+
+    .paymentFailedRef {
+        font-size: 0.75rem;
+    }
+
+    .paymentFailedWhatsapp {
+        width: 100%;
+        justify-content: center;
+        font-size: 0.82rem;
+        padding: 0.5rem 1rem;
     }
 
     /* ---- Validation States ---- */

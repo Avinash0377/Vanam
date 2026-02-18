@@ -57,7 +57,7 @@ async function updateOrder(
         const body = await request.json();
         const { orderStatus, notes, trackingNumber, courierName, shippedAt, deliveredAt } = body;
 
-        // Validate orderStatus against allowed values
+        // Validate orderStatus if provided
         const validStatuses = ['PENDING', 'PAID', 'PACKING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED'];
         if (orderStatus && !validStatuses.includes(orderStatus)) {
             return NextResponse.json(
@@ -128,29 +128,32 @@ async function updateOrder(
         const order = await prisma.order.update({
             where: { id },
             data: {
-                orderStatus,
-                notes: notes || undefined,
-                trackingNumber: trackingNumber || undefined,
-                courierName: courierName || undefined,
-                shippedAt: shippedAt ? new Date(shippedAt) : undefined,
-                deliveredAt: deliveredAt ? new Date(deliveredAt) : undefined,
+                ...(orderStatus !== undefined && { orderStatus }),
+                ...(notes !== undefined && { notes: notes || null }),
+                // Allow null to explicitly clear tracking fields
+                ...(trackingNumber !== undefined && { trackingNumber: trackingNumber || null }),
+                ...(courierName !== undefined && { courierName: courierName || null }),
+                ...(shippedAt !== undefined && { shippedAt: shippedAt ? new Date(shippedAt) : null }),
+                ...(deliveredAt !== undefined && { deliveredAt: deliveredAt ? new Date(deliveredAt) : null }),
             },
             include: {
                 user: { select: { name: true, mobile: true, email: true } },
             },
         });
 
-        // Fire-and-forget: Send status update email
-        sendOrderStatusEmail({
-            orderNumber: order.orderNumber,
-            customerName: order.customerName || order.user?.name || '',
-            email: order.email || order.user?.email,
-            totalAmount: order.totalAmount,
-            trackingNumber: order.trackingNumber,
-            courierName: order.courierName,
-        }, orderStatus).catch(err =>
-            console.error('[email] Status update email failed:', err)
-        );
+        // Only send status email if status was actually changed
+        if (orderStatus) {
+            sendOrderStatusEmail({
+                orderNumber: order.orderNumber,
+                customerName: order.customerName || order.user?.name || '',
+                email: order.email || order.user?.email,
+                totalAmount: order.totalAmount,
+                trackingNumber: order.trackingNumber,
+                courierName: order.courierName,
+            }, orderStatus).catch(err =>
+                console.error('[email] Status update email failed:', err)
+            );
+        }
 
         return NextResponse.json({ message: 'Order updated', order });
 

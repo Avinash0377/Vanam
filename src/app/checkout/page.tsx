@@ -59,6 +59,8 @@ export default function CheckoutPage() {
     const { items, summary, clearCart } = useCart();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [paymentCancelled, setPaymentCancelled] = useState(false);
+    const [paymentFailed, setPaymentFailed] = useState<{ message: string; reference: string } | null>(null);
 
     // Cart validation state
     const [validating, setValidating] = useState(false);
@@ -190,6 +192,8 @@ export default function CheckoutPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+        setPaymentCancelled(false);
+        setPaymentFailed(null);
 
         if (!isAuthenticated) {
             router.push('/login?redirect=/checkout');
@@ -271,19 +275,21 @@ export default function CheckoutPage() {
                             // Clean up coupon from sessionStorage
                             sessionStorage.removeItem('vanam_coupon');
                             clearCart();
+                            setLoading(false);
                             router.replace(`/order-confirmation?orderNumber=${verifyData.orderNumber}`);
                         } else {
-                            setError(
-                                `${verifyData.error || 'Payment verification failed.'} ` +
-                                `Reference: ${paymentData.razorpayOrderId}. Please contact support with this reference.`
-                            );
+                            setLoading(false);
+                            setPaymentFailed({
+                                message: verifyData.error || 'Payment verification failed.',
+                                reference: paymentData.razorpayOrderId,
+                            });
                         }
-                    } catch (verifyErr) {
+                    } catch {
                         setLoading(false);
-                        setError(
-                            `Payment verification failed. Reference: ${paymentData.razorpayOrderId}. ` +
-                            `Please contact support with this reference.`
-                        );
+                        setPaymentFailed({
+                            message: 'We could not confirm your payment.',
+                            reference: paymentData.razorpayOrderId,
+                        });
                     }
                 },
                 prefill: paymentData.prefill,
@@ -291,7 +297,7 @@ export default function CheckoutPage() {
                 modal: {
                     ondismiss: () => {
                         setLoading(false);
-                        setError('Payment cancelled. You can try again.');
+                        setPaymentCancelled(true);
                     }
                 }
             });
@@ -378,16 +384,57 @@ export default function CheckoutPage() {
                 {/* Show checkout form only for authenticated users */}
                 {isAuthenticated && (
                     <>
+                        {/* General error */}
                         {error && (
                             <div className={styles.error}>
                                 {error}
                             </div>
                         )}
 
+                        {/* Payment cancelled — friendly with retry prompt */}
+                        {paymentCancelled && !loading && (
+                            <div className={styles.cancelledBanner}>
+                                <span>😕 Payment was cancelled.</span>
+                                <button
+                                    type="button"
+                                    className={styles.retryBtn}
+                                    onClick={() => {
+                                        setPaymentCancelled(false);
+                                        // Scroll to pay button
+                                        document.getElementById('pay-btn')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                    }}
+                                >
+                                    Try Again
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Payment failed — friendly with WhatsApp support */}
+                        {paymentFailed && (
+                            <div className={styles.paymentFailedBanner}>
+                                <div className={styles.paymentFailedTitle}>⚠️ Payment Not Confirmed</div>
+                                <p className={styles.paymentFailedMsg}>
+                                    Your money is safe — if it was deducted, it will be refunded within 5–7 days.
+                                    Please contact us with your reference number.
+                                </p>
+                                <div className={styles.paymentFailedRef}>
+                                    Reference: <code>{paymentFailed.reference}</code>
+                                </div>
+                                <a
+                                    href={`https://wa.me/918897249374?text=Hi!%20My%20payment%20failed.%20Reference:%20${paymentFailed.reference}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={styles.paymentFailedWhatsapp}
+                                >
+                                    💬 Contact Support on WhatsApp
+                                </a>
+                            </div>
+                        )}
+
                         {/* Cart Validation Status */}
                         {validating && (
                             <div className={styles.validatingText}>
-                                ⏳ Checking your cart items...
+                                <span className={styles.spinner} /> Checking your cart items...
                             </div>
                         )}
 
@@ -595,21 +642,30 @@ export default function CheckoutPage() {
                                 </div>
 
                                 <button
+                                    id="pay-btn"
                                     type="submit"
                                     className={`btn btn-primary btn-lg ${styles.payBtn}`}
                                     disabled={loading || validating || cartValid !== true}
                                 >
-                                    {validating
-                                        ? 'Verifying Cart...'
-                                        : cartValid !== true
-                                            ? 'Cart Not Verified'
-                                            : loading
-                                                ? 'Processing...'
-                                                : `Pay ₹${effectiveTotal.toLocaleString('en-IN')}`}
+                                    {loading ? (
+                                        <span className={styles.btnLoading}>
+                                            <span className={styles.btnSpinner} />
+                                            Processing...
+                                        </span>
+                                    ) : validating ? (
+                                        <span className={styles.btnLoading}>
+                                            <span className={styles.btnSpinner} />
+                                            Verifying Cart...
+                                        </span>
+                                    ) : cartValid === false ? (
+                                        '⚠️ Fix Cart Issues First'
+                                    ) : (
+                                        `🔒 Pay ₹${effectiveTotal.toLocaleString('en-IN')}`
+                                    )}
                                 </button>
 
                                 <p className={styles.paymentNote}>
-                                    🔒 Secure payment via Razorpay (GPay, PhonePe, Paytm, Cards)
+                                    Secure payment via Razorpay · GPay · PhonePe · Paytm · Cards
                                 </p>
                             </div>
                         </form>

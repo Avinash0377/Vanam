@@ -12,6 +12,9 @@ interface OrderItem {
     price: number;
     name: string;
     image?: string;
+    selectedSize?: string;
+    selectedColor?: string;
+    colorImage?: string;
     productId?: string;
     comboId?: string;
     hamperId?: string;
@@ -33,13 +36,24 @@ interface Order {
     totalAmount: number;
     subtotal: number;
     shippingCost: number;
+    discountAmount: number;
+    couponCode?: string;
     orderStatus: string;
     paymentMethod: string;
     notes?: string;
+    trackingNumber?: string;
+    courierName?: string;
+    shippedAt?: string;
+    deliveredAt?: string;
     createdAt: string;
     items: OrderItem[];
     user?: { name: string; mobile: string; email?: string };
-    payment?: { status: string; transactionId?: string };
+    payment?: {
+        status: string;
+        razorpayPaymentId?: string;
+        razorpayOrderId?: string;
+        amount?: number;
+    };
 }
 
 export default function OrderDetailsPage() {
@@ -49,6 +63,10 @@ export default function OrderDetailsPage() {
     const [order, setOrder] = useState<Order | null>(null);
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(false);
+    const [savingTracking, setSavingTracking] = useState(false);
+    const [trackingNumber, setTrackingNumber] = useState('');
+    const [courierName, setCourierName] = useState('');
+    const [trackingSaved, setTrackingSaved] = useState(false);
 
     useEffect(() => {
         if (token && id) {
@@ -64,6 +82,8 @@ export default function OrderDetailsPage() {
             const data = await res.json();
             if (res.ok) {
                 setOrder(data);
+                setTrackingNumber(data.trackingNumber || '');
+                setCourierName(data.courierName || '');
             }
         } catch (error) {
             console.error('Failed to fetch order:', error);
@@ -85,12 +105,45 @@ export default function OrderDetailsPage() {
             });
 
             if (res.ok) {
+                // Preserve all existing order fields, only update status
                 setOrder(prev => prev ? { ...prev, orderStatus: newStatus } : null);
             }
         } catch (error) {
             console.error('Update error:', error);
         } finally {
             setUpdating(false);
+        }
+    };
+
+    const saveTracking = async () => {
+        setSavingTracking(true);
+        try {
+            const res = await fetch(`/api/admin/orders/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    // Don't send orderStatus — avoids triggering email/stock logic
+                    trackingNumber: trackingNumber.trim() || null,
+                    courierName: courierName.trim() || null,
+                }),
+            });
+
+            if (res.ok) {
+                setOrder(prev => prev ? {
+                    ...prev,
+                    trackingNumber: trackingNumber.trim() || undefined,
+                    courierName: courierName.trim() || undefined,
+                } : null);
+                setTrackingSaved(true);
+                setTimeout(() => setTrackingSaved(false), 2500);
+            }
+        } catch (error) {
+            console.error('Tracking update error:', error);
+        } finally {
+            setSavingTracking(false);
         }
     };
 
@@ -105,6 +158,8 @@ export default function OrderDetailsPage() {
     };
 
     const getItemImage = (item: OrderItem) => {
+        // Use product/combo/hamper image as the main thumbnail
+        // colorImage is used only for the swatch, not the main image
         if (item.image) return item.image;
         if (item.product?.images?.[0]) return item.product.images[0];
         if (item.combo?.images?.[0]) return item.combo.images[0];
@@ -115,11 +170,11 @@ export default function OrderDetailsPage() {
     const getItemLink = (item: OrderItem) => {
         if (item.product) return `/product/${item.product.slug}`;
         if (item.combo) return `/combos`;
-        if (item.hamper) return `/hampers`;
+        if (item.hamper) return `/gift-hampers`;
         return null;
     };
 
-    const statusOptions = ['PENDING', 'PAID', 'PACKING', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
+    const statusOptions = ['PENDING', 'PAID', 'PACKING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED'];
 
     if (loading) {
         return (
@@ -163,7 +218,7 @@ export default function OrderDetailsPage() {
                         </div>
                         <div className={styles.headerActions}>
                             <a
-                                href={`https://wa.me/91${order.mobile}?text=Hi%20${order.customerName},%20your%20order%20${order.orderNumber}%20update:`}
+                                href={`https://wa.me/91${order.mobile}?text=Hi%20${encodeURIComponent(order.customerName)},%20your%20order%20${order.orderNumber}%20update:`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className={styles.whatsappBtn}
@@ -197,18 +252,26 @@ export default function OrderDetailsPage() {
                             <span>Payment Method</span>
                             <span>{order.paymentMethod}</span>
                         </div>
-                        {order.payment?.transactionId && (
-                            <div className={styles.infoRow}>
-                                <span>Transaction ID</span>
-                                <span className={styles.transactionId}>{order.payment.transactionId}</span>
-                            </div>
-                        )}
                         <div className={styles.infoRow}>
                             <span>Payment Status</span>
                             <span className={`${styles.badge} ${order.payment?.status === 'SUCCESS' ? styles.success : styles.pending}`}>
                                 {order.payment?.status || 'PENDING'}
                             </span>
                         </div>
+                        {order.payment?.razorpayPaymentId && (
+                            <div className={styles.infoRow}>
+                                <span>Razorpay ID</span>
+                                <a
+                                    href={`https://dashboard.razorpay.com/app/payments/${order.payment.razorpayPaymentId}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={styles.razorpayLink}
+                                    title="View in Razorpay Dashboard"
+                                >
+                                    {order.payment.razorpayPaymentId.slice(0, 18)}…↗
+                                </a>
+                            </div>
+                        )}
                     </div>
 
                     {/* Customer Info */}
@@ -243,6 +306,50 @@ export default function OrderDetailsPage() {
                     </div>
                 </div>
 
+                {/* Tracking Card */}
+                <div className={styles.trackingCard}>
+                    <h2 className={styles.cardTitle}>Shipping & Tracking</h2>
+                    <div className={styles.trackingGrid}>
+                        <div className={styles.trackingField}>
+                            <label>Courier Name</label>
+                            <input
+                                type="text"
+                                placeholder="e.g. Delhivery, DTDC, Blue Dart"
+                                value={courierName}
+                                onChange={(e) => setCourierName(e.target.value)}
+                                className={styles.trackingInput}
+                            />
+                        </div>
+                        <div className={styles.trackingField}>
+                            <label>Tracking Number</label>
+                            <input
+                                type="text"
+                                placeholder="Enter tracking number"
+                                value={trackingNumber}
+                                onChange={(e) => setTrackingNumber(e.target.value)}
+                                className={styles.trackingInput}
+                            />
+                        </div>
+                    </div>
+                    <div className={styles.trackingActions}>
+                        <button
+                            onClick={saveTracking}
+                            disabled={savingTracking}
+                            className={styles.saveTrackingBtn}
+                        >
+                            {savingTracking ? 'Saving...' : trackingSaved ? '✅ Saved!' : 'Save Tracking'}
+                        </button>
+                        {(order.trackingNumber || order.courierName) && (
+                            <span className={styles.trackingNote}>
+                                Last saved:
+                                {order.courierName ? ` ${order.courierName}` : ''}
+                                {order.courierName && order.trackingNumber ? ' — ' : ''}
+                                {order.trackingNumber || ''}
+                            </span>
+                        )}
+                    </div>
+                </div>
+
                 {/* Order Items */}
                 <div className={styles.itemsCard}>
                     <h2 className={styles.cardTitle}>Order Items</h2>
@@ -268,10 +375,22 @@ export default function OrderDetailsPage() {
                                         ) : (
                                             <span className={styles.itemName}>{item.name}</span>
                                         )}
-                                        <span className={styles.itemQuantity}>Qty: {item.quantity}</span>
-                                        {/* Show type badge if needed */}
-                                        {item.comboId && <span className={styles.typeBadge}>Combo</span>}
-                                        {item.hamperId && <span className={styles.typeBadge}>Hamper</span>}
+                                        <div className={styles.itemMeta}>
+                                            <span className={styles.itemQuantity}>Qty: {item.quantity}</span>
+                                            {item.selectedSize && (
+                                                <span className={styles.itemVariant}>Size: {item.selectedSize}</span>
+                                            )}
+                                            {item.selectedColor && (
+                                                <span className={styles.itemVariant}>
+                                                    {item.colorImage ? (
+                                                        <img src={item.colorImage} alt={item.selectedColor} className={styles.colorSwatch} />
+                                                    ) : null}
+                                                    {item.selectedColor}
+                                                </span>
+                                            )}
+                                            {item.comboId && <span className={styles.typeBadge}>Combo</span>}
+                                            {item.hamperId && <span className={styles.typeBadge}>Hamper</span>}
+                                        </div>
                                     </div>
                                     <div className={styles.itemPrice}>
                                         ₹{(item.price * item.quantity).toLocaleString('en-IN')}
@@ -285,8 +404,19 @@ export default function OrderDetailsPage() {
                     <div className={styles.totals}>
                         <div className={styles.totalRow}>
                             <span>Subtotal</span>
-                            <span>₹{order.subtotal.toLocaleString('en-IN')}</span>
+                            <span>₹{(order.subtotal ?? 0).toLocaleString('en-IN')}</span>
                         </div>
+                        {order.discountAmount > 0 && (
+                            <div className={`${styles.totalRow} ${styles.discountRow}`}>
+                                <span>
+                                    Discount
+                                    {order.couponCode && (
+                                        <span className={styles.couponBadge}>{order.couponCode}</span>
+                                    )}
+                                </span>
+                                <span>− ₹{order.discountAmount.toLocaleString('en-IN')}</span>
+                            </div>
+                        )}
                         <div className={styles.totalRow}>
                             <span>Shipping</span>
                             <span>{order.shippingCost === 0 ? 'Free' : `₹${order.shippingCost}`}</span>
