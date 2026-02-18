@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withAuth } from '@/lib/middleware';
-import { JWTPayload } from '@/lib/auth';
+import { getUserFromRequest } from '@/lib/middleware';
 import { normalizeCouponCode, validateCoupon } from '@/lib/coupon-utils';
 import { getDeliverySettings, getDeliveryCharge } from '@/lib/order-utils';
 
-// POST validate coupon (user-facing)
-async function validateCouponHandler(request: NextRequest, user: JWTPayload) {
+// POST validate coupon (user-facing — works for both guests and logged-in users)
+export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
         const { couponCode, cartSubtotal } = body;
@@ -28,11 +27,14 @@ async function validateCouponHandler(request: NextRequest, user: JWTPayload) {
             });
         }
 
-        // Validate coupon
+        // Optional auth — guests can validate coupons, per-user checks skipped if not logged in
+        const user = getUserFromRequest(request);
+
+        // Validate coupon (userId is optional — per-user limits checked only if logged in)
         const result = await validateCoupon({
             code: normalized,
             subtotal,
-            userId: user.userId,
+            userId: user?.userId,
         });
 
         // Fetch delivery settings to return delivery charge
@@ -57,8 +59,4 @@ async function validateCouponHandler(request: NextRequest, user: JWTPayload) {
             message: 'Failed to validate coupon',
         }, { status: 500 });
     }
-}
-
-export async function POST(request: NextRequest) {
-    return withAuth(request, validateCouponHandler);
 }

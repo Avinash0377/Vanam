@@ -87,6 +87,8 @@ model User {
   email       String?   @unique
   password    String
   role        UserRole  @default(CUSTOMER)
+  resetToken        String?
+  resetTokenExpiry  DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   lastLoginAt DateTime?
@@ -433,4 +435,15 @@ model DeliverySettings {
   flatDeliveryCharge    Float              @default(99)
   deliveryChargeType    DeliveryChargeType @default(FLAT)
   updatedAt             DateTime           @updatedAt
+}
+
+// ==================== NOTIFICATION SETTINGS (Singleton) ====================
+model NotificationSettings {
+  id                    String   @id @map("_id")
+  adminEmail            String   @default("")
+  orderAlertsEnabled    Boolean  @default(true)
+  lowStockAlertsEnabled Boolean  @default(true)
+  customerEmailsEnabled Boolean  @default(true)
+  lowStockThreshold     Int      @default(5)
+  updatedAt             DateTime @updatedAt
 }

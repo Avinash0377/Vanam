@@ -24,6 +24,11 @@ import {
     validateCoupon,
     atomicIncrementUsage,
 } from '@/lib/coupon-utils';
+import {
+    sendOrderConfirmationEmail,
+    sendAdminNewOrderAlert,
+    checkAndSendLowStockAlerts,
+} from '@/lib/email';
 
 export interface FinalizePaymentResult {
     success: boolean;
@@ -205,6 +210,48 @@ export async function finalizePayment(
         });
 
         console.log(`[${source}] Payment finalized successfully: ${razorpayOrderId} -> ${order.orderNumber}`);
+
+        // Fire-and-forget: Send emails (never block order flow)
+        const orderEmailData = {
+            orderNumber: order.orderNumber,
+            customerName: pendingPayment.customerName,
+            email: pendingPayment.email,
+            mobile: pendingPayment.mobile,
+            address: pendingPayment.address,
+            city: pendingPayment.city,
+            state: pendingPayment.state,
+            pincode: pendingPayment.pincode,
+            subtotal,
+            discountAmount,
+            shippingCost,
+            totalAmount,
+            couponCode,
+            items: cartSnapshot.map(i => ({
+                name: i.name,
+                quantity: i.quantity,
+                price: i.price,
+                image: i.image,
+                size: i.size,
+                selectedColor: i.selectedColor,
+            })),
+        };
+
+        sendOrderConfirmationEmail(orderEmailData).catch(err =>
+            console.error('[email] Order confirmation email failed:', err)
+        );
+        sendAdminNewOrderAlert({
+            orderNumber: order.orderNumber,
+            customerName: pendingPayment.customerName,
+            totalAmount,
+            city: pendingPayment.city,
+            state: pendingPayment.state,
+            paymentMethod: pendingPayment.paymentMethod,
+        }).catch(err =>
+            console.error('[email] Admin new order alert failed:', err)
+        );
+        checkAndSendLowStockAlerts(cartSnapshot).catch(err =>
+            console.error('[email] Low stock alert check failed:', err)
+        );
 
         return {
             success: true,

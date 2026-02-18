@@ -2,6 +2,7 @@
 
 import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import styles from './page.module.css';
 
@@ -190,6 +191,17 @@ function LoginContent() {
                                 </button>
                             </div>
                         </div>
+
+                        {!isRegister && (
+                            <div style={{ textAlign: 'right', marginTop: '-0.5rem' }}>
+                                <Link
+                                    href="/forgot-password"
+                                    style={{ fontSize: '0.8125rem', color: 'var(--primary-600)', textDecoration: 'none', fontWeight: 500 }}
+                                >
+                                    Forgot Password?
+                                </Link>
+                            </div>
+                        )}
 
                         <button
                             type="submit"

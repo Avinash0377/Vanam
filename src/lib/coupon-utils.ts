@@ -22,7 +22,7 @@ export interface CouponValidationResult {
 interface ValidateCouponParams {
     code: string;
     subtotal: number;
-    userId: string;
+    userId?: string;
     /** Pass a transaction client for atomic operations */
     tx?: Prisma.TransactionClient;
     /** If true, skip expiry check (honor coupon valid at initiation time) */
@@ -97,8 +97,8 @@ export async function validateCoupon({
         return { valid: false, discountAmount: 0, message: 'This coupon has reached its usage limit' };
     }
 
-    // 6. Check per-user usage limit (query orders with this couponCode for this user)
-    if (coupon.usagePerUser > 0) {
+    // 6. Check per-user usage limit (skip for guests — enforced at checkout)
+    if (coupon.usagePerUser > 0 && userId) {
         const userUsageCount = await db.order.count({
             where: {
                 userId,

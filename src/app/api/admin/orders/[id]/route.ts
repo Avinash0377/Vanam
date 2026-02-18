@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { withAdmin } from '@/lib/middleware';
 import { restoreStock } from '@/lib/order-utils';
 import { decrementCouponUsage } from '@/lib/coupon-utils';
+import { sendOrderStatusEmail } from '@/lib/email';
 
 // GET single order
 async function getOrder(
@@ -104,10 +105,22 @@ async function updateOrder(
                         deliveredAt: deliveredAt ? new Date(deliveredAt) : undefined,
                     },
                     include: {
-                        user: { select: { name: true, mobile: true } },
+                        user: { select: { name: true, mobile: true, email: true } },
                     },
                 });
             });
+
+            // Fire-and-forget: Send status update email
+            sendOrderStatusEmail({
+                orderNumber: order.orderNumber,
+                customerName: order.customerName || order.user?.name || '',
+                email: order.email || order.user?.email,
+                totalAmount: order.totalAmount,
+                trackingNumber: order.trackingNumber,
+                courierName: order.courierName,
+            }, orderStatus).catch(err =>
+                console.error('[email] Status update email failed:', err)
+            );
 
             return NextResponse.json({ message: 'Order updated', order });
         }
@@ -123,9 +136,21 @@ async function updateOrder(
                 deliveredAt: deliveredAt ? new Date(deliveredAt) : undefined,
             },
             include: {
-                user: { select: { name: true, mobile: true } },
+                user: { select: { name: true, mobile: true, email: true } },
             },
         });
+
+        // Fire-and-forget: Send status update email
+        sendOrderStatusEmail({
+            orderNumber: order.orderNumber,
+            customerName: order.customerName || order.user?.name || '',
+            email: order.email || order.user?.email,
+            totalAmount: order.totalAmount,
+            trackingNumber: order.trackingNumber,
+            courierName: order.courierName,
+        }, orderStatus).catch(err =>
+            console.error('[email] Status update email failed:', err)
+        );
 
         return NextResponse.json({ message: 'Order updated', order });
 
