@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import styles from './WhatsAppButton.module.css';
+import { trackWhatsAppClick } from '@/lib/analytics';
 
 const WHATSAPP_NUMBER = '918897249374'; // Country code + number
 const PRE_FILLED_MESSAGE = `Hi 🌿 Thank you for reaching Vanam Store!
@@ -12,6 +13,8 @@ export default function WhatsAppButton() {
     const [hovered, setHovered] = useState(false);
 
     const handleClick = () => {
+        // Track first — no await, does not block navigation
+        trackWhatsAppClick('floating_button');
         const encoded = encodeURIComponent(PRE_FILLED_MESSAGE);
         const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encoded}`;
         window.open(url, '_blank', 'noopener,noreferrer');

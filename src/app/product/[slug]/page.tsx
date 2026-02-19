@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
 import RelatedProducts from '@/components/RelatedProducts';
 import styles from './page.module.css';
+import { trackViewItem, trackAddToCart, trackWhatsAppClick } from '@/lib/analytics';
 
 interface VariantColor {
     name: string;
@@ -67,6 +68,16 @@ export default function ProductPage() {
                 if (firstVariant.colors?.length > 0) {
                     setSelectedColor(firstVariant.colors[0]);
                 }
+            }
+
+            // Track product view after successful load
+            if (data.product) {
+                trackViewItem({
+                    id: data.product.id,
+                    name: data.product.name,
+                    price: data.product.price,
+                    category: data.product.category?.name,
+                });
             }
         } catch (error) {
             console.error('Failed to fetch product:', error);
@@ -148,6 +159,16 @@ export default function ProductPage() {
             category: product.category?.name || 'Plant',
         }, quantity);
 
+        // Fire add_to_cart AFTER addItem (not on button click alone)
+        // addItem is synchronous context update — safe to track here
+        trackAddToCart({
+            id: product.id,
+            name: product.name,
+            price: currentPrice,
+            quantity,
+            category: product.category?.name,
+        });
+
         // Show success toast
         setShowToast(true);
         setTimeout(() => setShowToast(false), 3000);
@@ -155,6 +176,8 @@ export default function ProductPage() {
 
     const handleWhatsApp = () => {
         if (!product) return;
+        // Track first — non-blocking, no await
+        trackWhatsAppClick('product_page', product.id);
         let message = `Hi! I'm interested in:\n\n🌿 *${product.name}*`;
         if (selectedSize) message += `\n📏 Size: ${selectedSize}`;
         if (selectedColor) message += `\n🎨 Color: ${selectedColor.name}`;

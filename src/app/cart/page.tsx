@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -8,6 +8,7 @@ import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { TrashIcon, CartIcon, LeafIcon, ArrowRightIcon, TruckIcon, ShieldIcon, TagIcon } from '@/components/Icons';
 import styles from './page.module.css';
+import { trackViewCart, trackBeginCheckout } from '@/lib/analytics';
 
 export default function CartPage() {
     const router = useRouter();
@@ -20,6 +21,23 @@ export default function CartPage() {
     const [pincodeMessage, setPincodeMessage] = useState('');
     const [validatedPincode, setValidatedPincode] = useState('');
     const [stockError, setStockError] = useState('');
+
+    // Track view_cart once when cart page loads with items
+    useEffect(() => {
+        if (items.length > 0 && !isLoading) {
+            trackViewCart(
+                items.map((i) => ({
+                    item_id: i.id || i.slug || '',
+                    item_name: i.name,
+                    price: i.price,
+                    quantity: i.quantity,
+                    item_category: i.category,
+                })),
+                summary.subtotal,
+            );
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isLoading]); // only on initial load, not on every cart update
 
     // Coupon state
     const [couponCode, setCouponCode] = useState('');
@@ -109,6 +127,17 @@ export default function CartPage() {
     };
 
     const handleCheckout = () => {
+        // Fire begin_checkout — cart has items (checked by canCheckout guard above)
+        trackBeginCheckout(
+            items.map((i) => ({
+                item_id: i.id || i.slug || '',
+                item_name: i.name,
+                price: i.price,
+                quantity: i.quantity,
+                item_category: i.category,
+            })),
+            effectiveTotal,
+        );
         // Store coupon in sessionStorage so checkout page can re-validate server-side
         if (appliedCoupon) {
             sessionStorage.setItem('vanam_coupon', JSON.stringify(appliedCoupon));

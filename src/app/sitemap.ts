@@ -10,6 +10,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         '',
         '/plants',
         '/pots',
+        '/accessories',
         '/seeds',
         '/combos',
         '/gift-hampers',
@@ -53,7 +54,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             POT: '/pots',
             SEED: '/seeds',
             PLANTER: '/pots',
-            ACCESSORY: '/plants',
+            ACCESSORY: '/accessories',
         };
 
         const productSitemap: MetadataRoute.Sitemap = products.map((p) => ({

@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { CheckIcon, PackageIcon, WhatsAppIcon } from '@/components/Icons';
 import styles from './page.module.css';
+import { trackPurchase, AnalyticsItem } from '@/lib/analytics';
 
 export default function OrderConfirmationPage() {
     return (
@@ -32,6 +33,36 @@ function OrderConfirmationContent() {
         const timer = setTimeout(() => setShowConfetti(false), 3000);
         return () => clearTimeout(timer);
     }, []);
+
+    // Fire purchase event ONCE — sessionStorage guard prevents duplicate on refresh
+    useEffect(() => {
+        if (!orderNumber) return;
+
+        const flagKey = `vanam_purchase_tracked_${orderNumber}`;
+        if (sessionStorage.getItem(flagKey)) return; // already fired
+
+        // Fetch order value from backend — never trust frontend for price
+        fetch(`/api/orders?orderNumber=${orderNumber}`)
+            .then((res) => res.ok ? res.json() : null)
+            .then((data) => {
+                const order = data?.orders?.[0];
+                if (!order) return;
+
+                const items: AnalyticsItem[] = (order.items || []).map(
+                    (i: { productId?: string; name: string; price: number; quantity: number; category?: string }) => ({
+                        item_id: i.productId || i.name,
+                        item_name: i.name,
+                        price: i.price,
+                        quantity: i.quantity,
+                        item_category: i.category,
+                    })
+                );
+
+                trackPurchase(orderNumber, order.totalAmount, items);
+                sessionStorage.setItem(flagKey, '1'); // mark as fired
+            })
+            .catch(() => null); // silent — never break the confirmation page
+    }, [orderNumber]);
 
     if (!orderNumber) {
         return (
