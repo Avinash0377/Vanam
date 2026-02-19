@@ -1,242 +1,246 @@
-/* Mobile: full-screen portrait slider */
-/* Desktop: full-width landscape banner */
-
+/* Mobile only: hidden on desktop */
 .sliderWrapper {
-    position: relative;
-    width: 100%;
-    overflow: hidden;
+    display: none;
 }
 
-/* ===== SLIDE TRACK ===== */
-.slideTrackOuter {
-    overflow: hidden;
-}
-
-.slideTrack {
-    display: flex;
-    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    will-change: transform;
-}
-
-/* ===== INDIVIDUAL SLIDE ===== */
-.slide {
-    min-width: 100%;
-    position: relative;
-    min-height: 260px;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    overflow: hidden;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-}
-
-/* Background image — Next.js Image with fill */
-.slideImage {
-    position: absolute;
-    inset: 0;
-    object-fit: cover;
-    object-position: center;
-    z-index: 1;
-    width: 100%;
-    height: 100%;
-}
-
-/* Dark overlay for text readability */
-.slideOverlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to bottom,
-            rgba(0, 0, 0, 0.05) 0%,
-            rgba(0, 0, 0, 0.15) 30%,
-            rgba(0, 0, 0, 0.55) 100%);
-    z-index: 2;
-}
-
-/* Content on top of background */
-.slideContent {
-    position: relative;
-    z-index: 3;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 60px 32px 28px;
-}
-
-/* ===== ACCENT BADGE ===== */
-.accentBadge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.6rem;
-    font-weight: 700;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    margin-bottom: 14px;
-    padding: 5px 14px;
-    border-radius: 20px;
-    border: 1px solid;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-}
-
-/* ===== TITLE ===== */
-.slideTitle {
-    font-family: var(--font-display);
-    font-size: 1.5rem;
-    line-height: 1.15;
-    letter-spacing: -0.03em;
-    text-align: center;
-    margin: 0 0 10px;
-    font-weight: 800;
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
-}
-
-.titleHighlight {
-    font-weight: 800;
-}
-
-/* ===== SUBTEXT ===== */
-.slideSubtext {
-    font-size: 0.82rem;
-    line-height: 1.5;
-    margin: 0 0 20px;
-    text-align: center;
-    max-width: 500px;
-    letter-spacing: -0.005em;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-/* ===== CTA BUTTONS ===== */
-.slideActions {
-    width: 100%;
-    max-width: 440px;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-}
-
-.primaryBtn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 12px 28px;
-    background: #ffffff;
-    color: #0f1f15;
-    font-family: var(--font-display);
-    font-size: 0.88rem;
-    font-weight: 700;
-    text-decoration: none;
-    border-radius: 12px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-    letter-spacing: -0.005em;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-    white-space: nowrap;
-}
-
-.primaryBtn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22);
-}
-
-.primaryBtn:active {
-    transform: scale(0.97);
-}
-
-.btnArrow {
-    font-size: 1rem;
-}
-
-.secondaryBtn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 11px 22px;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1.5px solid;
-    font-family: var(--font-display);
-    font-size: 0.82rem;
-    font-weight: 600;
-    text-decoration: none;
-    border-radius: 10px;
-    letter-spacing: -0.005em;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-}
-
-.secondaryBtn:hover {
-    background: rgba(255, 255, 255, 0.2);
-}
-
-.secondaryBtn:active {
-    background: rgba(255, 255, 255, 0.25);
-}
-
-/* ===== DOTS ===== */
-.dots {
-    position: absolute;
-    bottom: 12px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 6px;
-    z-index: 10;
-}
-
-.dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    border: none;
-    background: rgba(255, 255, 255, 0.4);
-    cursor: pointer;
-    padding: 0;
-    transition: all 0.3s ease;
-}
-
-.dotActive {
-    width: 20px;
-    border-radius: 4px;
-    background: #ffffff;
-}
-
-/* ===== MOBILE OVERRIDES ===== */
 @media (max-width: 768px) {
+    .sliderWrapper {
+        position: relative;
+        width: 100%;
+        overflow: hidden;
+    }
+
+    /* ===== SLIDE TRACK ===== */
+    .slideTrackOuter {
+        overflow: hidden;
+    }
+
+    .slideTrack {
+        display: flex;
+        transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        will-change: transform;
+    }
+
+    /* ===== INDIVIDUAL SLIDE ===== */
     .slide {
-        min-height: 420px;
-        justify-content: flex-end;
-    }
-
-    .slideContent {
-        padding: 80px 24px 28px;
-    }
-
-    .slideTitle {
-        font-size: 1.75rem;
-    }
-
-    .slideActions {
+        min-width: 100%;
+        position: relative;
+        min-height: 260px;
+        display: flex;
         flex-direction: column;
-        max-width: 100%;
+        justify-content: flex-end;
+        overflow: hidden;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+    /* Background image — Next.js Image with fill */
+    .slideImage {
+        position: absolute;
+        inset: 0;
+        object-fit: cover;
+        object-position: center;
+        z-index: 1;
+        width: 100%;
+        height: 100%;
+    }
+
+    /* Dark overlay for text readability */
+    .slideOverlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to bottom,
+                rgba(0, 0, 0, 0.05) 0%,
+                rgba(0, 0, 0, 0.15) 30%,
+                rgba(0, 0, 0, 0.55) 100%);
+        z-index: 2;
+    }
+
+    /* Content on top of background */
+    .slideContent {
+        position: relative;
+        z-index: 3;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 60px 32px 28px;
+    }
+
+    /* ===== ACCENT BADGE ===== */
+    .accentBadge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.6rem;
+        font-weight: 700;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        margin-bottom: 14px;
+        padding: 5px 14px;
+        border-radius: 20px;
+        border: 1px solid;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
+
+    /* ===== TITLE ===== */
+    .slideTitle {
+        font-family: var(--font-display);
+        font-size: 1.5rem;
+        line-height: 1.15;
+        letter-spacing: -0.03em;
+        text-align: center;
+        margin: 0 0 10px;
+        font-weight: 800;
+        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+    }
+
+    .titleHighlight {
+        font-weight: 800;
+    }
+
+    /* ===== SUBTEXT ===== */
+    .slideSubtext {
+        font-size: 0.82rem;
+        line-height: 1.5;
+        margin: 0 0 20px;
+        text-align: center;
+        max-width: 500px;
+        letter-spacing: -0.005em;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ===== CTA BUTTONS ===== */
+    .slideActions {
+        width: 100%;
+        max-width: 440px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
     }
 
     .primaryBtn {
-        width: 100%;
-        padding: 14px 24px;
-        border-radius: 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px 28px;
+        background: #ffffff;
+        color: #0f1f15;
+        font-family: var(--font-display);
+        font-size: 0.88rem;
+        font-weight: 700;
+        text-decoration: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        letter-spacing: -0.005em;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+        white-space: nowrap;
+    }
+
+    .primaryBtn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22);
+    }
+
+    .primaryBtn:active {
+        transform: scale(0.97);
+    }
+
+    .btnArrow {
+        font-size: 1rem;
     }
 
     .secondaryBtn {
-        width: 100%;
-        padding: 11px 24px;
-        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 11px 22px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1.5px solid;
+        font-family: var(--font-display);
+        font-size: 0.82rem;
+        font-weight: 600;
+        text-decoration: none;
+        border-radius: 10px;
+        letter-spacing: -0.005em;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .secondaryBtn:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .secondaryBtn:active {
+        background: rgba(255, 255, 255, 0.25);
+    }
+
+    /* ===== DOTS ===== */
+    .dots {
+        position: absolute;
+        bottom: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 6px;
+        z-index: 10;
+    }
+
+    .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(255, 255, 255, 0.4);
+        cursor: pointer;
+        padding: 0;
+        transition: all 0.3s ease;
+    }
+
+    .dotActive {
+        width: 20px;
+        border-radius: 4px;
+        background: #ffffff;
+    }
+
+    /* ===== MOBILE OVERRIDES ===== */
+    @media (max-width: 768px) {
+        .slide {
+            min-height: 420px;
+            justify-content: flex-end;
+        }
+
+        .slideContent {
+            padding: 80px 24px 28px;
+        }
+
+        .slideTitle {
+            font-size: 1.75rem;
+        }
+
+        .slideActions {
+            flex-direction: column;
+            max-width: 100%;
+        }
+
+        .primaryBtn {
+            width: 100%;
+            padding: 14px 24px;
+            border-radius: 14px;
+        }
+
+        .secondaryBtn {
+            width: 100%;
+            padding: 11px 24px;
+            border-radius: 12px;
+        }
     }
 }
