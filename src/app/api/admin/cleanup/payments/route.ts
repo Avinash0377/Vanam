@@ -5,7 +5,7 @@ import { withAdmin } from '@/lib/middleware';
 async function cleanupPayments() {
     try {
         const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-        const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
         // Delete PENDING records older than 7 days (abandoned checkouts)
         const deletedPending = await prisma.pendingPayment.deleteMany({
@@ -15,11 +15,11 @@ async function cleanupPayments() {
             },
         });
 
-        // Delete FAILED records older than 24 hours (no longer needed for debugging)
+        // Delete FAILED records older than 30 days (enough time for disputes/investigations)
         const deletedFailed = await prisma.pendingPayment.deleteMany({
             where: {
                 status: 'FAILED',
-                updatedAt: { lt: oneDayAgo },
+                updatedAt: { lt: thirtyDaysAgo },
             },
         });
 

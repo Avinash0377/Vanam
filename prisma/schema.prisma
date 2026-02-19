@@ -291,6 +291,8 @@ model OrderItem {
   selectedSize  String?
   selectedColor String?
   colorImage    String?
+
+  @@index([orderId])
 }
 
 // ==================== PAYMENT ====================

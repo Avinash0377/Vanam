@@ -142,6 +142,21 @@ async function deleteHamper(
             );
         }
 
+        // Block deletion if this hamper appears in any orders
+        const orderCount = await prisma.orderItem.count({
+            where: { hamperId: id },
+        });
+
+        if (orderCount > 0) {
+            return NextResponse.json(
+                {
+                    error: `Cannot delete "${existing.name}" — it appears in ${orderCount} order(s). Set its status to DRAFT or OUT_OF_STOCK instead.`,
+                    canArchive: true,
+                },
+                { status: 409 }
+            );
+        }
+
         await prisma.giftHamper.delete({ where: { id } });
 
         return NextResponse.json({ message: 'Gift hamper deleted' });

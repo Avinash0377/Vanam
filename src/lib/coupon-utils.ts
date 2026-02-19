@@ -9,6 +9,7 @@
 
 import prisma from '@/lib/prisma';
 import { Prisma, DiscountType } from '@prisma/client';
+import { OrderError } from '@/lib/order-utils';
 
 // ==================== TYPES ====================
 
@@ -181,7 +182,7 @@ export async function atomicIncrementUsage(
 
     // Re-check usage limit inside transaction (race condition protection)
     if (coupon.usageLimit !== null && coupon.usedCount >= coupon.usageLimit) {
-        throw new Error('Coupon usage limit exceeded');
+        throw new OrderError('Coupon usage limit exceeded');
     }
 
     await tx.coupon.update({

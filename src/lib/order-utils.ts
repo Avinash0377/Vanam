@@ -3,6 +3,17 @@ import prisma from '@/lib/prisma';
 import { ProductWithVariants } from '@/lib/variants';
 import { Prisma } from '@prisma/client';
 
+/**
+ * Typed business-rule error for order/stock/coupon failures.
+ * Caught in route handlers to return HTTP 400 instead of 500.
+ */
+export class OrderError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'OrderError';
+    }
+}
+
 export interface CartSnapshotItem {
     productId?: string;
     comboId?: string;
@@ -97,7 +108,8 @@ export function calculateOrderTotals(
  * Generate a unique order number
  */
 export function generateOrderNumber(): string {
-    return `VAN${Date.now()}${Math.random().toString(36).substring(2, 5).toUpperCase()}`;
+    // 8 random chars (base36) gives ~2.8 trillion combinations — collision-safe
+    return `VAN${Date.now()}${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
 }
 
 /**
@@ -116,30 +128,33 @@ export async function validateStockAvailability(
                 where: { id: item.productId },
             }) as unknown as ProductWithVariants | null;
 
-            if (!product) throw new Error(`Product ${item.name} no longer exists`);
+            if (!product) throw new OrderError(`Product ${item.name} no longer exists`);
 
             // Check variant stock if applicable
             let availableStock = product.stock;
             if (item.size && product.sizeVariants && product.sizeVariants.length > 0) {
                 const variant = product.sizeVariants.find(v => v.size === item.size);
-                availableStock = variant?.stock || 0;
+                if (!variant) {
+                    throw new OrderError(`Size ${item.size} is no longer available for ${item.name}`);
+                }
+                availableStock = variant.stock;
             }
 
             if (availableStock < item.quantity) {
-                throw new Error(`Insufficient stock for ${item.name}${item.size ? ` (${item.size})` : ''}`);
+                throw new OrderError(`Insufficient stock for ${item.name}${item.size ? ` (${item.size})` : ''}`);
             }
 
         } else if (item.comboId) {
             const combo = await db.combo.findUnique({ where: { id: item.comboId } });
-            if (!combo) throw new Error(`${item.name} no longer exists`);
+            if (!combo) throw new OrderError(`${item.name} no longer exists`);
             if (combo.stock < item.quantity) {
-                throw new Error(`Insufficient stock for ${item.name}`);
+                throw new OrderError(`Insufficient stock for ${item.name}`);
             }
         } else if (item.hamperId) {
             const hamper = await db.giftHamper.findUnique({ where: { id: item.hamperId } });
-            if (!hamper) throw new Error(`${item.name} no longer exists`);
+            if (!hamper) throw new OrderError(`${item.name} no longer exists`);
             if (hamper.stock < item.quantity) {
-                throw new Error(`Insufficient stock for ${item.name}`);
+                throw new OrderError(`Insufficient stock for ${item.name}`);
             }
         }
     }
@@ -161,7 +176,7 @@ export async function decrementStock(tx: Prisma.TransactionClient, items: CartSn
                     if (v.size === item.size) {
                         const newStock = v.stock - item.quantity;
                         if (newStock < 0) {
-                            throw new Error(`Insufficient stock for ${item.name} (${item.size}): available ${v.stock}, requested ${item.quantity}`);
+                            throw new OrderError(`Insufficient stock for ${item.name} (${item.size}): available ${v.stock}, requested ${item.quantity}`);
                         }
                         return { ...v, stock: newStock };
                     }
@@ -232,7 +247,13 @@ export async function restoreStock(
                 where: { id: item.productId },
             }) as unknown as ProductWithVariants | null;
 
-            if (product && item.selectedSize && product.sizeVariants && product.sizeVariants.length > 0) {
+            if (!product) {
+                // Product was deleted after order was placed — log and skip to avoid crashing the cancellation
+                console.warn(`restoreStock: product ${item.productId} no longer exists, skipping stock restore`);
+                continue;
+            }
+
+            if (item.selectedSize && product.sizeVariants && product.sizeVariants.length > 0) {
                 // Restore variant-level stock
                 const updatedVariants = product.sizeVariants.map(v => {
                     if (v.size === item.selectedSize) {

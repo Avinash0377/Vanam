@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { hashPassword, generateToken } from '@/lib/auth';
 import { registerSchema } from '@/lib/validators';
 import { checkRateLimit, getClientIp, RATE_LIMITS } from '@/lib/rate-limit';
+import { Prisma } from '@prisma/client';
 
 export async function POST(request: NextRequest) {
     try {
@@ -89,6 +90,14 @@ export async function POST(request: NextRequest) {
         }, { status: 201 });
 
     } catch (error) {
+        // Handle unique constraint violations (race condition: two users register same mobile/email simultaneously)
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+            const field = (error.meta?.target as string[])?.includes('mobile') ? 'Mobile number' : 'Email';
+            return NextResponse.json(
+                { error: `${field} already registered` },
+                { status: 400 }
+            );
+        }
         console.error('Registration error:', error);
         return NextResponse.json(
             { error: 'Failed to register user. Please try again.' },

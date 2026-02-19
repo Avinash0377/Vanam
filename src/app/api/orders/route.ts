@@ -4,6 +4,7 @@ import { withAuth } from '@/lib/middleware';
 import { JWTPayload } from '@/lib/auth';
 import { orderSchema } from '@/lib/validators';
 import { ProductWithVariants, getVariantPrice } from '@/lib/variants';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import {
     calculateOrderTotals,
     generateOrderNumber,
@@ -11,6 +12,7 @@ import {
     decrementStock,
     validateStockAvailability,
     getDeliverySettings,
+    OrderError,
 } from '@/lib/order-utils';
 import {
     normalizeCouponCode,
@@ -93,6 +95,16 @@ export async function GET(request: NextRequest) {
 // POST create order
 async function createOrder(request: NextRequest, user: JWTPayload) {
     try {
+        // Rate limit: 20 orders per hour per IP (prevents stock drain attacks)
+        const ip = getClientIp(request);
+        const rateLimit = checkRateLimit(`order-create:${ip}`, { maxRequests: 20, windowSeconds: 60 * 60 });
+        if (!rateLimit.allowed) {
+            return NextResponse.json(
+                { error: 'Too many order requests. Please try again later.' },
+                { status: 429, headers: { 'Retry-After': String(Math.ceil((rateLimit.resetAt - Date.now()) / 1000)) } }
+            );
+        }
+
         const body = await request.json();
         // Validation
         const validation = orderSchema.safeParse(body);
@@ -251,7 +263,7 @@ async function createOrder(request: NextRequest, user: JWTPayload) {
                 });
 
                 if (!txCouponResult.valid) {
-                    throw new Error(txCouponResult.message);
+                    throw new OrderError(txCouponResult.message);
                 }
 
                 // Atomic increment (re-checks usageLimit inside transaction)
@@ -313,17 +325,9 @@ async function createOrder(request: NextRequest, user: JWTPayload) {
         }, { status: 201 });
 
     } catch (error) {
-        // Check if it's a stock validation or coupon error
-        if (error instanceof Error && (
-            error.message.includes('Insufficient stock') ||
-            error.message.includes('no longer exists') ||
-            error.message.includes('Coupon') ||
-            error.message.includes('coupon')
-        )) {
-            return NextResponse.json(
-                { error: error.message },
-                { status: 400 }
-            );
+        // OrderError = stock/coupon/business rule failures — always 400
+        if (error instanceof OrderError) {
+            return NextResponse.json({ error: error.message }, { status: 400 });
         }
         console.error('Create order error:', error);
         return NextResponse.json(
