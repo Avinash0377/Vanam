@@ -18,8 +18,12 @@
 
     .slideTrack {
         display: flex;
-        transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        /* GPU-composited: browser hoists layer to GPU, skips layout/paint on slide */
         will-change: transform;
+        transform: translate3d(0, 0, 0);
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+        transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
     /* ===== INDIVIDUAL SLIDE ===== */
@@ -34,6 +38,10 @@
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
+        /* Isolate repaints to this slide only */
+        contain: layout style;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
     }
 
     /* Background image — Next.js Image with fill */
@@ -47,15 +55,16 @@
         height: 100%;
     }
 
-    /* Dark overlay for text readability */
+    /* Gradient overlay — pure CSS, no backdrop-filter (paint storm on mobile) */
     .slideOverlay {
         position: absolute;
         inset: 0;
         background: linear-gradient(to bottom,
-                rgba(0, 0, 0, 0.0) 0%,
-                rgba(0, 0, 0, 0.1) 30%,
-                rgba(0, 0, 0, 0.6) 100%);
+                transparent 0%,
+                rgba(0, 0, 0, 0.08) 35%,
+                rgba(0, 0, 0, 0.58) 100%);
         z-index: 2;
+        pointer-events: none;
     }
 
     /* Content on top of background */
@@ -82,8 +91,8 @@
         padding: 5px 14px;
         border-radius: 20px;
         border: 1px solid;
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+        /* Use simpler background instead of backdrop-filter */
+        background: rgba(0, 0, 0, 0.35);
     }
 
     /* ===== TITLE ===== */
