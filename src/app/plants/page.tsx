@@ -63,7 +63,7 @@ export default function PlantsPage() {
                     }
                 }
             } catch (error) {
-                console.log('Using sample products');
+                console.error('[plants] Failed to fetch products:', error);
             } finally {
                 setLoading(false);
             }

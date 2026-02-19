@@ -178,6 +178,22 @@
 }
 
 /* Image Upload */
+.imageHint {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin: 0 0 6px;
+    line-height: 1.5;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 8px 12px;
+}
+
+.imageHint strong {
+    color: #16a34a;
+    font-weight: 700;
+}
+
 .imageUploadArea {
     display: flex;
     flex-direction: column;
@@ -205,6 +221,14 @@
 .uploadBtn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+}
+
+.uploadBtnSub {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 400;
+    color: #9ca3af;
+    margin-top: 2px;
 }
 
 .imagePreviewBox {

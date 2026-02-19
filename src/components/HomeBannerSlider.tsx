@@ -85,7 +85,7 @@ export default function HomeBannerSlider({ initialBanners }: HomeBannerSliderPro
                             <div
                                 key={banner.id}
                                 className={styles.slide}
-                                style={{ background: banner.bgGradient }}
+                                style={banner.imageUrl ? { backgroundColor: '#111' } : { background: banner.bgGradient }}
                             >
                                 {/* Next.js optimized Image — auto WebP, responsive, lazy */}
                                 {banner.imageUrl && shouldLoad && (

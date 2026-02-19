@@ -55,7 +55,7 @@ export default function AccessoriesPage() {
                     }
                 }
             } catch (error) {
-                console.log('Failed to fetch accessories');
+                console.error('[accessories] Failed to fetch products:', error);
             } finally {
                 setLoading(false);
             }

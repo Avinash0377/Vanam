@@ -303,6 +303,7 @@ export default function AdminBannersPage() {
                         {/* Image Upload */}
                         <div className={styles.formGroup}>
                             <label>Banner Image (optional — overrides gradient)</label>
+                            <p className={styles.imageHint}>📐 Best ratio: <strong>9:16 portrait</strong> (e.g. 1080×1920px or 390×844px). Image covers the full banner height. Tall images look best.</p>
                             <div className={styles.imageUploadArea}>
                                 {form.imageUrl ? (
                                     <div className={styles.imagePreviewBox}>
@@ -322,7 +323,14 @@ export default function AdminBannersPage() {
                                         onClick={() => fileInputRef.current?.click()}
                                         disabled={uploading}
                                     >
-                                        {uploading ? 'Uploading...' : '📷 Upload Image'}
+                                        {uploading ? (
+                                            'Uploading...'
+                                        ) : (
+                                            <>
+                                                <span>📷 Upload Image</span>
+                                                <span className={styles.uploadBtnSub}>9:16 portrait recommended</span>
+                                            </>
+                                        )}
                                     </button>
                                 )}
                                 <input
@@ -336,21 +344,23 @@ export default function AdminBannersPage() {
                         </div>
 
                         {/* Gradient (used if no image) */}
-                        <div className={styles.formGroup}>
-                            <label>Background Color {form.imageUrl ? '(image is set — gradient hidden)' : ''}</label>
-                            <div className={styles.gradientPicker}>
-                                {GRADIENT_PRESETS.map(g => (
-                                    <button
-                                        type="button"
-                                        key={g.label}
-                                        className={`${styles.gradientSwatch} ${form.bgGradient === g.value ? styles.gradientSwatchActive : ''}`}
-                                        style={{ background: g.value }}
-                                        onClick={() => setForm({ ...form, bgGradient: g.value })}
-                                        title={g.label}
-                                    />
-                                ))}
+                        {!form.imageUrl && (
+                            <div className={styles.formGroup}>
+                                <label>Background Color</label>
+                                <div className={styles.gradientPicker}>
+                                    {GRADIENT_PRESETS.map(g => (
+                                        <button
+                                            type="button"
+                                            key={g.label}
+                                            className={`${styles.gradientSwatch} ${form.bgGradient === g.value ? styles.gradientSwatchActive : ''}`}
+                                            style={{ background: g.value }}
+                                            onClick={() => setForm({ ...form, bgGradient: g.value })}
+                                            title={g.label}
+                                        />
+                                    ))}
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         {/* Text Color */}
                         <div className={styles.formGroup}>
@@ -387,11 +397,13 @@ export default function AdminBannersPage() {
                         <div className={styles.formDivider}>Preview</div>
                         <div
                             className={styles.previewBanner}
-                            style={{
-                                background: form.imageUrl ? '#111' : form.bgGradient,
-                                backgroundImage: form.imageUrl ? `url(${form.imageUrl})` : undefined,
+                            style={form.imageUrl ? {
+                                backgroundColor: '#111',
+                                backgroundImage: `url(${form.imageUrl})`,
                                 backgroundSize: 'cover',
                                 backgroundPosition: 'center',
+                            } : {
+                                background: form.bgGradient,
                             }}
                         >
                             <div className={styles.previewOverlay} />
@@ -437,11 +449,13 @@ export default function AdminBannersPage() {
                         <div key={banner.id} className={`${styles.card} ${!banner.isActive ? styles.cardInactive : ''}`}>
                             <div
                                 className={styles.cardPreview}
-                                style={{
-                                    background: banner.imageUrl ? '#111' : banner.bgGradient,
-                                    backgroundImage: banner.imageUrl ? `url(${banner.imageUrl})` : undefined,
+                                style={banner.imageUrl ? {
+                                    backgroundColor: '#111',
+                                    backgroundImage: `url(${banner.imageUrl})`,
                                     backgroundSize: 'cover',
                                     backgroundPosition: 'center',
+                                } : {
+                                    background: banner.bgGradient,
                                 }}
                             />
                             <div className={styles.cardContent}>

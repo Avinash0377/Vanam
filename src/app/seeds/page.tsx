@@ -65,8 +65,10 @@ export default function SeedsPage() {
 
     const filteredProducts = products.filter(product => {
         const effectiveSuitable = mobileSuitableFor || suitableFor;
+        const effectiveCategory = mobileCategory || category;
         const matchesSuitable = !effectiveSuitable || product.suitableFor === effectiveSuitable;
-        return matchesSuitable;
+        const matchesCategory = !effectiveCategory || (product.tags || []).includes(effectiveCategory);
+        return matchesSuitable && matchesCategory;
     });
 
     const effectiveSort = mobileSort || sortBy;
