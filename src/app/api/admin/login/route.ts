@@ -25,10 +25,10 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Find admin user by email
+        // Find admin user by email (case-insensitive)
         const user = await prisma.user.findFirst({
             where: {
-                email,
+                email: { equals: email, mode: 'insensitive' },
                 role: 'ADMIN',
             },
         });

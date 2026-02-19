@@ -32,7 +32,7 @@ async function getOrders(request: NextRequest, user: JWTPayload) {
                 include: {
                     user: { select: { name: true, mobile: true } },
                     items: { include: { product: { select: { name: true, images: true } } } },
-                    payment: true,
+                    payment: { select: { status: true, amount: true } },
                 },
                 orderBy: { createdAt: 'desc' },
                 skip: (page - 1) * limit,

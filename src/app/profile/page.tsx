@@ -229,7 +229,7 @@ function ProfileContent() {
                     </Link>
 
                     <a
-                        href="https://wa.me/919876543210"
+                        href="https://wa.me/918897249374"
                         target="_blank"
                         rel="noopener noreferrer"
                         className={styles.actionCard}

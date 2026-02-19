@@ -13,9 +13,20 @@ import { withAuth } from '@/lib/middleware';
 import { JWTPayload } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { logPaymentEvent } from '@/lib/payment-logger';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 async function cancelPayment(request: NextRequest, user: JWTPayload) {
     try {
+        // Rate limit: 10 cancellations per minute per IP (prevents log-flooding / DB hammering)
+        const ip = getClientIp(request);
+        const rl = checkRateLimit(`payment-cancel:${ip}`, { maxRequests: 10, windowSeconds: 60 });
+        if (!rl.allowed) {
+            return NextResponse.json(
+                { error: 'Too many requests. Please try again later.' },
+                { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } }
+            );
+        }
+
         const body = await request.json();
         const { razorpayOrderId } = body;
 

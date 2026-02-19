@@ -3,6 +3,12 @@ import prisma from '@/lib/prisma';
 import { withAuth } from '@/lib/middleware';
 import { JWTPayload } from '@/lib/auth';
 
+interface SizeVariant {
+    size: string;
+    stock: number;
+    [key: string]: unknown;
+}
+
 interface RouteParams {
     params: Promise<{ itemId: string }>;
 }
@@ -61,10 +67,10 @@ async function updateCartItem(
         let stock = 0;
         if (cartItem.product) {
             // Check variant stock if applicable
-            const product = cartItem.product as any;
-            if (cartItem.size && product.sizeVariants && product.sizeVariants.length > 0) {
-                const variant = product.sizeVariants.find((v: any) => v.size === cartItem.size);
-                stock = variant?.stock || 0;
+            const sizeVariants = cartItem.product.sizeVariants as SizeVariant[] | null;
+            if (cartItem.size && sizeVariants && sizeVariants.length > 0) {
+                const variant = sizeVariants.find((v) => v.size === cartItem.size);
+                stock = variant?.stock ?? 0;
             } else {
                 stock = cartItem.product.stock;
             }
