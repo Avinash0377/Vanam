@@ -5,6 +5,7 @@
 
 @media (max-width: 768px) {
     .sliderWrapper {
+        display: block;
         position: relative;
         width: 100%;
         overflow: hidden;
