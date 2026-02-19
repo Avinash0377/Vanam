@@ -415,6 +415,8 @@ model Banner {
   bgGradient       String   @default("linear-gradient(165deg, #e8f5e9 0%, #c8e6c9 40%, #81c784 100%)")
   imageUrl         String?
   textColor        String   @default("#ffffff")
+  titleColor       String?
+  subtitleColor    String?
   isActive         Boolean  @default(true)
   displayOrder     Int      @default(0)
   createdAt        DateTime @default(now())

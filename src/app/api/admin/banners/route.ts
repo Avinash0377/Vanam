@@ -20,7 +20,7 @@ async function handleGet(request: NextRequest, user: JWTPayload) {
 async function handlePost(request: NextRequest, user: JWTPayload) {
     try {
         const body = await request.json();
-        const { title, subtitle, highlightText, accentBadge, primaryBtnText, primaryBtnLink, secondaryBtnText, secondaryBtnLink, bgGradient, imageUrl, textColor, isActive, displayOrder } = body;
+        const { title, subtitle, highlightText, accentBadge, primaryBtnText, primaryBtnLink, secondaryBtnText, secondaryBtnLink, bgGradient, imageUrl, textColor, titleColor, subtitleColor, isActive, displayOrder } = body;
 
         if (!title || !primaryBtnText || !primaryBtnLink) {
             return NextResponse.json({ error: 'Title, primary button text, and link are required' }, { status: 400 });
@@ -39,6 +39,8 @@ async function handlePost(request: NextRequest, user: JWTPayload) {
                 bgGradient: bgGradient || 'linear-gradient(165deg, #0d3320 0%, #1a5035 50%, #22804a 100%)',
                 imageUrl: imageUrl || null,
                 textColor: textColor || '#ffffff',
+                titleColor: titleColor || null,
+                subtitleColor: subtitleColor || null,
                 isActive: isActive !== undefined ? isActive : true,
                 displayOrder: displayOrder || 0,
             },

@@ -25,7 +25,7 @@
     .slide {
         min-width: 100%;
         position: relative;
-        min-height: 260px;
+        min-height: 380px;
         display: flex;
         flex-direction: column;
         justify-content: flex-end;
@@ -51,9 +51,9 @@
         position: absolute;
         inset: 0;
         background: linear-gradient(to bottom,
-                rgba(0, 0, 0, 0.05) 0%,
-                rgba(0, 0, 0, 0.15) 30%,
-                rgba(0, 0, 0, 0.55) 100%);
+                rgba(0, 0, 0, 0.0) 0%,
+                rgba(0, 0, 0, 0.1) 30%,
+                rgba(0, 0, 0, 0.6) 100%);
         z-index: 2;
     }
 
@@ -65,7 +65,7 @@
         flex-direction: column;
         align-items: center;
         text-align: center;
-        padding: 60px 32px 28px;
+        padding: 80px 24px 32px;
     }
 
     /* ===== ACCENT BADGE ===== */
@@ -88,13 +88,14 @@
     /* ===== TITLE ===== */
     .slideTitle {
         font-family: var(--font-display);
-        font-size: 1.5rem;
+        font-size: 1.75rem;
         line-height: 1.15;
         letter-spacing: -0.03em;
         text-align: center;
         margin: 0 0 10px;
         font-weight: 800;
-        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+        text-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
+        word-break: break-word;
     }
 
     .titleHighlight {
@@ -103,43 +104,44 @@
 
     /* ===== SUBTEXT ===== */
     .slideSubtext {
-        font-size: 0.82rem;
+        font-size: 0.85rem;
         line-height: 1.5;
         margin: 0 0 20px;
         text-align: center;
-        max-width: 500px;
+        max-width: 460px;
         letter-spacing: -0.005em;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+        word-break: break-word;
     }
 
     /* ===== CTA BUTTONS ===== */
     .slideActions {
         width: 100%;
-        max-width: 440px;
+        max-width: 340px;
         display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: center;
+        flex-direction: column;
+        align-items: stretch;
         gap: 10px;
     }
 
     .primaryBtn {
-        display: inline-flex;
+        display: flex;
         align-items: center;
         justify-content: center;
         gap: 8px;
-        padding: 12px 28px;
+        padding: 14px 24px;
         background: #ffffff;
         color: #0f1f15;
         font-family: var(--font-display);
-        font-size: 0.88rem;
+        font-size: 0.9rem;
         font-weight: 700;
         text-decoration: none;
-        border-radius: 12px;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        border-radius: 14px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
         letter-spacing: -0.005em;
         transition: transform 0.15s ease, box-shadow 0.15s ease;
         white-space: nowrap;
+        width: 100%;
     }
 
     .primaryBtn:hover {
@@ -156,23 +158,24 @@
     }
 
     .secondaryBtn {
-        display: inline-flex;
+        display: flex;
         align-items: center;
         justify-content: center;
         gap: 6px;
-        padding: 11px 22px;
+        padding: 12px 24px;
         background: rgba(255, 255, 255, 0.1);
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
         border: 1.5px solid;
         font-family: var(--font-display);
-        font-size: 0.82rem;
+        font-size: 0.85rem;
         font-weight: 600;
         text-decoration: none;
-        border-radius: 10px;
+        border-radius: 12px;
         letter-spacing: -0.005em;
         transition: all 0.2s ease;
         white-space: nowrap;
+        width: 100%;
     }
 
     .secondaryBtn:hover {
@@ -186,7 +189,7 @@
     /* ===== DOTS ===== */
     .dots {
         position: absolute;
-        bottom: 12px;
+        bottom: 14px;
         left: 50%;
         transform: translateX(-50%);
         display: flex;
@@ -210,37 +213,33 @@
         border-radius: 4px;
         background: #ffffff;
     }
+}
 
-    /* ===== MOBILE OVERRIDES ===== */
-    @media (max-width: 768px) {
-        .slide {
-            min-height: 420px;
-            justify-content: flex-end;
-        }
+/* ===== Very small phones (≤ 390px) ===== */
+@media (max-width: 390px) {
+    .slide {
+        min-height: 420px;
+    }
 
-        .slideContent {
-            padding: 80px 24px 28px;
-        }
+    .slideContent {
+        padding: 60px 18px 24px;
+    }
 
-        .slideTitle {
-            font-size: 1.75rem;
-        }
+    .slideTitle {
+        font-size: 1.5rem;
+    }
 
-        .slideActions {
-            flex-direction: column;
-            max-width: 100%;
-        }
+    .slideSubtext {
+        font-size: 0.78rem;
+    }
 
-        .primaryBtn {
-            width: 100%;
-            padding: 14px 24px;
-            border-radius: 14px;
-        }
+    .primaryBtn {
+        padding: 12px 20px;
+        font-size: 0.85rem;
+    }
 
-        .secondaryBtn {
-            width: 100%;
-            padding: 11px 24px;
-            border-radius: 12px;
-        }
+    .secondaryBtn {
+        padding: 10px 20px;
+        font-size: 0.8rem;
     }
 }

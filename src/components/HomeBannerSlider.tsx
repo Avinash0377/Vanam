@@ -18,6 +18,8 @@ interface BannerData {
     bgGradient: string;
     imageUrl: string | null;
     textColor: string;
+    titleColor: string | null;
+    subtitleColor: string | null;
 }
 
 interface HomeBannerSliderProps {
@@ -78,6 +80,8 @@ export default function HomeBannerSlider({ initialBanners }: HomeBannerSliderPro
                     {banners.map((banner, index) => {
                         const txtColor = banner.textColor || '#ffffff';
                         const isDark = !isLight(txtColor);
+                        const titleClr = banner.titleColor || txtColor;
+                        const subtitleClr = banner.subtitleColor || (isDark ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.6)');
                         const isFirst = index === 0;
                         const shouldLoad = isFirst || imagesLoaded.has(index);
 
@@ -116,14 +120,14 @@ export default function HomeBannerSlider({ initialBanners }: HomeBannerSliderPro
                                         </span>
                                     )}
 
-                                    <h2 className={styles.slideTitle} style={{ color: txtColor }}>
+                                    <h2 className={styles.slideTitle} style={{ color: titleClr }}>
                                         {banner.title}
                                         {banner.highlightText && (
                                             <>
                                                 {' '}
                                                 <span className={styles.titleHighlight} style={{
                                                     WebkitTextFillColor: 'unset',
-                                                    color: isDark ? '#a7f3d0' : '#065f46',
+                                                    color: subtitleClr,
                                                 }}>
                                                     {banner.highlightText}
                                                 </span>
@@ -132,9 +136,7 @@ export default function HomeBannerSlider({ initialBanners }: HomeBannerSliderPro
                                     </h2>
 
                                     {banner.subtitle && (
-                                        <p className={styles.slideSubtext} style={{
-                                            color: isDark ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.6)',
-                                        }}>
+                                        <p className={styles.slideSubtext} style={{ color: subtitleClr }}>
                                             {banner.subtitle}
                                         </p>
                                     )}
@@ -149,7 +151,7 @@ export default function HomeBannerSlider({ initialBanners }: HomeBannerSliderPro
                                                 href={banner.secondaryBtnLink}
                                                 className={styles.secondaryBtn}
                                                 style={{
-                                                    color: txtColor,
+                                                    color: titleClr,
                                                     borderColor: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
                                                 }}
                                             >

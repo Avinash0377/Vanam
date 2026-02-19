@@ -17,6 +17,8 @@ interface Banner {
     bgGradient: string;
     imageUrl: string | null;
     textColor: string;
+    titleColor: string | null;
+    subtitleColor: string | null;
     isActive: boolean;
     displayOrder: number;
 }
@@ -42,8 +44,16 @@ const emptyForm = {
     bgGradient: GRADIENT_PRESETS[0].value,
     imageUrl: '',
     textColor: '#ffffff',
+    titleColor: '#ffffff',
+    subtitleColor: 'rgba(255,255,255,0.75)',
     isActive: true,
     displayOrder: 0,
+};
+
+// Safe helpers to avoid .startsWith crash on null/undefined
+const safeColorValue = (color: string | null | undefined, fallback = '#ffffff') => {
+    if (!color || color.startsWith('rgba')) return fallback;
+    return color;
 };
 
 export default function AdminBannersPage() {
@@ -143,6 +153,8 @@ export default function AdminBannersPage() {
     };
 
     const handleEdit = (banner: Banner) => {
+        const titleClr = banner.titleColor || banner.textColor || '#ffffff';
+        const subtitleClr = banner.subtitleColor || 'rgba(255,255,255,0.75)';
         setForm({
             title: banner.title,
             subtitle: banner.subtitle || '',
@@ -154,7 +166,9 @@ export default function AdminBannersPage() {
             secondaryBtnLink: banner.secondaryBtnLink || '',
             bgGradient: banner.bgGradient,
             imageUrl: banner.imageUrl || '',
-            textColor: banner.textColor || '#ffffff',
+            textColor: titleClr, // keep in sync
+            titleColor: titleClr,
+            subtitleColor: subtitleClr,
             isActive: banner.isActive,
             displayOrder: banner.displayOrder,
         });
@@ -362,14 +376,106 @@ export default function AdminBannersPage() {
                             </div>
                         )}
 
-                        {/* Text Color */}
-                        <div className={styles.formGroup}>
-                            <label>Text Color</label>
-                            <div className={styles.textColorRow}>
-                                <button type="button" className={`${styles.colorOption} ${form.textColor === '#ffffff' ? styles.colorOptionActive : ''}`} style={{ background: '#ffffff', color: '#000' }} onClick={() => setForm({ ...form, textColor: '#ffffff' })}>White</button>
-                                <button type="button" className={`${styles.colorOption} ${form.textColor === '#000000' ? styles.colorOptionActive : ''}`} style={{ background: '#000000', color: '#fff' }} onClick={() => setForm({ ...form, textColor: '#000000' })}>Black</button>
-                                <button type="button" className={`${styles.colorOption} ${form.textColor === '#0f1f15' ? styles.colorOptionActive : ''}`} style={{ background: '#0f1f15', color: '#fff' }} onClick={() => setForm({ ...form, textColor: '#0f1f15' })}>Dark</button>
+                        {/* Text Colors — Palette Panel */}
+                        <div className={styles.formDivider}>Text Colors</div>
+                        <div className={styles.colorPaletteCard}>
+
+                            {/* ── Title Row ── */}
+                            <div className={styles.paletteRow}>
+                                <div className={styles.paletteRowHeader}>
+                                    <div
+                                        className={styles.paletteActiveCircle}
+                                        style={{ backgroundColor: form.titleColor || '#ffffff' }}
+                                        title="Current title color"
+                                    />
+                                    <span className={styles.paletteRowLabel}>Title Color</span>
+                                    <span className={styles.paletteActiveHex}>{form.titleColor || '#ffffff'}</span>
+                                </div>
+                                <div className={styles.paletteSwatchRow}>
+                                    {[
+                                        { value: '#ffffff', label: 'White' },
+                                        { value: '#f8f8f8', label: 'Off-White' },
+                                        { value: '#fbbf24', label: 'Amber' },
+                                        { value: '#86efac', label: 'Mint' },
+                                        { value: '#f9a8d4', label: 'Pink' },
+                                        { value: '#93c5fd', label: 'Sky Blue' },
+                                        { value: '#fca5a5', label: 'Coral' },
+                                        { value: '#a5f3fc', label: 'Cyan' },
+                                        { value: '#000000', label: 'Black' },
+                                        { value: '#1e293b', label: 'Slate' },
+                                        { value: '#0f1f15', label: 'Dark Green' },
+                                        { value: '#7c3aed', label: 'Purple' },
+                                    ].map(({ value, label }) => (
+                                        <button
+                                            key={value}
+                                            type="button"
+                                            className={`${styles.paletteSwatch} ${form.titleColor === value ? styles.paletteSwatchActive : ''}`}
+                                            style={{ background: value }}
+                                            onClick={() => setForm({ ...form, titleColor: value, textColor: value })}
+                                            title={label}
+                                        />
+                                    ))}
+                                    <label className={styles.paletteCustomBtn} title="Pick custom color">
+                                        🎨
+                                        <input
+                                            type="color"
+                                            value={safeColorValue(form.titleColor)}
+                                            onChange={e => setForm({ ...form, titleColor: e.target.value, textColor: e.target.value })}
+                                            style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }}
+                                        />
+                                    </label>
+                                </div>
                             </div>
+
+                            <div className={styles.paletteDivider} />
+
+                            {/* ── Subtitle Row ── */}
+                            <div className={styles.paletteRow}>
+                                <div className={styles.paletteRowHeader}>
+                                    <div
+                                        className={styles.paletteActiveCircle}
+                                        style={{ backgroundColor: form.subtitleColor || 'rgba(255,255,255,0.75)' }}
+                                        title="Current subtitle color"
+                                    />
+                                    <span className={styles.paletteRowLabel}>Subtitle Color</span>
+                                    <span className={styles.paletteActiveHex}>{form.subtitleColor || 'rgba(255,255,255,0.75)'}</span>
+                                </div>
+                                <div className={styles.paletteSwatchRow}>
+                                    {[
+                                        { value: 'rgba(255,255,255,0.75)', label: 'White 75%', bg: 'rgba(255,255,255,0.75)' },
+                                        { value: 'rgba(0,0,0,0.65)', label: 'Black 65%', bg: 'rgba(0,0,0,0.65)' },
+                                        { value: '#ffffff', label: 'White', bg: '#ffffff' },
+                                        { value: '#e2e8f0', label: 'Light Grey', bg: '#e2e8f0' },
+                                        { value: '#fef3c7', label: 'Warm Yellow', bg: '#fef3c7' },
+                                        { value: '#dcfce7', label: 'Soft Green', bg: '#dcfce7' },
+                                        { value: '#dbeafe', label: 'Light Blue', bg: '#dbeafe' },
+                                        { value: '#fce7f3', label: 'Blush', bg: '#fce7f3' },
+                                        { value: '#000000', label: 'Black', bg: '#000000' },
+                                        { value: '#374151', label: 'Dark Grey', bg: '#374151' },
+                                        { value: '#1e3a2f', label: 'Forest', bg: '#1e3a2f' },
+                                        { value: '#4c1d95', label: 'Deep Purple', bg: '#4c1d95' },
+                                    ].map(({ value, label, bg }) => (
+                                        <button
+                                            key={value}
+                                            type="button"
+                                            className={`${styles.paletteSwatch} ${form.subtitleColor === value ? styles.paletteSwatchActive : ''}`}
+                                            style={{ background: bg }}
+                                            onClick={() => setForm({ ...form, subtitleColor: value })}
+                                            title={label}
+                                        />
+                                    ))}
+                                    <label className={styles.paletteCustomBtn} title="Pick custom color">
+                                        🎨
+                                        <input
+                                            type="color"
+                                            value={safeColorValue(form.subtitleColor)}
+                                            onChange={e => setForm({ ...form, subtitleColor: e.target.value })}
+                                            style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }}
+                                        />
+                                    </label>
+                                </div>
+                            </div>
+
                         </div>
 
                         <div className={styles.formRow}>
@@ -411,14 +517,19 @@ export default function AdminBannersPage() {
                                 {form.accentBadge && (
                                     <span className={styles.previewBadge}>{form.accentBadge}</span>
                                 )}
-                                <h3 className={styles.previewTitle} style={{ color: form.textColor }}>
+                                <h3 className={styles.previewTitle} style={{ color: form.titleColor || form.textColor }}>
                                     {form.title || 'Banner Title'}
                                     {form.highlightText && (
-                                        <span className={styles.previewHighlight}> {form.highlightText}</span>
+                                        <span
+                                            className={styles.previewHighlight}
+                                            style={{ color: form.subtitleColor || '#a7f3d0' }}
+                                        >
+                                            {' '}{form.highlightText}
+                                        </span>
                                     )}
                                 </h3>
                                 {form.subtitle && (
-                                    <p className={styles.previewSubtitle}>{form.subtitle}</p>
+                                    <p className={styles.previewSubtitle} style={{ color: form.subtitleColor || undefined }}>{form.subtitle}</p>
                                 )}
                                 <div className={styles.previewBtns}>
                                     <span className={styles.previewPrimaryBtn}>{form.primaryBtnText || 'Button'} →</span>

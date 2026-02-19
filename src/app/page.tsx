@@ -158,6 +158,8 @@ export default async function HomePage() {
         bgGradient: b.bgGradient,
         imageUrl: (b as Record<string, unknown>).imageUrl as string | null ?? null,
         textColor: (b as Record<string, unknown>).textColor as string ?? '#ffffff',
+        titleColor: (b as Record<string, unknown>).titleColor as string | null ?? null,
+        subtitleColor: (b as Record<string, unknown>).subtitleColor as string | null ?? null,
     }));
 
     // Serialize Prisma objects for client components

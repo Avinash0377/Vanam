@@ -24,6 +24,8 @@ async function handlePut(request: NextRequest, user: JWTPayload) {
                 ...(body.bgGradient !== undefined && { bgGradient: body.bgGradient }),
                 ...(body.imageUrl !== undefined && { imageUrl: body.imageUrl || null }),
                 ...(body.textColor !== undefined && { textColor: body.textColor }),
+                ...(body.titleColor !== undefined && { titleColor: body.titleColor || null }),
+                ...(body.subtitleColor !== undefined && { subtitleColor: body.subtitleColor || null }),
                 ...(body.isActive !== undefined && { isActive: body.isActive }),
                 ...(body.displayOrder !== undefined && { displayOrder: body.displayOrder }),
             },
