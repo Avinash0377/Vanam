@@ -371,7 +371,12 @@
     background: white;
     border-radius: 12px;
     border: 1px solid var(--neutral-200);
-    max-width: 400px;
+}
+
+@media (min-width: 768px) {
+    .searchWrapper {
+        max-width: 400px;
+    }
 }
 
 .searchWrapper svg {

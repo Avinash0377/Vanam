@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { UsersIcon, CartIcon, StarIcon, PlusIcon, SearchIcon } from '@/components/Icons';
@@ -33,11 +33,25 @@ export default function CustomersPage() {
     const [pagination, setPagination] = useState<Pagination | null>(null);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
     const [page, setPage] = useState(1);
+    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    // Debounce search input: wait 300ms after user stops typing
+    useEffect(() => {
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+        debounceRef.current = setTimeout(() => {
+            setDebouncedSearch(search);
+            setPage(1);
+        }, 300);
+        return () => {
+            if (debounceRef.current) clearTimeout(debounceRef.current);
+        };
+    }, [search]);
 
     useEffect(() => {
         fetchUsers();
-    }, [token, page, search]);
+    }, [token, page, debouncedSearch]);
 
     const fetchUsers = async () => {
         if (!token) return;
@@ -46,7 +60,7 @@ export default function CustomersPage() {
             const params = new URLSearchParams({
                 page: page.toString(),
                 limit: '20',
-                ...(search && { search }),
+                ...(debouncedSearch && { search: debouncedSearch }),
             });
             const res = await fetch(`/api/admin/users?${params}`, {
                 headers: { Authorization: `Bearer ${token}` }
@@ -148,10 +162,7 @@ export default function CustomersPage() {
                         type="text"
                         placeholder="Search by name, mobile, or email..."
                         value={search}
-                        onChange={(e) => {
-                            setSearch(e.target.value);
-                            setPage(1);
-                        }}
+                        onChange={(e) => setSearch(e.target.value)}
                         className={styles.searchInput}
                     />
                 </div>

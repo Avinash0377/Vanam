@@ -42,10 +42,16 @@ export default function EditComboPage() {
 
             if (data.combo) {
                 const combo = data.combo;
+                // Convert includes array from DB back to plain comma-separated string
+                const includesStr = Array.isArray(combo.includes)
+                    ? combo.includes.map((item: { name?: string } | string) =>
+                        typeof item === 'string' ? item : item?.name || ''
+                    ).filter(Boolean).join(', ')
+                    : (combo.includes || '');
                 setFormData({
                     name: combo.name || '',
                     description: combo.description || '',
-                    includes: combo.includes || '',
+                    includes: includesStr,
                     price: combo.price?.toString() || '',
                     comparePrice: combo.comparePrice?.toString() || '',
                     stock: combo.stock?.toString() || '0',

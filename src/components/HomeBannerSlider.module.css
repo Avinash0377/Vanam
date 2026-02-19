@@ -173,9 +173,8 @@
         justify-content: center;
         gap: 6px;
         padding: 12px 24px;
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+        /* Solid rgba instead of backdrop-filter — avoids GPU compositing capture every frame */
+        background: rgba(0, 0, 0, 0.28);
         border: 1.5px solid;
         font-family: var(--font-display);
         font-size: 0.85rem;

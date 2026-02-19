@@ -49,6 +49,17 @@ export const metadata: Metadata = {
     },
 };
 
+// Viewport export — separate from metadata per Next.js 14+ spec.
+// Forces 1:1 pixel mapping on mobile: browser renders at exact device
+// pixel size instead of scaling a virtual desktop canvas down.
+export const viewport = {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 5,
+    viewportFit: 'cover',
+    themeColor: '#1a4d2e',
+};
+
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 const PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
 

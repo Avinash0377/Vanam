@@ -177,14 +177,27 @@
 }
 
 .statValue {
-    font-size: 1.25rem;
+    font-size: 1rem;
     font-weight: 700;
     color: var(--neutral-900);
+    word-break: break-word;
+}
+
+@media (min-width: 768px) {
+    .statValue {
+        font-size: 1.25rem;
+    }
 }
 
 .statLabel {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     color: var(--neutral-500);
+}
+
+@media (min-width: 768px) {
+    .statLabel {
+        font-size: 0.75rem;
+    }
 }
 
 /* Orders Section */
@@ -281,8 +294,14 @@
 .orderMeta {
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
+    align-items: flex-start;
     gap: 0.25rem;
+}
+
+@media (min-width: 768px) {
+    .orderMeta {
+        align-items: flex-end;
+    }
 }
 
 .orderAmount {

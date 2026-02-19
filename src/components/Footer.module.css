@@ -22,7 +22,7 @@
             var(--primary-400) 100%);
 }
 
-/* Floating Leaf Decoration */
+/* Floating Leaf Decoration — desktop only */
 .footer::after {
     content: '🌿';
     position: absolute;
@@ -32,6 +32,13 @@
     opacity: 0.15;
     animation: floatLeaf 6s ease-in-out infinite;
     will-change: transform;
+}
+
+/* Kill decorative animation on mobile — saves a compositor layer */
+@media (max-width: 767px) {
+    .footer::after {
+        display: none;
+    }
 }
 
 @keyframes floatLeaf {
@@ -311,9 +318,8 @@
     }
 
     .contactItem {
-        background: rgba(255, 255, 255, 0.55);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+        /* Solid rgba instead of backdrop-filter blur — eliminates scroll-frame GPU compositing cost */
+        background: rgba(255, 255, 255, 0.25);
         border-radius: 12px;
         padding: 12px;
         margin-bottom: 0;

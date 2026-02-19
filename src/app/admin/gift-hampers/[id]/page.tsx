@@ -39,15 +39,24 @@ export default function EditGiftHamperPage() {
 
     const fetchHamper = async () => {
         try {
-            const res = await fetch(`/api/hampers/${id}`);
+            // Use auth token so draft/inactive hampers are visible to admin
+            const res = await fetch(`/api/hampers/${id}`, {
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
+            });
             const data = await res.json();
 
             if (data.hamper) {
                 const hamper = data.hamper;
+                // Convert includes array from DB back to plain comma-separated string
+                const includesStr = Array.isArray(hamper.includes)
+                    ? hamper.includes.map((item: { name?: string } | string) =>
+                        typeof item === 'string' ? item : item?.name || ''
+                    ).filter(Boolean).join(', ')
+                    : (hamper.includes || '');
                 setFormData({
                     name: hamper.name || '',
                     description: hamper.description || '',
-                    includes: hamper.includes || '',
+                    includes: includesStr,
                     price: hamper.price?.toString() || '',
                     comparePrice: hamper.comparePrice?.toString() || '',
                     stock: hamper.stock?.toString() || '0',

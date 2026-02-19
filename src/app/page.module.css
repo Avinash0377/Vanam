@@ -69,6 +69,44 @@
     }
 }
 
+/* MOBILE: Hide all floating decorative elements entirely.
+   25+ concurrent GPU compositor layers from will-change:transform
+   + infinite animations kill scroll perf on mobile. These elements
+   are hidden behind hero content on small screens — no visual compromise. */
+@media (max-width: 767px) {
+
+    .floatingIcon1,
+    .floatingIcon2,
+    .floatingIcon3,
+    .floatingIcon4,
+    .floatingIcon5,
+    .floatingIcon6,
+    .floatingIcon7,
+    .floatingIcon8,
+    .floatingIcon9,
+    .floatingIcon10,
+    .floatingIcon11,
+    .floatingIcon12,
+    .floatingIcon13,
+    .floatingIcon14,
+    .floatingIcon15,
+    .floatingPlant1,
+    .floatingPlant2,
+    .floatingPlant3,
+    .floatingPlant4,
+    .floatingPlant5,
+    .floatingCard1,
+    .floatingCard2,
+    .floatingCard3,
+    .heroImageBg,
+    .heroPlantImage,
+    .badgeDot,
+    .heroPattern {
+        display: none !important;
+    }
+}
+
+
 /* Hero Section */
 .hero {
     position: relative;

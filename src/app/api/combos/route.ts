@@ -61,13 +61,21 @@ async function createCombo(request: NextRequest, user: JWTPayload) {
             );
         }
 
-        // Fix 8: Validate comparePrice > price
-        if (comparePrice && parseFloat(comparePrice) <= parseFloat(price)) {
+        const parsedPrice = parseFloat(price);
+        const parsedComparePrice = comparePrice ? parseFloat(comparePrice) : null;
+
+        // Validate comparePrice > price
+        if (parsedComparePrice !== null && parsedComparePrice <= parsedPrice) {
             return NextResponse.json(
                 { error: 'Compare price must be greater than price' },
                 { status: 400 }
             );
         }
+
+        // Convert plain string to IncludedItem[] for the schema
+        const includesArray = typeof includes === 'string'
+            ? includes.split(',').map((item: string) => ({ name: item.trim(), quantity: 1, image: null })).filter((item: { name: string }) => item.name)
+            : includes;
 
         const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
@@ -76,7 +84,7 @@ async function createCombo(request: NextRequest, user: JWTPayload) {
                 name,
                 slug: `${slug}-${Date.now()}`,
                 description: description || null,
-                includes,
+                includes: includesArray,
                 suitableFor: suitableFor || null,
                 price: parseFloat(price),
                 comparePrice: comparePrice ? parseFloat(comparePrice) : null,

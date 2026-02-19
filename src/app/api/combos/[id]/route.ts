@@ -69,13 +69,22 @@ async function updateCombo(
 
         // Validate comparePrice > price when both are provided
         const effectivePrice = price !== undefined ? parseFloat(price) : existing.price;
-        const effectiveComparePrice = comparePrice !== undefined ? parseFloat(comparePrice) : existing.comparePrice;
-        if (effectiveComparePrice && effectivePrice && effectiveComparePrice <= effectivePrice) {
+        const effectiveComparePrice = comparePrice !== undefined
+            ? (comparePrice ? parseFloat(comparePrice) : null)
+            : existing.comparePrice;
+        if (effectiveComparePrice !== null && effectivePrice && effectiveComparePrice <= effectivePrice) {
             return NextResponse.json(
                 { error: 'Compare price must be greater than price' },
                 { status: 400 }
             );
         }
+
+        // Convert includes string to IncludedItem[] if needed
+        const resolvedIncludes = includes !== undefined
+            ? (typeof includes === 'string'
+                ? includes.split(',').map((item: string) => ({ name: item.trim(), quantity: 1, image: null })).filter((item: { name: string }) => item.name)
+                : includes)
+            : existing.includes;
 
         // Update slug only if name changed
         let slug = existing.slug;
@@ -89,7 +98,7 @@ async function updateCombo(
                 name: name || existing.name,
                 slug,
                 description: description !== undefined ? description : existing.description,
-                includes: includes !== undefined ? includes : existing.includes,
+                includes: resolvedIncludes,
                 suitableFor: suitableFor !== undefined ? suitableFor : existing.suitableFor,
                 price: price !== undefined ? parseFloat(price) : existing.price,
                 comparePrice: comparePrice !== undefined ? (comparePrice ? parseFloat(comparePrice) : null) : existing.comparePrice,

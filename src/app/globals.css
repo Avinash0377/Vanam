@@ -102,21 +102,9 @@
    SIMPLIFIED SCROLL PERFORMANCE
    ============================================ */
 
-/* Smooth scrolling - only on html */
-html {
-  scroll-behavior: smooth;
-}
-
-/* Basic performance - minimal impact */
-* {
-  text-rendering: optimizeLegibility;
-  box-sizing: border-box;
-}
-
-*::before,
-*::after {
-  box-sizing: border-box;
-}
+/* ============================================
+   MOBILE SCROLL PERFORMANCE
+   ============================================ */
 
 /* Reset & Base Styles */
 *,
@@ -130,6 +118,8 @@ html {
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  /* Enable momentum scrolling globally */
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Respect user's motion preferences */
@@ -161,12 +151,51 @@ body {
   /* Offset for fixed navbar */
 }
 
-/* Mobile: Adjusted padding for navbar + category strip + bottom nav */
+/* Mobile: Adjusted padding + scroll performance */
 @media (max-width: 767px) {
   body {
     padding-top: 130px;
     /* navbar (~64px) + category strip (~66px) */
     padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+    /* Tell browser scroll direction immediately — eliminates 300ms delay */
+    touch-action: pan-y;
+    /* Prevent overscroll bounce from causing repaint jank */
+    overscroll-behavior-y: contain;
+  }
+
+  /* Promote fixed-position bars to their own GPU compositor layer.
+     Without this, every scroll frame triggers a global repaint because
+     the browser has to redraw behind the fixed elements. */
+  header,
+  nav,
+  [class*='navbar'],
+  [class*='Navbar'],
+  [class*='bottomNav'],
+  [class*='BottomNav'],
+  [class*='categoryStrip'],
+  [class*='CategoryStrip'],
+  [class*='mobileHeader'],
+  [class*='header'] {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  /* ── content-visibility: auto ───────────────────────────────────────────
+     Skip layout + paint for off-screen sections entirely.
+     The browser only renders what's actually visible during scroll.
+     This is the "refresh rate" fix — not hardware Hz, but rendering Hz.
+     contain-intrinsic-size prevents layout shift for skipped sections. */
+  main>section,
+  main>div,
+  footer {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 400px;
+  }
+
+  /* Images: use auto rendering (GPU blit) instead of subpixel smoothing */
+  img {
+    image-rendering: auto;
   }
 }
 
@@ -182,6 +211,8 @@ h6 {
   line-height: 1.15;
   color: var(--neutral-900);
   letter-spacing: -0.025em;
+  /* Only apply expensive text rendering where it matters visually */
+  text-rendering: optimizeLegibility;
 }
 
 h1 {
@@ -230,10 +261,30 @@ a {
   color: var(--primary-600);
   text-decoration: none;
   transition: color 0.2s ease;
+  /* Eliminate 300ms click delay on touch devices — taps respond at pointer speed */
+  touch-action: manipulation;
 }
 
 a:hover {
   color: var(--primary-700);
+}
+
+@media (max-width: 767px) {
+
+  /* On touch devices, :hover sticks after tap. Remove transition so the
+     stuck hover state doesn't cause a repaint during subsequent scroll. */
+  a {
+    transition: none;
+  }
+
+  /* Same for all interactive elements — kill tap delay and transition overhead */
+  button,
+  input,
+  select,
+  textarea,
+  [role="button"] {
+    touch-action: manipulation;
+  }
 }
 
 img {
