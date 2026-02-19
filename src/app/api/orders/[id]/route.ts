@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { withAuth, withAdmin } from '@/lib/middleware';
 import { JWTPayload } from '@/lib/auth';
 import { restoreStock } from '@/lib/order-utils';
+import { decrementCouponUsage } from '@/lib/coupon-utils';
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -127,8 +128,13 @@ async function updateOrderStatus(
                 });
 
                 if (fullOrder) {
-                    // Use shared restoreStock with variant-level awareness
+                    // Restore product/combo/hamper stock
                     await restoreStock(tx, fullOrder.items);
+
+                    // Restore coupon usage count if a coupon was applied
+                    if (fullOrder.couponCode) {
+                        await decrementCouponUsage(fullOrder.couponCode, tx);
+                    }
                 }
 
                 await tx.order.update({

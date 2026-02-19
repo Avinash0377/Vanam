@@ -147,11 +147,11 @@ export async function sendOrderStatusEmail(
     if (!orderData.email) return;
 
     const statusLabels: Record<string, string> = {
-        'PACKING': 'Your order is being packed! 📦',
-        'SHIPPED': 'Your order has been shipped! 🚚',
-        'DELIVERED': 'Your order has been delivered! ✅',
-        'CANCELLED': 'Your order has been cancelled ❌',
-        'REFUNDED': 'Your order has been refunded 💰',
+        'PACKING': 'Your order is being packed',
+        'SHIPPED': 'Your order has been shipped',
+        'DELIVERED': 'Your order has been delivered',
+        'CANCELLED': 'Your order has been cancelled',
+        'REFUNDED': 'Your order has been refunded',
     };
 
     const statusLabel = statusLabels[newStatus];
@@ -212,7 +212,7 @@ export async function sendAdminNewOrderAlert(orderData: {
 
     await sendEmail({
         to: settings.adminEmail,
-        subject: `🛒 New Order #${orderData.orderNumber} — ₹${orderData.totalAmount}`,
+        subject: `New Order #${orderData.orderNumber} — Rs.${orderData.totalAmount}`,
         html,
     });
 }
@@ -271,7 +271,7 @@ export async function checkAndSendLowStockAlerts(
 
     await sendEmail({
         to: settings.adminEmail,
-        subject: `⚠️ Low Stock Alert — ${lowStockProducts.length} product(s)`,
+        subject: `Low Stock Alert — ${lowStockProducts.length} product(s) need attention`,
         html,
     });
 }
@@ -283,7 +283,7 @@ export async function sendTestEmail(to: string): Promise<boolean> {
     const html = testEmailTemplate();
     return sendEmail({
         to,
-        subject: '✅ Test Email — Vanam Store Notifications',
+        subject: 'Test Email — Vanam Store Notifications',
         html,
     });
 }

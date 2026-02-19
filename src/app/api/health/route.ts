@@ -5,7 +5,7 @@ export async function GET() {
     const startTime = Date.now();
 
     try {
-        // Check database connection by running a simple query
+        // Check MongoDB connection with a lightweight ping
         await prisma.$runCommandRaw({ ping: 1 });
 
         const responseTime = Date.now() - startTime;

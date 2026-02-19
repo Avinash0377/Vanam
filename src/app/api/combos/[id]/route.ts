@@ -52,7 +52,7 @@ export async function GET(
 // PUT update combo (Admin only)
 async function updateCombo(
     request: NextRequest,
-    user: JWTPayload,
+    _user: JWTPayload,
     id: string
 ) {
     try {
@@ -129,7 +129,7 @@ export async function PUT(
 // DELETE combo (Admin only)
 async function deleteCombo(
     request: NextRequest,
-    user: JWTPayload,
+    _user: JWTPayload,
     id: string
 ) {
     try {

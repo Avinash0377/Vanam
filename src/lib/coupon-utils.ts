@@ -25,8 +25,8 @@ interface ValidateCouponParams {
     userId?: string;
     /** Pass a transaction client for atomic operations */
     tx?: Prisma.TransactionClient;
-    /** If true, skip expiry check (honor coupon valid at initiation time) */
-    honorInitiationTime?: boolean;
+    /** If true, skip start/expiry date check (coupon was valid at payment initiation time) */
+    skipDateValidation?: boolean;
 }
 
 // ==================== NORMALIZATION ====================
@@ -59,7 +59,7 @@ export async function validateCoupon({
     subtotal,
     userId,
     tx,
-    honorInitiationTime = false,
+    skipDateValidation = false,
 }: ValidateCouponParams): Promise<CouponValidationResult> {
     const db = tx || prisma;
 
@@ -81,8 +81,8 @@ export async function validateCoupon({
         return { valid: false, discountAmount: 0, message: 'This coupon is no longer active' };
     }
 
-    // 4. Check date validity (skip if honoring initiation time)
-    if (!honorInitiationTime) {
+    // 4. Check date validity (skip if coupon was valid at payment initiation)
+    if (!skipDateValidation) {
         const now = new Date();
         if (now < coupon.startDate) {
             return { valid: false, discountAmount: 0, message: 'This coupon is not yet active' };

@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
         switch (eventType) {
             case 'payment.captured':
             case 'payment.authorized':
-                await handlePaymentCaptured(payment, request);
+                await handlePaymentCaptured(payment, request, eventType);
                 break;
 
             case 'payment.failed':
@@ -117,13 +117,26 @@ export async function POST(request: NextRequest) {
                 break;
 
             default:
-                // Silently ignore other events
+                // Log unknown event types for visibility — Razorpay may send new events
+                logPaymentEvent({
+                    eventType: 'WEBHOOK_RECEIVED',
+                    status: 'INFO',
+                    message: `Unhandled webhook event type: ${eventType}`,
+                    rawPayload: { event: eventType },
+                }).catch(() => null);
                 break;
         }
 
         return NextResponse.json({ status: 'ok' });
 
-    } catch {
+    } catch (error) {
+        // Log the internal error before returning 200 (prevents Razorpay retries)
+        console.error('Webhook handler error:', error);
+        logPaymentEvent({
+            eventType: 'FAILED',
+            status: 'FAILED',
+            message: `Webhook internal error: ${error instanceof Error ? error.message : String(error)}`,
+        }).catch(() => null);
         // Return 200 to prevent Razorpay retries on server errors
         return NextResponse.json({ status: 'error', message: 'Internal error' });
     }
@@ -135,7 +148,8 @@ export async function POST(request: NextRequest) {
  */
 async function handlePaymentCaptured(
     payment: RazorpayPaymentEntity,
-    request: NextRequest
+    request: NextRequest,
+    eventType: string
 ) {
     const { id: paymentId, order_id: razorpayOrderId, amount } = payment;
 
@@ -147,9 +161,9 @@ async function handlePaymentCaptured(
         razorpayOrderId,
         razorpayPaymentId: paymentId,
         amount: amount / 100, // Convert paise to rupees for log
-        message: 'payment.captured webhook received',
+        message: `${eventType} webhook received`,
         rawPayload: {
-            event: 'payment.captured',
+            event: eventType, // Use actual event type (captured or authorized)
             paymentId,
             razorpayOrderId,
             amount,
@@ -165,6 +179,16 @@ async function handlePaymentCaptured(
     });
 
     if (!pendingPayment) {
+        // Log that we received a webhook for an unknown payment (no PendingPayment record)
+        logPaymentEvent({
+            eventType: 'WEBHOOK_RECEIVED',
+            status: 'INFO',
+            correlationId: razorpayOrderId,
+            razorpayOrderId,
+            razorpayPaymentId: paymentId,
+            amount: amount / 100,
+            message: `Webhook received but no PendingPayment found for razorpayOrderId: ${razorpayOrderId}`,
+        }).catch(() => null);
         return;
     }
 
@@ -194,7 +218,7 @@ async function handlePaymentCaptured(
     );
 
     if (result.success && !result.alreadyProcessed) {
-        // Log WEBHOOK_CONFIRMED — fire-and-forget
+        // Log WEBHOOK_CONFIRMED — payment finalized via webhook
         logPaymentEvent({
             eventType: 'WEBHOOK_CONFIRMED',
             status: 'SUCCESS',
@@ -203,6 +227,28 @@ async function handlePaymentCaptured(
             razorpayPaymentId: paymentId,
             amount: amount / 100,
             message: `Order ${result.orderNumber} confirmed via webhook`,
+        }).catch(() => null);
+    } else if (result.alreadyProcessed) {
+        // Log that webhook arrived but payment was already processed via /verify
+        logPaymentEvent({
+            eventType: 'DUPLICATE_ATTEMPT',
+            status: 'INFO',
+            correlationId: razorpayOrderId,
+            razorpayOrderId,
+            razorpayPaymentId: paymentId,
+            amount: amount / 100,
+            message: `Webhook received but payment already processed (order: ${result.orderNumber})`,
+        }).catch(() => null);
+    } else if (!result.success) {
+        // Log finalization failure
+        logPaymentEvent({
+            eventType: 'FAILED',
+            status: 'FAILED',
+            correlationId: razorpayOrderId,
+            razorpayOrderId,
+            razorpayPaymentId: paymentId,
+            amount: amount / 100,
+            message: `Webhook finalization failed: ${result.error}`,
         }).catch(() => null);
     }
 }
@@ -241,6 +287,15 @@ async function handlePaymentFailed(
     });
 
     if (!pendingPayment) {
+        // Log: webhook fired for a payment we have no record of
+        logPaymentEvent({
+            eventType: 'WEBHOOK_RECEIVED',
+            status: 'INFO',
+            correlationId: razorpayOrderId,
+            razorpayOrderId,
+            razorpayPaymentId: paymentId,
+            message: `payment.failed webhook: no PendingPayment found for ${razorpayOrderId}`,
+        }).catch(() => null);
         return;
     }
 

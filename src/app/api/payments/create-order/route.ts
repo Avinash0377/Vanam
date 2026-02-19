@@ -266,6 +266,7 @@ async function createPaymentOrder(request: NextRequest, user: JWTPayload) {
         });
 
     } catch (error) {
+        console.error('Create payment order error:', error);
         return NextResponse.json(
             { error: 'Failed to create payment order' },
             { status: 500 }

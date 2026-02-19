@@ -104,7 +104,7 @@ export async function GET(request: NextRequest) {
 }
 
 // POST create new product (Admin only)
-async function createProduct(request: NextRequest, user: JWTPayload) {
+async function createProduct(request: NextRequest, _user: JWTPayload) {
     try {
         const body = await request.json();
         const {

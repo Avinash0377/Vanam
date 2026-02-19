@@ -3,6 +3,11 @@ import Script from 'next/script';
 import './globals.css';
 import Providers from '@/components/Providers';
 import WhatsAppButton from '@/components/WhatsAppButton';
+import { validateEnv } from '@/lib/env';
+
+// Validate required environment variables at startup.
+// Fails fast with a clear error if any are missing.
+validateEnv();
 
 export const metadata: Metadata = {
     title: {

@@ -56,11 +56,11 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Update lastLoginAt timestamp
-        await prisma.user.update({
+        // Update lastLoginAt timestamp (fire-and-forget — not critical to login response)
+        prisma.user.update({
             where: { id: user.id },
             data: { lastLoginAt: new Date() }
-        });
+        }).catch(() => null);
 
         // Generate token
         const tokenData = generateToken({

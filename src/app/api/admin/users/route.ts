@@ -46,7 +46,7 @@ async function getUsers(request: NextRequest) {
                         },
                     },
                 },
-                orderBy: { [sortBy]: sortOrder },
+                orderBy: { [sortBy]: sortOrder } as Record<string, string>,
                 skip,
                 take: limit,
             }),
@@ -58,7 +58,7 @@ async function getUsers(request: NextRequest) {
             const orderCount = user.orders.length;
             const totalSpent = user.orders.reduce((sum, order) => sum + order.totalAmount, 0);
             const lastOrderDate = user.orders.length > 0
-                ? user.orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0].createdAt
+                ? [...user.orders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0].createdAt
                 : null;
 
             return {

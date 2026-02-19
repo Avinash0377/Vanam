@@ -123,7 +123,7 @@ export async function finalizePayment(
                 code: couponCode,
                 subtotal: cartSnapshot.reduce((sum, item) => sum + item.price * item.quantity, 0),
                 userId: pendingPayment.userId,
-                honorInitiationTime: true, // Honor coupon valid at payment initiation
+                skipDateValidation: true, // Coupon was valid at payment initiation time
             });
 
             if (!couponResult.valid) {

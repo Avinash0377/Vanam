@@ -137,7 +137,7 @@ async function verifyPayment(request: NextRequest, user: JWTPayload) {
         if (!result.success) {
             return NextResponse.json(
                 { error: result.error },
-                { status: 400 }
+                { status: result.error === 'Payment record not found' ? 404 : 409 }
             );
         }
 

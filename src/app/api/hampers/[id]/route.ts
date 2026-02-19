@@ -52,7 +52,7 @@ export async function GET(
 // PUT update hamper (Admin only)
 async function updateHamper(
     request: NextRequest,
-    user: JWTPayload,
+    _user: JWTPayload,
     id: string
 ) {
     try {
@@ -130,7 +130,7 @@ export async function PUT(
 // DELETE hamper (Admin only)
 async function deleteHamper(
     request: NextRequest,
-    user: JWTPayload,
+    _user: JWTPayload,
     id: string
 ) {
     try {

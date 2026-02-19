@@ -131,12 +131,14 @@ export async function validateStockAvailability(
 
         } else if (item.comboId) {
             const combo = await db.combo.findUnique({ where: { id: item.comboId } });
-            if (!combo || combo.stock < item.quantity) {
+            if (!combo) throw new Error(`${item.name} no longer exists`);
+            if (combo.stock < item.quantity) {
                 throw new Error(`Insufficient stock for ${item.name}`);
             }
         } else if (item.hamperId) {
             const hamper = await db.giftHamper.findUnique({ where: { id: item.hamperId } });
-            if (!hamper || hamper.stock < item.quantity) {
+            if (!hamper) throw new Error(`${item.name} no longer exists`);
+            if (hamper.stock < item.quantity) {
                 throw new Error(`Insufficient stock for ${item.name}`);
             }
         }

@@ -17,8 +17,6 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-
-
         // Validate input
         const validation = registerSchema.safeParse(body);
         if (!validation.success) {
@@ -29,7 +27,6 @@ export async function POST(request: NextRequest) {
         }
         const { name, mobile, email, password } = validation.data;
 
-        // Check if mobile already exists
         // Check if mobile already exists
         const userWithMobile = await prisma.user.findFirst({
             where: { mobile },

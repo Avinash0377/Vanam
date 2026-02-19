@@ -19,8 +19,9 @@ interface RateLimitEntry {
 
 const rateLimitStore = new Map<string, RateLimitEntry>();
 
-// Cleanup stale entries every 5 minutes
-setInterval(() => {
+// Cleanup stale entries every 5 minutes.
+// Store the timer reference so it can be cleared in tests or on shutdown.
+const cleanupInterval = setInterval(() => {
     const now = Date.now();
     rateLimitStore.forEach((entry, key) => {
         if (entry.resetAt < now) {
@@ -28,6 +29,9 @@ setInterval(() => {
         }
     });
 }, 5 * 60 * 1000);
+
+// Prevent Node.js from keeping the process alive solely for this timer.
+if (cleanupInterval.unref) cleanupInterval.unref();
 
 interface RateLimitOptions {
     /** Maximum number of requests in the window */
