@@ -1,12 +1,13 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { AuthProvider } from '@/context/AuthContext';
 import { CartProvider } from '@/context/CartContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import BottomNavBar from '@/components/BottomNavBar';
+import { trackPageView } from '@/lib/analytics';
 
 interface ProvidersProps {
     children: ReactNode;
@@ -15,6 +16,18 @@ interface ProvidersProps {
 export default function Providers({ children }: ProvidersProps) {
     const pathname = usePathname();
     const isAdminPage = pathname?.startsWith('/admin');
+
+    // Fire PageView on every SPA route change.
+    // Skip the first render: the Pixel base code in layout.tsx already fires
+    // PageView on initial page load, so we only track subsequent navigations.
+    const isFirstRender = useRef(true);
+    useEffect(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
+        trackPageView(pathname ?? '/');
+    }, [pathname]);
 
     return (
         <AuthProvider>

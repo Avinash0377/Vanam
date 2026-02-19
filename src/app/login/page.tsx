@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import styles from './page.module.css';
+import { trackCompleteRegistration } from '@/lib/analytics';
 
 function LoginContent() {
     const router = useRouter();
@@ -75,6 +76,12 @@ function LoginContent() {
             }
 
             login(data.token, data.user);
+
+            // Track registration — fire only on successful register
+            if (isRegister) {
+                trackCompleteRegistration();
+            }
+
             router.push(redirect);
 
         } catch (err) {

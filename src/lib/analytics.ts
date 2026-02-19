@@ -185,3 +185,11 @@ export function trackWhatsAppClick(source: string, productId?: string): void {
         product_id: productId,
     });
 }
+
+// ─── Complete Registration ──────────────────────────────────────────────────
+// Rule: fire only after backend confirms successful registration.
+
+export function trackCompleteRegistration(): void {
+    pixel('CompleteRegistration');
+    ga('event', 'sign_up', { method: 'email' });
+}
