@@ -49,6 +49,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setToken(storedToken);
             setUser(parsedUser);
 
+            // Restore cookie for edge middleware (in case cookie was cleared by browser restart)
+            document.cookie = `auth_token=${storedToken}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Strict`;
+
             // Validate token against server (prevents role spoofing)
             fetch('/api/auth/me', {
                 headers: { Authorization: `Bearer ${storedToken}` },
@@ -84,6 +87,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('vanam_token', newToken);
         localStorage.setItem('vanam_user', JSON.stringify(newUser));
 
+        // Write to cookie so Next.js edge middleware can read it for admin route protection.
+        // Not HttpOnly (client JS must read it for API headers), but SameSite=Strict prevents CSRF.
+        document.cookie = `auth_token=${newToken}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Strict`;
+
         // Merge guest cart with user cart
         const guestCart = localStorage.getItem('vanam_guest_cart');
         if (guestCart) {
@@ -97,6 +104,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
         localStorage.removeItem('vanam_token');
         localStorage.removeItem('vanam_user');
+        // Clear the auth cookie used by edge middleware
+        document.cookie = 'auth_token=; path=/; max-age=0; SameSite=Strict';
     };
 
     const mergeGuestCart = async (authToken: string, guestCart: unknown) => {
