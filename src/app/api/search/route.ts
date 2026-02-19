@@ -1,13 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { ProductStatus } from '@prisma/client';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 // GET /api/search?q=monstera&limit=8
 // Searches products, combos, and hampers in parallel
 export async function GET(request: NextRequest) {
     try {
+        // Rate limit: 30 search requests/min per IP to prevent regex DoS
+        const ip = getClientIp(request);
+        const rateLimit = checkRateLimit(`search:${ip}`, { maxRequests: 30, windowSeconds: 60 });
+        if (!rateLimit.allowed) {
+            return NextResponse.json(
+                { error: 'Too many search requests. Please slow down.' },
+                { status: 429, headers: { 'Retry-After': String(Math.ceil((rateLimit.resetAt - Date.now()) / 1000)) } }
+            );
+        }
+
         const { searchParams } = new URL(request.url);
-        const query = searchParams.get('q')?.trim();
+        const rawQuery = searchParams.get('q')?.trim() ?? '';
+        // Cap query length to prevent excessively long regex patterns
+        const query = rawQuery.slice(0, 100);
         const limit = Math.min(12, Math.max(1, parseInt(searchParams.get('limit') || '8') || 8));
 
         if (!query || query.length < 2) {

@@ -214,6 +214,22 @@ async function deleteProduct(
             );
         }
 
+        // Check if this product has ever been ordered — if so, block deletion
+        // to preserve order history integrity
+        const orderCount = await prisma.orderItem.count({
+            where: { productId: id },
+        });
+
+        if (orderCount > 0) {
+            return NextResponse.json(
+                {
+                    error: `Cannot delete "${product.name}" — it appears in ${orderCount} order(s). Set its status to DRAFT or OUT_OF_STOCK instead.`,
+                    canArchive: true,
+                },
+                { status: 409 }
+            );
+        }
+
         await prisma.product.delete({
             where: { id },
         });
