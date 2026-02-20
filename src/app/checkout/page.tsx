@@ -82,12 +82,63 @@ export default function CheckoutPage() {
         notes: '',
     });
 
+    const [pincodeLoading, setPincodeLoading] = useState(false);
+    const [pincodeError, setPincodeError] = useState('');
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+
+        // If pincode is changing, enforce numbers only and max 6 length
+        if (name === 'pincode') {
+            const onlyNums = value.replace(/\D/g, '').slice(0, 6);
+            setFormData(prev => ({ ...prev, [name]: onlyNums }));
+            return;
+        }
+
         setFormData(prev => ({
             ...prev,
-            [e.target.name]: e.target.value,
+            [name]: value,
         }));
     };
+
+    // Auto-fetch location when pincode reaches 6 digits
+    useEffect(() => {
+        const fetchLocation = async () => {
+            if (formData.pincode.length !== 6) {
+                if (pincodeError) setPincodeError('');
+                return;
+            }
+
+            setPincodeLoading(true);
+            setPincodeError('');
+
+            try {
+                const res = await fetch(`https://api.postalpincode.in/pincode/${formData.pincode}`);
+                const data = await res.json();
+
+                if (data && data[0] && data[0].Status === 'Success') {
+                    // Get the first valid post office
+                    const postOffice = data[0].PostOffice[0];
+                    setFormData(prev => ({
+                        ...prev,
+                        city: postOffice.District || postOffice.Block || prev.city,
+                        state: postOffice.State || prev.state,
+                    }));
+                } else {
+                    setPincodeError('Invalid Pincode. Please check again.');
+                    setFormData(prev => ({ ...prev, city: '', state: '' })); // clear invalid location
+                }
+            } catch (err) {
+                console.error('Pincode fetch error:', err);
+                // Fail silently on network error, let user type it manually
+            } finally {
+                setPincodeLoading(false);
+            }
+        };
+
+        const timeoutId = setTimeout(fetchLocation, 400); // 400ms debounce
+        return () => clearTimeout(timeoutId);
+    }, [formData.pincode]);
 
     // Read coupon from sessionStorage on mount and re-validate server-side
     useEffect(() => {
@@ -542,6 +593,31 @@ export default function CheckoutPage() {
                                         />
                                     </div>
 
+                                    <div className={styles.formGroupFull}>
+                                        <label htmlFor="pincode" className={styles.label}>Pincode *</label>
+                                        <div style={{ position: 'relative' }}>
+                                            <input
+                                                id="pincode"
+                                                type="text"
+                                                name="pincode"
+                                                autoComplete="postal-code"
+                                                inputMode="numeric"
+                                                value={formData.pincode}
+                                                onChange={handleChange}
+                                                className={styles.input}
+                                                placeholder="6-digit pincode"
+                                                required
+                                            />
+                                            {pincodeLoading && (
+                                                <div className={styles.pincodeLoader}>
+                                                    <span className={styles.btnSpinner} style={{ width: '16px', height: '16px', borderTopColor: '#16a34a' }} />
+                                                    <span style={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: 500 }}>Fetching location...</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                        {pincodeError && <p className={styles.formError} style={{ marginTop: '0.25rem' }}>{pincodeError}</p>}
+                                    </div>
+
                                     <div className={styles.formGroup}>
                                         <label htmlFor="city" className={styles.label}>City *</label>
                                         <input
@@ -568,22 +644,6 @@ export default function CheckoutPage() {
                                             onChange={handleChange}
                                             className={styles.input}
                                             placeholder="State"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className={styles.formGroup}>
-                                        <label htmlFor="pincode" className={styles.label}>Pincode *</label>
-                                        <input
-                                            id="pincode"
-                                            type="text"
-                                            name="pincode"
-                                            autoComplete="postal-code"
-                                            inputMode="numeric"
-                                            value={formData.pincode}
-                                            onChange={handleChange}
-                                            className={styles.input}
-                                            placeholder="6-digit pincode"
                                             required
                                         />
                                     </div>
