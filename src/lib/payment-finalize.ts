@@ -13,7 +13,7 @@ import prisma from '@/lib/prisma';
 import {
     CartSnapshotItem,
     calculateOrderTotals,
-    generateOrderNumber,
+    ensureUniqueOrderNumber,
     createOrderItems,
     decrementStock,
     validateStockAvailability,
@@ -115,31 +115,11 @@ export async function finalizePayment(
 
         // 6. Handle coupon from PendingPayment
         const couponCode = normalizeCouponCode(pendingPayment.couponCode);
-        let discountAmount = pendingPayment.discountAmount || 0;
 
-        // Re-validate coupon if present (honor initiation-time validity)
-        if (couponCode) {
-            const couponResult = await validateCoupon({
-                code: couponCode,
-                subtotal: cartSnapshot.reduce((sum, item) => sum + item.price * item.quantity, 0),
-                userId: pendingPayment.userId,
-                skipDateValidation: true, // Coupon was valid at payment initiation time
-            });
+        // 7. Pre-calculate subtotal for logging/receipt
+        const cartSubtotal = cartSnapshot.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-            if (!couponResult.valid) {
-                // Coupon became invalid (e.g., deactivated) — proceed without discount
-                discountAmount = 0;
-            } else {
-                discountAmount = couponResult.discountAmount;
-            }
-        }
-
-        // 7. Calculate totals with coupon and delivery settings
-        const { subtotal, shippingCost, totalAmount } = calculateOrderTotals(cartSnapshot, { discountAmount, deliverySettings });
-
-        // 8. Generate order number
-        const orderNumber = generateOrderNumber();
-
+        // 8. Log payment verification (order number will be generated inside transaction)
         // Log VERIFIED_SUCCESS before transaction — fire-and-forget
         logPaymentEvent({
             eventType: 'VERIFIED_SUCCESS',
@@ -152,15 +132,35 @@ export async function finalizePayment(
             message: `Payment verified via ${source}`,
         }).catch(() => null);
 
-        // 9. ATOMIC TRANSACTION: Validate stock, create order, payment, decrement stock, clear cart
-        const order = await prisma.$transaction(async (tx) => {
+        // 9. ATOMIC TRANSACTION: Re-validate coupon, calculate totals, validate stock, create order
+        const { order, subtotal, shippingCost, totalAmount, discountAmount } = await prisma.$transaction(async (tx) => {
             // Re-validate stock INSIDE transaction to prevent TOCTOU race conditions
             await validateStockAvailability(cartSnapshot, tx);
 
-            // ATOMIC coupon usage increment (only after successful order creation is guaranteed)
-            if (couponCode && discountAmount > 0) {
-                await atomicIncrementUsage(couponCode, tx);
+            // BUG-06 fix: generate unique order number inside transaction with DB uniqueness check
+            const orderNumber = await ensureUniqueOrderNumber(tx as unknown as import('@prisma/client').Prisma.TransactionClient);
+
+            // BUG-05 fix: Re-validate coupon and recalculate discount INSIDE transaction
+            let txDiscountAmount = 0;
+            if (couponCode) {
+                const couponResult = await validateCoupon({
+                    code: couponCode,
+                    subtotal: cartSubtotal,
+                    userId: pendingPayment.userId,
+                    skipDateValidation: true, // Coupon was valid at payment initiation time
+                    tx,
+                });
+
+                if (couponResult.valid) {
+                    txDiscountAmount = couponResult.discountAmount;
+                    // ATOMIC coupon usage increment (only after successful validation inside tx)
+                    await atomicIncrementUsage(couponCode, tx);
+                }
+                // If coupon became invalid (e.g., deactivated), proceed without discount
             }
+
+            // Recalculate totals inside transaction with confirmed discount amount
+            const totals = calculateOrderTotals(cartSnapshot, { discountAmount: txDiscountAmount, deliverySettings });
 
             // Create order
             const newOrder = await tx.order.create({
@@ -175,10 +175,10 @@ export async function finalizePayment(
                     state: pendingPayment.state,
                     pincode: pendingPayment.pincode,
                     couponCode: couponCode || null,
-                    discountAmount,
-                    subtotal,
-                    shippingCost,
-                    totalAmount,
+                    discountAmount: txDiscountAmount,
+                    subtotal: totals.subtotal,
+                    shippingCost: totals.shippingCost,
+                    totalAmount: totals.totalAmount,
                     paymentMethod: pendingPayment.paymentMethod,
                     orderStatus: 'PAID',
                     notes: pendingPayment.notes,
@@ -213,7 +213,13 @@ export async function finalizePayment(
             // Clear user's cart
             await tx.cart.deleteMany({ where: { userId: pendingPayment.userId } });
 
-            return newOrder;
+            return {
+                order: newOrder,
+                subtotal: totals.subtotal,
+                shippingCost: totals.shippingCost,
+                totalAmount: totals.totalAmount,
+                discountAmount: txDiscountAmount,
+            };
         });
 
         // Log ORDER_CREATED after successful transaction — fire-and-forget

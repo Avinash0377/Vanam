@@ -83,10 +83,18 @@ export async function POST(request: NextRequest) {
             .update(rawBody)
             .digest('hex');
 
+        // BUG-04 fix: guard against empty/invalid hex bypassing timingSafeEqual
+        if (!signature || signature.length < 64) {
+            return NextResponse.json(
+                { error: 'Invalid signature' },
+                { status: 400 }
+            );
+        }
+
         // Use timing-safe comparison to prevent timing attacks
         const sigBuffer = Buffer.from(signature, 'hex');
         const expectedBuffer = Buffer.from(expectedSignature, 'hex');
-        if (sigBuffer.length !== expectedBuffer.length || !crypto.timingSafeEqual(sigBuffer, expectedBuffer)) {
+        if (sigBuffer.length === 0 || sigBuffer.length !== expectedBuffer.length || !crypto.timingSafeEqual(sigBuffer, expectedBuffer)) {
             return NextResponse.json(
                 { error: 'Invalid signature' },
                 { status: 400 }
@@ -103,13 +111,30 @@ export async function POST(request: NextRequest) {
         }
 
         // 4. Handle events
-        // NOTE: UPI payments fire 'payment.authorized' (NOT 'payment.captured')
-        // Card/netbanking payments fire 'payment.captured'
-        // We handle BOTH to ensure orders are created for all payment methods
+        // BUG-08 fix:
+        // - 'payment.captured' is the definitive confirmation for card/netbanking/wallets
+        // - 'payment.authorized' is ONLY used for UPI, which auto-captures in Razorpay standard flow.
+        //   For non-UPI methods, 'authorized' does NOT mean captured — we must wait for 'captured'.
         switch (eventType) {
             case 'payment.captured':
-            case 'payment.authorized':
                 await handlePaymentCaptured(payment, request, eventType);
+                break;
+
+            case 'payment.authorized':
+                // Only finalize on authorized for UPI payments (auto-captured by Razorpay)
+                if (payment.method === 'upi') {
+                    await handlePaymentCaptured(payment, request, eventType);
+                } else {
+                    // For non-UPI, log the authorized event but wait for payment.captured
+                    logPaymentEvent({
+                        eventType: 'WEBHOOK_RECEIVED',
+                        status: 'INFO',
+                        correlationId: payment.order_id,
+                        razorpayOrderId: payment.order_id,
+                        razorpayPaymentId: payment.id,
+                        message: `payment.authorized received for non-UPI method (${payment.method}), waiting for payment.captured`,
+                    }).catch(() => null);
+                }
                 break;
 
             case 'payment.failed':

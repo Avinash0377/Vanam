@@ -100,15 +100,26 @@ export async function validateCoupon({
 
     // 6. Check per-user usage limit (skip for guests — enforced at checkout)
     if (coupon.usagePerUser > 0 && userId) {
-        const userUsageCount = await db.order.count({
-            where: {
-                userId,
-                couponCode: normalized,
-                orderStatus: { notIn: ['CANCELLED', 'REFUNDED'] },
-            },
-        });
+        // BUG-10 fix: count both committed orders AND in-flight pending payments
+        // to prevent concurrent Razorpay flows from bypassing the per-user limit
+        const [userUsageCount, pendingUsageCount] = await Promise.all([
+            db.order.count({
+                where: {
+                    userId,
+                    couponCode: normalized,
+                    orderStatus: { notIn: ['CANCELLED', 'REFUNDED'] },
+                },
+            }),
+            db.pendingPayment.count({
+                where: {
+                    userId,
+                    couponCode: normalized,
+                    status: 'PENDING',
+                },
+            }),
+        ]);
 
-        if (userUsageCount >= coupon.usagePerUser) {
+        if (userUsageCount + pendingUsageCount >= coupon.usagePerUser) {
             return { valid: false, discountAmount: 0, message: 'You have already used this coupon' };
         }
     }

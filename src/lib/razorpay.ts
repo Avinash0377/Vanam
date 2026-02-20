@@ -1,9 +1,19 @@
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 
+const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID;
+const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET;
+
+if (!RAZORPAY_KEY_ID || !RAZORPAY_KEY_SECRET) {
+    if (process.env.NODE_ENV === 'production') {
+        throw new Error('RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET must be set in production');
+    }
+    console.warn('[razorpay] Warning: RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET is not set. Payment features will not work.');
+}
+
 const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID || '',
-    key_secret: process.env.RAZORPAY_KEY_SECRET || '',
+    key_id: RAZORPAY_KEY_ID || '',
+    key_secret: RAZORPAY_KEY_SECRET || '',
 });
 
 export interface CreateOrderOptions {
@@ -51,16 +61,19 @@ export function verifyPaymentSignature(
     paymentId: string,
     signature: string
 ): boolean {
+    // BUG-03/04 fix: guard against empty secret or invalid hex signature
+    if (!RAZORPAY_KEY_SECRET || signature.length < 64) return false;
+
     const generatedSignature = crypto
-        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || '')
+        .createHmac('sha256', RAZORPAY_KEY_SECRET)
         .update(`${orderId}|${paymentId}`)
         .digest('hex');
 
     try {
-        return crypto.timingSafeEqual(
-            Buffer.from(generatedSignature, 'hex'),
-            Buffer.from(signature, 'hex')
-        );
+        const sigBuf = Buffer.from(signature, 'hex');
+        const genBuf = Buffer.from(generatedSignature, 'hex');
+        if (sigBuf.length === 0 || sigBuf.length !== genBuf.length) return false;
+        return crypto.timingSafeEqual(genBuf, sigBuf);
     } catch {
         return false;
     }
@@ -73,16 +86,20 @@ export function verifyWebhookSignature(
     body: string,
     signature: string
 ): boolean {
+    // BUG-03/04 fix: guard against empty secret or invalid hex signature
+    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+    if (!webhookSecret || signature.length < 64) return false;
+
     const expectedSignature = crypto
-        .createHmac('sha256', process.env.RAZORPAY_WEBHOOK_SECRET || '')
+        .createHmac('sha256', webhookSecret)
         .update(body)
         .digest('hex');
 
     try {
-        return crypto.timingSafeEqual(
-            Buffer.from(expectedSignature, 'hex'),
-            Buffer.from(signature, 'hex')
-        );
+        const sigBuf = Buffer.from(signature, 'hex');
+        const expBuf = Buffer.from(expectedSignature, 'hex');
+        if (sigBuf.length === 0 || sigBuf.length !== expBuf.length) return false;
+        return crypto.timingSafeEqual(expBuf, sigBuf);
     } catch {
         return false;
     }

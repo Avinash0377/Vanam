@@ -1,8 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { withAdmin } from '@/lib/middleware';
+import { JWTPayload } from '@/lib/auth';
 
-async function cleanupPayments() {
+async function cleanupPaymentsHandler(request: NextRequest, _user: JWTPayload) {
+    // BUG-07 fix: require explicit confirmation to prevent accidental mass deletion
+    const { searchParams } = new URL(request.url);
+    const confirm = searchParams.get('confirm');
+    if (confirm !== 'yes') {
+        return NextResponse.json(
+            { error: 'Pass ?confirm=yes to execute cleanup', dryRun: true },
+            { status: 400 }
+        );
+    }
+
     try {
         const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
         const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
@@ -36,5 +47,5 @@ async function cleanupPayments() {
 }
 
 export async function POST(request: NextRequest) {
-    return withAdmin(request, cleanupPayments);
+    return withAdmin(request, cleanupPaymentsHandler);
 }

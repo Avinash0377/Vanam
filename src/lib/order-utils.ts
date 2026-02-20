@@ -105,11 +105,29 @@ export function calculateOrderTotals(
 
 
 /**
- * Generate a unique order number
+ * Generate a unique order number using crypto-random bytes.
+ * Format: VAN<timestamp><8 random hex chars>
+ * Entropy: 2^32 per millisecond — astronomically collision-resistant.
  */
 export function generateOrderNumber(): string {
-    // 8 random chars (base36) gives ~2.8 trillion combinations — collision-safe
-    return `VAN${Date.now()}${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+    const crypto = require('crypto') as typeof import('crypto');
+    const randomPart = crypto.randomBytes(4).toString('hex').toUpperCase();
+    return `VAN${Date.now()}${randomPart}`;
+}
+
+/**
+ * Generate a guaranteed-unique order number by checking the DB.
+ * Retries up to 5 times on the rare chance of a collision.
+ * Pass an optional transaction client for use inside $transaction blocks.
+ */
+export async function ensureUniqueOrderNumber(db?: Prisma.TransactionClient): Promise<string> {
+    const conn = db || prisma;
+    for (let attempt = 0; attempt < 5; attempt++) {
+        const orderNumber = generateOrderNumber();
+        const existing = await conn.order.findUnique({ where: { orderNumber } });
+        if (!existing) return orderNumber;
+    }
+    throw new OrderError('Failed to generate a unique order number after 5 attempts');
 }
 
 /**
@@ -189,11 +207,15 @@ export async function decrementStock(tx: Prisma.TransactionClient, items: CartSn
                     data: { sizeVariants: updatedVariants, stock: newTotalStock },
                 });
             } else {
-                // Handle simple product stock decrement
-                await tx.product.update({
-                    where: { id: item.productId },
+                // Handle simple product stock decrement — atomically guard against going negative
+                const updated = await tx.product.updateMany({
+                    where: { id: item.productId!, stock: { gte: item.quantity } },
                     data: { stock: { decrement: item.quantity } },
                 });
+                if (updated.count === 0) {
+                    // Another concurrent transaction already consumed the stock
+                    throw new OrderError(`Insufficient stock for ${item.name}: stock was taken by a concurrent order`);
+                }
             }
         } else if (item.comboId) {
             await tx.combo.update({

@@ -85,31 +85,32 @@ export default async function HomePage() {
         // Bestsellers: products marked as featured (star badge)
         prisma.product.findMany({
             where: { status: 'ACTIVE', featured: true },
-            take: 4,
+            take: 5,
             orderBy: [{ displayOrder: 'asc' }, { createdAt: 'desc' }],
         }),
         // Plants section: prefer showOnHome, fallback to latest
+        // take: 10 so we have enough for 5 indoor + 5 outdoor
         prisma.product.findMany({
             where: { status: 'ACTIVE', productType: 'PLANT' },
-            take: 8,
+            take: 10,
             orderBy: [{ showOnHome: 'desc' }, { displayOrder: 'asc' }, { createdAt: 'desc' }],
         }),
         // Pots section: prefer showOnHome, fallback to latest
         prisma.product.findMany({
             where: { status: 'ACTIVE', productType: 'POT' },
-            take: 4,
+            take: 5,
             orderBy: [{ showOnHome: 'desc' }, { displayOrder: 'asc' }, { createdAt: 'desc' }],
         }),
         // Combos section: prefer showOnHome, fallback to latest
         prisma.combo.findMany({
             where: { status: 'ACTIVE' },
-            take: 4,
+            take: 5,
             orderBy: [{ showOnHome: 'desc' }, { displayOrder: 'asc' }, { createdAt: 'desc' }],
         }),
         // Gift Hampers section: prefer showOnHome, fallback to latest
         prisma.giftHamper.findMany({
             where: { status: 'ACTIVE' },
-            take: 4,
+            take: 5,
             orderBy: [{ showOnHome: 'desc' }, { displayOrder: 'asc' }, { createdAt: 'desc' }],
         }),
         prisma.product.count({ where: { status: 'ACTIVE', productType: 'PLANT', suitableFor: { in: ['INDOOR', 'BOTH'] } } }),
@@ -124,17 +125,17 @@ export default async function HomePage() {
         ? featuredProducts
         : await prisma.product.findMany({
             where: { status: 'ACTIVE' },
-            take: 4,
+            take: 5,
             orderBy: { createdAt: 'desc' },
         });
 
-    // Split plants by suitability
+    // Split plants by suitability — 5 on desktop (CSS already has 5-col grid at ≥1280px)
     const indoorPlants = allPlants
         .filter(p => p.suitableFor === 'INDOOR' || p.suitableFor === 'BOTH')
-        .slice(0, 4);
+        .slice(0, 5);
     const outdoorPlants = allPlants
         .filter(p => p.suitableFor === 'OUTDOOR' || p.suitableFor === 'BOTH')
-        .slice(0, 4);
+        .slice(0, 5);
 
     const categoryCounts: Record<string, number> = {
         indoor: indoorCount,

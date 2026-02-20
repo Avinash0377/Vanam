@@ -7,7 +7,7 @@ import { ProductWithVariants, getVariantPrice } from '@/lib/variants';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import {
     calculateOrderTotals,
-    generateOrderNumber,
+    ensureUniqueOrderNumber,
     createOrderItems,
     decrementStock,
     validateStockAvailability,
@@ -28,6 +28,10 @@ async function getOrders(request: NextRequest, user: JWTPayload) {
         const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '10') || 10));
         const status = searchParams.get('status');
 
+        // BUG-09 fix: validate status against allowed enum values before using in query
+        const VALID_ORDER_STATUSES = ['PENDING', 'PAID', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED'];
+        const safeStatus = status && VALID_ORDER_STATUSES.includes(status) ? status : null;
+
         const skip = (page - 1) * limit;
 
         const where: Record<string, unknown> = {};
@@ -37,8 +41,8 @@ async function getOrders(request: NextRequest, user: JWTPayload) {
             where.userId = user.userId;
         }
 
-        if (status) {
-            where.orderStatus = status;
+        if (safeStatus) {
+            where.orderStatus = safeStatus;
         }
 
         const [orders, total] = await Promise.all([
@@ -244,13 +248,13 @@ async function createOrder(request: NextRequest, user: JWTPayload) {
         // Calculate Totals with coupon and delivery settings
         const { subtotal: computedSubtotal, shippingCost, totalAmount, discountAmount: computedDiscount } = calculateOrderTotals(cartSnapshot, { discountAmount, deliverySettings });
 
-        // Generate Order Number
-        const orderNumber = generateOrderNumber();
-
         // Create Order Transaction with stock validation INSIDE the transaction
         const order = await prisma.$transaction(async (tx) => {
             // Validate stock inside transaction to prevent race conditions
             await validateStockAvailability(cartSnapshot, tx);
+
+            // BUG-06 fix: generate unique order number inside transaction
+            const orderNumber = await ensureUniqueOrderNumber(tx as unknown as import('@prisma/client').Prisma.TransactionClient);
 
             // ATOMIC coupon usage check + increment (race condition protection)
             if (couponCode) {

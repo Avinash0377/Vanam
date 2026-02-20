@@ -14,9 +14,14 @@ import { jwtVerify } from 'jose';
  * - lib/middleware.ts = API route protection (server-side auth verification)
  */
 
-const JWT_SECRET = new TextEncoder().encode(
-    process.env.JWT_SECRET || 'dev-secret-not-for-production'
+// BUG-12 fix: throw in production if JWT_SECRET is missing (same as auth.ts)
+const JWT_SECRET_STRING = process.env.JWT_SECRET || (
+    process.env.NODE_ENV === 'production'
+        ? (() => { throw new Error('JWT_SECRET must be set in production'); })()
+        : 'dev-secret-not-for-production'
 );
+
+const JWT_SECRET = new TextEncoder().encode(JWT_SECRET_STRING);
 
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
@@ -58,10 +63,10 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-    // Match all /admin routes except:
-    // - /admin/login (to avoid redirect loops)
-    // - Static files under _next
+    // BUG-11 fix: match both /admin (root) and /admin/* sub-paths
+    // Without '/admin' in the matcher, navigating directly to /admin bypasses this middleware
     matcher: [
+        '/admin',
         '/admin/:path*',
     ],
 };
