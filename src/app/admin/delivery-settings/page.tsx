@@ -22,6 +22,7 @@ interface Pagination {
 }
 
 interface DeliveryConfig {
+    panIndiaEnabled: boolean;
     freeDeliveryEnabled: boolean;
     freeDeliveryMinAmount: number;
     flatDeliveryCharge: number;
@@ -48,6 +49,7 @@ export default function DeliverySettingsPage() {
 
     // ---- Delivery Config State ----
     const [config, setConfig] = useState<DeliveryConfig>({
+        panIndiaEnabled: false,
         freeDeliveryEnabled: true,
         freeDeliveryMinAmount: 999,
         flatDeliveryCharge: 99,
@@ -185,6 +187,7 @@ export default function DeliverySettingsPage() {
             const data = await res.json();
             if (res.ok && data.settings) {
                 setConfig({
+                    panIndiaEnabled: data.settings.panIndiaEnabled ?? false,
                     freeDeliveryEnabled: data.settings.freeDeliveryEnabled,
                     freeDeliveryMinAmount: data.settings.freeDeliveryMinAmount,
                     flatDeliveryCharge: data.settings.flatDeliveryCharge,
@@ -199,10 +202,25 @@ export default function DeliverySettingsPage() {
     }, [token]);
 
     useEffect(() => {
-        if (activeTab === 'config') {
-            fetchConfig();
+        fetchConfig();
+    }, [fetchConfig]);
+
+    const handleTogglePanIndia = async (enabled: boolean) => {
+        setConfig((prev) => ({ ...prev, panIndiaEnabled: enabled }));
+        try {
+            await fetch('/api/admin/delivery-config', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ ...config, panIndiaEnabled: enabled }),
+            });
+        } catch (err) {
+            console.error('Failed to update Pan India toggle:', err);
+            // Optionally revert the optimistic update here if needed
         }
-    }, [activeTab, fetchConfig]);
+    };
 
     const handleSaveConfig = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -267,8 +285,36 @@ export default function DeliverySettingsPage() {
             {/* Tab: Pincodes */}
             {activeTab === 'pincodes' && (
                 <>
+                    {/* Global Coverage Toggle (Pan India) */}
+                    <div className={styles.panIndiaCard}>
+                        <div className={styles.panIndiaHeader}>
+                            <div className={styles.panIndiaInfo}>
+                                <div className={styles.panIndiaIcon}>🌍</div>
+                                <div>
+                                    <h3 className={styles.panIndiaTitle}>Pan India Delivery</h3>
+                                    <p className={styles.panIndiaDesc}>
+                                        When enabled, all valid 6-digit Indian pincodes will be accepted at checkout without checking the list below.
+                                    </p>
+                                </div>
+                            </div>
+                            <label className={styles.switch}>
+                                <input
+                                    type="checkbox"
+                                    checked={config.panIndiaEnabled}
+                                    onChange={(e) => handleTogglePanIndia(e.target.checked)}
+                                />
+                                <span className={styles.slider}></span>
+                            </label>
+                        </div>
+                        {config.panIndiaEnabled && (
+                            <div className={styles.panIndiaActiveMsg}>
+                                ✅ Pan India is active. The individual pincodes listed below are currently bypassed.
+                            </div>
+                        )}
+                    </div>
+
                     {/* Add Pincode Form */}
-                    <div className={styles.addSection}>
+                    <div className={styles.addSection} style={{ opacity: config.panIndiaEnabled ? 0.6 : 1, transition: 'opacity 0.3s' }}>
                         <h2 className={styles.sectionTitle}>Add New Pincode</h2>
                         <form onSubmit={handleAddPincode} className={styles.addForm}>
                             <input

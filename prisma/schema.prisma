@@ -456,6 +456,7 @@ model Coupon {
 // ==================== DELIVERY SETTINGS (Singleton) ====================
 model DeliverySettings {
   id                    String             @id @map("_id")
+  panIndiaEnabled       Boolean            @default(false)
   freeDeliveryEnabled   Boolean            @default(true)
   freeDeliveryMinAmount Float              @default(999)
   flatDeliveryCharge    Float              @default(99)

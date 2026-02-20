@@ -36,6 +36,7 @@
 
 .tab:active {
     background: rgba(26, 77, 46, 0.05);
+    transform: scale(0.92);
 }
 
 .tab.active {

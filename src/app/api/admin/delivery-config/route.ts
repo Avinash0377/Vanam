@@ -16,6 +16,7 @@ async function getDeliveryConfig(_request: NextRequest, _user: JWTPayload) {
         return NextResponse.json({
             settings: settings || {
                 id: SINGLETON_ID,
+                panIndiaEnabled: false,
                 freeDeliveryEnabled: true,
                 freeDeliveryMinAmount: 999,
                 flatDeliveryCharge: 99,
@@ -34,6 +35,7 @@ async function updateDeliveryConfig(request: NextRequest, _user: JWTPayload) {
         const body = await request.json();
 
         const {
+            panIndiaEnabled = false,
             freeDeliveryEnabled = true,
             freeDeliveryMinAmount = 999,
             flatDeliveryCharge = 99,
@@ -56,12 +58,14 @@ async function updateDeliveryConfig(request: NextRequest, _user: JWTPayload) {
             where: { id: SINGLETON_ID },
             create: {
                 id: SINGLETON_ID,
+                panIndiaEnabled: Boolean(panIndiaEnabled),
                 freeDeliveryEnabled: Boolean(freeDeliveryEnabled),
                 freeDeliveryMinAmount: parseFloat(String(freeDeliveryMinAmount)),
                 flatDeliveryCharge: parseFloat(String(flatDeliveryCharge)),
                 deliveryChargeType,
             },
             update: {
+                panIndiaEnabled: Boolean(panIndiaEnabled),
                 freeDeliveryEnabled: Boolean(freeDeliveryEnabled),
                 freeDeliveryMinAmount: parseFloat(String(freeDeliveryMinAmount)),
                 flatDeliveryCharge: parseFloat(String(flatDeliveryCharge)),
