@@ -181,7 +181,7 @@
 }
 
 .sidebarLogoText {
-    font-family: 'Playfair Display', serif;
+    font-family: var(--font-display);
     font-size: 1.75rem;
     font-weight: 700;
     color: #1a4d2e;

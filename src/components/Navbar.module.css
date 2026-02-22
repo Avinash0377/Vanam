@@ -67,7 +67,7 @@
 }
 
 .tagline {
-    font-family: 'Plus Jakarta Sans', 'DM Sans', sans-serif;
+    font-family: var(--font-sans);
     font-size: 0.85rem;
     font-weight: 600;
     color: #4a7c59;
