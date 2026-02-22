@@ -31,6 +31,7 @@ export default function AnalyticsPage() {
     const [categories, setCategories] = useState<CategoryStat[]>([]);
     const [totals, setTotals] = useState<Totals | null>(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         fetchAnalytics();
@@ -38,15 +39,18 @@ export default function AnalyticsPage() {
 
     const fetchAnalytics = async () => {
         if (!token) return;
+        setError(null);
         try {
             const res = await fetch('/api/admin/category-analytics', {
                 headers: { Authorization: `Bearer ${token}` }
             });
+            if (!res.ok) throw new Error(`Server returned ${res.status}`);
             const data = await res.json();
             setCategories(data.categories || []);
             setTotals(data.totals || null);
-        } catch (error) {
-            console.error('Failed to fetch analytics:', error);
+        } catch (err) {
+            console.error('Failed to fetch analytics:', err);
+            setError('Failed to load analytics. Please check your connection and try again.');
         } finally {
             setLoading(false);
         }
@@ -61,6 +65,26 @@ export default function AnalyticsPage() {
             <div className={styles.loading}>
                 <div className="spinner"></div>
                 <p>Loading analytics...</p>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className={styles.loading}>
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                <p>{error}</p>
+                <button onClick={() => { setLoading(true); fetchAnalytics(); }} style={{
+                    padding: '0.625rem 1.25rem', fontSize: '0.875rem', fontWeight: 600,
+                    color: 'white', background: 'var(--primary-600)', border: 'none',
+                    borderRadius: '10px', cursor: 'pointer', marginTop: '0.5rem'
+                }}>
+                    ↻ Try Again
+                </button>
             </div>
         );
     }

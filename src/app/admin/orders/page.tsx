@@ -31,8 +31,10 @@ export default function AdminOrdersPage() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [pagination, setPagination] = useState<Pagination | null>(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [statusFilter, setStatusFilter] = useState('');
     const [search, setSearch] = useState('');
+    const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
 
     useEffect(() => {
         if (token) {
@@ -42,6 +44,7 @@ export default function AdminOrdersPage() {
 
     const fetchOrders = async (page = 1) => {
         setLoading(true);
+        setError(null);
         try {
             const params = new URLSearchParams({
                 page: page.toString(),
@@ -53,13 +56,13 @@ export default function AdminOrdersPage() {
             const res = await fetch(`/api/admin/orders?${params}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
+            if (!res.ok) throw new Error(`Server returned ${res.status}`);
             const data = await res.json();
-            if (res.ok) {
-                setOrders(data.orders);
-                setPagination(data.pagination);
-            }
-        } catch (error) {
-            console.error('Failed to fetch orders:', error);
+            setOrders(data.orders);
+            setPagination(data.pagination);
+        } catch (err) {
+            console.error('Failed to fetch orders:', err);
+            setError('Failed to load orders. Please check your connection and try again.');
         } finally {
             setLoading(false);
         }
@@ -71,6 +74,7 @@ export default function AdminOrdersPage() {
     };
 
     const updateOrderStatus = async (orderId: string, newStatus: string) => {
+        setUpdatingOrderId(orderId);
         try {
             const res = await fetch(`/api/admin/orders/${orderId}`, {
                 method: 'PUT',
@@ -85,10 +89,14 @@ export default function AdminOrdersPage() {
                 setOrders(orders.map(o =>
                     o.id === orderId ? { ...o, orderStatus: newStatus } : o
                 ));
+            } else {
+                throw new Error('Update failed');
             }
-        } catch (error) {
-            console.error('Update error:', error);
-            alert('Failed to update order status');
+        } catch (err) {
+            console.error('Update error:', err);
+            alert('Failed to update order status. Please try again.');
+        } finally {
+            setUpdatingOrderId(null);
         }
     };
 
@@ -184,6 +192,18 @@ export default function AdminOrdersPage() {
                 <div className={styles.tableWrapper}>
                     {loading ? (
                         <div className={styles.loading}>Loading...</div>
+                    ) : error ? (
+                        <div className={styles.errorState}>
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="12" y1="8" x2="12" y2="12" />
+                                <line x1="12" y1="16" x2="12.01" y2="16" />
+                            </svg>
+                            <p>{error}</p>
+                            <button className={styles.retryBtn} onClick={() => fetchOrders()}>
+                                ↻ Try Again
+                            </button>
+                        </div>
                     ) : orders.length === 0 ? (
                         <div className={styles.empty}>
                             <p>No orders found</p>
@@ -220,15 +240,19 @@ export default function AdminOrdersPage() {
                                             ₹{order.totalAmount.toLocaleString('en-IN')}
                                         </td>
                                         <td>
-                                            <select
-                                                value={order.orderStatus}
-                                                onChange={(e) => updateOrderStatus(order.id, e.target.value)}
-                                                className={`${styles.statusSelect} ${getStatusStyle(order.orderStatus)}`}
-                                            >
-                                                {statusOptions.map(status => (
-                                                    <option key={status} value={status}>{status}</option>
-                                                ))}
-                                            </select>
+                                            <div style={{ position: 'relative' }}>
+                                                <select
+                                                    value={order.orderStatus}
+                                                    onChange={(e) => updateOrderStatus(order.id, e.target.value)}
+                                                    className={`${styles.statusSelect} ${getStatusStyle(order.orderStatus)}`}
+                                                    disabled={updatingOrderId === order.id}
+                                                    style={updatingOrderId === order.id ? { opacity: 0.5 } : {}}
+                                                >
+                                                    {statusOptions.map(status => (
+                                                        <option key={status} value={status}>{status}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
                                         </td>
                                         <td className={styles.dateCell}>
                                             {formatDate(order.createdAt)}

@@ -43,6 +43,8 @@ export default function AdminDashboard() {
     const [recentOrders, setRecentOrders] = useState<Order[]>([]);
     const [lowStockProducts, setLowStockProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
     useEffect(() => {
         if (token) {
@@ -50,21 +52,31 @@ export default function AdminDashboard() {
         }
     }, [token]);
 
-    const fetchDashboard = async () => {
+    // Auto-refresh every 60 seconds
+    useEffect(() => {
+        if (!token) return;
+        const interval = setInterval(() => fetchDashboard(true), 60000);
+        return () => clearInterval(interval);
+    }, [token]);
+
+    const fetchDashboard = async (silent = false) => {
         try {
+            if (!silent) setLoading(true);
+            setError(null);
             const res = await fetch('/api/admin/dashboard', {
                 headers: { Authorization: `Bearer ${token}` },
             });
+            if (!res.ok) throw new Error(`Server returned ${res.status}`);
             const data = await res.json();
-            if (res.ok) {
-                setStats(data.stats);
-                setRecentOrders(data.recentOrders || []);
-                setLowStockProducts(data.lowStockProducts || []);
-            }
-        } catch (error) {
-            console.error('Failed to fetch dashboard:', error);
+            setStats(data.stats);
+            setRecentOrders(data.recentOrders || []);
+            setLowStockProducts(data.lowStockProducts || []);
+            setLastUpdated(new Date());
+        } catch (err) {
+            console.error('Failed to fetch dashboard:', err);
+            if (!silent) setError('Failed to load dashboard data. Please check your connection and try again.');
         } finally {
-            setLoading(false);
+            if (!silent) setLoading(false);
         }
     };
 
@@ -81,12 +93,47 @@ export default function AdminDashboard() {
         );
     }
 
+    if (error) {
+        return (
+            <div className={styles.page}>
+                <div className="container">
+                    <div className={styles.errorState}>
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="8" x2="12" y2="12" />
+                            <line x1="12" y1="16" x2="12.01" y2="16" />
+                        </svg>
+                        <h3>Something went wrong</h3>
+                        <p>{error}</p>
+                        <button className={styles.retryBtn} onClick={() => fetchDashboard()}>
+                            ↻ Try Again
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className={styles.page}>
             <div className="container">
                 <div className={styles.header}>
-                    <h1>Dashboard</h1>
+                    <div>
+                        <h1>Dashboard</h1>
+                        {lastUpdated && (
+                            <span className={styles.lastUpdated}>
+                                Updated {lastUpdated.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                        )}
+                    </div>
                     <div className={styles.headerActions}>
+                        <button
+                            className={styles.refreshBtn}
+                            onClick={() => fetchDashboard()}
+                            title="Refresh dashboard"
+                        >
+                            ↻
+                        </button>
                         <Link href="/admin/products/new" className="btn btn-primary">
                             + Add Product
                         </Link>

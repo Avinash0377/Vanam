@@ -32,6 +32,7 @@ export default function CustomersPage() {
     const [users, setUsers] = useState<User[]>([]);
     const [pagination, setPagination] = useState<Pagination | null>(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [page, setPage] = useState(1);
@@ -56,6 +57,7 @@ export default function CustomersPage() {
     const fetchUsers = async () => {
         if (!token) return;
         setLoading(true);
+        setError(null);
         try {
             const params = new URLSearchParams({
                 page: page.toString(),
@@ -65,11 +67,13 @@ export default function CustomersPage() {
             const res = await fetch(`/api/admin/users?${params}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
+            if (!res.ok) throw new Error(`Server returned ${res.status}`);
             const data = await res.json();
             setUsers(data.users || []);
             setPagination(data.pagination || null);
-        } catch (error) {
-            console.error('Failed to fetch users:', error);
+        } catch (err) {
+            console.error('Failed to fetch users:', err);
+            setError('Failed to load customers. Please check your connection and try again.');
         } finally {
             setLoading(false);
         }
@@ -101,6 +105,26 @@ export default function CustomersPage() {
             <div className={styles.loading}>
                 <div className="spinner"></div>
                 <p>Loading customers...</p>
+            </div>
+        );
+    }
+
+    if (error && users.length === 0) {
+        return (
+            <div className={styles.loading}>
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                <p>{error}</p>
+                <button onClick={() => fetchUsers()} style={{
+                    padding: '0.625rem 1.25rem', fontSize: '0.875rem', fontWeight: 600,
+                    color: 'white', background: 'var(--primary-600)', border: 'none',
+                    borderRadius: '10px', cursor: 'pointer', marginTop: '0.5rem'
+                }}>
+                    ↻ Try Again
+                </button>
             </div>
         );
     }

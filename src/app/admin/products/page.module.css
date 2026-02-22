@@ -242,6 +242,44 @@
     font-weight: 500;
 }
 
+.errorState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 4rem 2rem;
+    text-align: center;
+    color: var(--neutral-500);
+}
+
+.errorState p {
+    font-size: 0.9rem;
+    margin: 0;
+    max-width: 360px;
+    line-height: 1.5;
+}
+
+.retryBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: white;
+    background: var(--primary-600);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.retryBtn:hover {
+    background: var(--primary-700);
+    transform: translateY(-1px);
+}
+
 .empty p {
     margin-bottom: 1.5rem;
     font-size: 1.125rem;

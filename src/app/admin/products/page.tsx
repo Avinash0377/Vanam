@@ -55,6 +55,7 @@ export default function AdminProductsPage() {
     const [products, setProducts] = useState<Product[]>([]);
     const [pagination, setPagination] = useState<Pagination | null>(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const [typeFilter, setTypeFilter] = useState('');
@@ -69,6 +70,7 @@ export default function AdminProductsPage() {
 
     const fetchProducts = async (page = 1) => {
         setLoading(true);
+        setError(null);
         try {
             const params = new URLSearchParams({
                 page: page.toString(),
@@ -82,13 +84,13 @@ export default function AdminProductsPage() {
             const res = await fetch(`/api/admin/products?${params}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
+            if (!res.ok) throw new Error(`Server returned ${res.status}`);
             const data = await res.json();
-            if (res.ok) {
-                setProducts(data.products);
-                setPagination(data.pagination);
-            }
-        } catch (error) {
-            console.error('Failed to fetch products:', error);
+            setProducts(data.products);
+            setPagination(data.pagination);
+        } catch (err) {
+            console.error('Failed to fetch products:', err);
+            setError('Failed to load products. Please check your connection and try again.');
         } finally {
             setLoading(false);
         }
@@ -295,6 +297,18 @@ export default function AdminProductsPage() {
                 <div className={styles.tableWrapper}>
                     {loading ? (
                         <div className={styles.loading}>Loading...</div>
+                    ) : error ? (
+                        <div className={styles.errorState}>
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="12" y1="8" x2="12" y2="12" />
+                                <line x1="12" y1="16" x2="12.01" y2="16" />
+                            </svg>
+                            <p>{error}</p>
+                            <button className={styles.retryBtn} onClick={() => fetchProducts()}>
+                                ↻ Try Again
+                            </button>
+                        </div>
                     ) : products.length === 0 ? (
                         <div className={styles.empty}>
                             <p>No products found</p>

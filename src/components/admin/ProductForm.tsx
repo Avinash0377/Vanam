@@ -349,6 +349,30 @@ export default function ProductForm({ initialData, categories, onSubmit, loading
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
+        // Warn about missing fields (non-blocking — user can still proceed)
+        const warnings: string[] = [];
+        if (!formData.name.trim()) warnings.push('• Product name is empty');
+        if (!formData.categoryId) warnings.push('• No category selected');
+        if (formData.sizeVariants.length === 0 && !formData.price) {
+            warnings.push('• No price set');
+        }
+        if (formData.sizeVariants.length > 0) {
+            const emptyPrices = formData.sizeVariants.filter(v => !v.price || parseFloat(v.price) <= 0);
+            if (emptyPrices.length > 0) {
+                warnings.push(`• ${emptyPrices.length} size variant(s) have no price`);
+            }
+        }
+        if (formData.images.length === 0 && !formData.sizeVariants.some(v => v.colors?.some(c => c.images?.length > 0))) {
+            warnings.push('• No images uploaded');
+        }
+
+        if (warnings.length > 0) {
+            const proceed = confirm(
+                `⚠️ Some fields are missing:\n\n${warnings.join('\n')}\n\nDo you want to save anyway?`
+            );
+            if (!proceed) return;
+        }
+
         // Calculate base price and stock from variants if they exist
         const dataToSubmit = { ...formData };
         if (formData.sizeVariants.length > 0) {
