@@ -621,6 +621,7 @@
         /* Safe-area-aware: BottomNavBar (56px) + iPhone home bar + cushion */
         padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
         min-height: auto;
+        overflow-x: hidden;
     }
 
     .title {
@@ -835,6 +836,9 @@
         border-radius: 14px;
         border: 1px solid #e2e8f0;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        max-width: 100%;
+        overflow: hidden;
+        box-sizing: border-box;
     }
 
     .loginIcon {
@@ -886,6 +890,8 @@
 
     .loginRequired {
         gap: 1rem;
+        max-width: 100%;
+        overflow: hidden;
     }
 
     /* ---- Summary Preview ---- */
@@ -894,6 +900,9 @@
         border-radius: 14px;
         border: 1px solid #e2e8f0;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        max-width: 100%;
+        overflow: hidden;
+        box-sizing: border-box;
     }
 
     .summaryPreview h3 {
@@ -904,13 +913,20 @@
 
     .summaryPreview .summaryItem {
         font-size: 0.82rem;
+        max-width: 100%;
+        overflow: hidden;
     }
 
     .summaryPreview .summaryItemName {
-        max-width: 65%;
+        max-width: 60%;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        word-break: break-all;
+    }
+
+    .summaryTotal {
+        word-break: break-word;
     }
 
     /* ---- Empty State ---- */

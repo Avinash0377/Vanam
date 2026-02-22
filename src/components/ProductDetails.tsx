@@ -19,7 +19,7 @@ interface SizeVariant {
     colors: VariantColor[];
 }
 
-interface Product {
+export interface ProductDetailsData {
     id: string;
     name: string;
     slug: string;
@@ -39,13 +39,14 @@ interface Product {
 
 interface ProductDetailsProps {
     type: 'product' | 'combo' | 'hamper' | 'pot';
+    initialData?: ProductDetailsData;
 }
 
-export default function ProductDetails({ type }: ProductDetailsProps) {
+export default function ProductDetails({ type, initialData }: ProductDetailsProps) {
     const params = useParams();
     const { addItem } = useCart();
-    const [product, setProduct] = useState<Product | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [product, setProduct] = useState<ProductDetailsData | null>(initialData || null);
+    const [loading, setLoading] = useState(!initialData);
     const [quantity, setQuantity] = useState(1);
     const [activeImage, setActiveImage] = useState(0);
 
@@ -53,9 +54,20 @@ export default function ProductDetails({ type }: ProductDetailsProps) {
     const [selectedSize, setSelectedSize] = useState<string | null>(null);
     const [selectedColor, setSelectedColor] = useState<VariantColor | null>(null);
 
+    // Auto-select first variant when initialData is provided (SSR)
     useEffect(() => {
-        fetchProduct();
-    }, [params.slug]);
+        if (initialData?.sizeVariants?.length) {
+            const firstVariant = initialData.sizeVariants[0];
+            setSelectedSize(firstVariant.size);
+            if (firstVariant.colors?.length > 0) {
+                setSelectedColor(firstVariant.colors[0]);
+            }
+        }
+    }, [initialData]);
+
+    useEffect(() => {
+        if (!initialData) fetchProduct();
+    }, [params.slug, initialData]);
 
     const fetchProduct = async () => {
         try {
