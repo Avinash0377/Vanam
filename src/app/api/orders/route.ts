@@ -29,7 +29,7 @@ async function getOrders(request: NextRequest, user: JWTPayload) {
         const status = searchParams.get('status');
 
         // BUG-09 fix: validate status against allowed enum values before using in query
-        const VALID_ORDER_STATUSES = ['PENDING', 'PAID', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED'];
+        const VALID_ORDER_STATUSES = ['PENDING', 'PAID', 'PACKING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED'];
         const safeStatus = status && VALID_ORDER_STATUSES.includes(status) ? status : null;
 
         const skip = (page - 1) * limit;

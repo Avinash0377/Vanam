@@ -130,9 +130,7 @@
     }
 }
 
-.cartItem:last-child {
-    border-bottom: 1px solid var(--neutral-100);
-}
+
 
 .itemImage {
     width: 80px;
@@ -618,7 +616,9 @@
     background: var(--neutral-50);
     border-radius: 50%;
     margin-bottom: 2rem;
-    animation: bounce 2s infinite;
+    animation: bounce 2s ease;
+    /* UI-M7: stop after 3 bounces, no infinite loop */
+    animation-iteration-count: 3;
 }
 
 @keyframes bounce {
@@ -786,7 +786,8 @@
     .page {
         padding: 1.25rem 0 0;
         min-height: auto;
-        padding-bottom: 80px;
+        /* Safe-area-aware bottom padding: BottomNavBar (56px) + safe area + cushion */
+        padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
     }
 
     /* ---- Header ---- */
@@ -816,16 +817,16 @@
     }
 
     .cartItem {
-        grid-template-columns: 70px 1fr;
-        gap: 12px;
+        grid-template-columns: 90px 1fr;
+        gap: 14px;
         padding: 12px;
         border-radius: 14px;
         border: 1px solid #f1f5f9;
     }
 
     .itemImage {
-        width: 70px;
-        height: 70px;
+        width: 90px;
+        height: 90px;
         border-radius: 10px;
     }
 
@@ -891,6 +892,8 @@
     /* ---- Summary Card ---- */
     .summary {
         padding: 16px;
+        /* Extra bottom padding so checkout button clears the BottomNavBar and home bar */
+        padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
         border-radius: 16px;
         position: static;
         box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.04);

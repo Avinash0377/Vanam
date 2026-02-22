@@ -217,6 +217,10 @@ model Cart {
   updatedAt     DateTime @updatedAt
 
   @@index([userId])
+  // Compound index for the exact findFirst query pattern in add-to-cart
+  @@index([userId, productId, size, selectedColor])
+  @@index([userId, comboId])
+  @@index([userId, hamperId])
 }
 
 // ==================== COMMON TYPES ====================
@@ -266,6 +270,8 @@ model Order {
   @@index([createdAt])
   @@index([userId])
   @@index([userId, couponCode])
+  // Compound index for admin dashboard: sorted orders by status
+  @@index([orderStatus, createdAt])
 }
 
 // ==================== ORDER ITEM ====================
@@ -293,6 +299,10 @@ model OrderItem {
   colorImage    String?
 
   @@index([orderId])
+  // Indexes for sales analytics and product performance queries
+  @@index([productId])
+  @@index([comboId])
+  @@index([hamperId])
 }
 
 // ==================== PAYMENT ====================
@@ -308,6 +318,10 @@ model Payment {
   status             PaymentStatus @default(SUCCESS)
   createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
+
+  // Indexes for payment reporting and reconciliation
+  @@index([createdAt])
+  @@index([status])
 }
 
 // ==================== PENDING PAYMENT ====================
@@ -366,6 +380,12 @@ model Combo {
 
   cartItems   Cart[]
   orderItems  OrderItem[]
+
+  // Indexes for large-scale catalog queries
+  @@index([status])
+  @@index([stock])
+  @@index([featured, status])
+  @@index([createdAt])
 }
 
 // ==================== GIFT HAMPER ====================
@@ -390,6 +410,12 @@ model GiftHamper {
 
   cartItems    Cart[]
   orderItems   OrderItem[]
+
+  // Indexes for large-scale catalog queries
+  @@index([status])
+  @@index([stock])
+  @@index([featured, status])
+  @@index([createdAt])
 }
 
 // ==================== SERVICEABLE PINCODE ====================
@@ -451,6 +477,9 @@ model Coupon {
 
   @@index([isActive])
   @@index([expiryDate])
+  // Compound index for active-coupon validation queries
+  @@index([isActive, expiryDate])
+  @@index([code, isActive])
 }
 
 // ==================== DELIVERY SETTINGS (Singleton) ====================

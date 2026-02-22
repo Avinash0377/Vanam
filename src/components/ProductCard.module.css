@@ -17,6 +17,16 @@
     border-color: #1a4d2e;
 }
 
+/* On card hover, resume the paused icon animations */
+.card:hover .iconWrapper,
+.card:hover .iconWrapper:nth-child(2) {
+    animation-play-state: running;
+}
+
+.card:hover .heartIcon {
+    animation-play-state: running;
+}
+
 /* Image Section */
 .imageWrapper {
     position: relative;
@@ -62,6 +72,8 @@
 .heartIcon {
     font-size: 10px;
     animation: pulse 1.5s ease infinite;
+    /* UI-H5: paused by default, plays only on card hover */
+    animation-play-state: paused;
 }
 
 @keyframes pulse {
@@ -96,6 +108,8 @@
     justify-content: center;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     animation: floatIcon 3s ease-in-out infinite;
+    /* UI-H5: paused by default — plays ONLY when card is hovered */
+    animation-play-state: paused;
     overflow: visible;
     padding: 8px;
     border: 2px solid rgba(45, 106, 79, 0.2);
@@ -145,6 +159,8 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+    /* UI-M5: flex-grow pushes actions to bottom, keeps grid rows aligned */
+    flex-grow: 1;
 }
 
 .actions {
@@ -240,7 +256,7 @@
     line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    min-height: 40px;
+    /* UI-M5: removed fixed min-height — flex-grow on .body aligns action rows */
 }
 
 /* Price Row */
@@ -616,7 +632,8 @@
 /* Toast Notification (Global) */
 .toast {
     position: fixed;
-    top: 5rem;
+    /* UI-M6: clear the full two-row navbar on desktop (140px) + extra cushion */
+    top: calc(var(--header-height) + 1rem);
     left: 50%;
     transform: translateX(-50%);
     display: flex;

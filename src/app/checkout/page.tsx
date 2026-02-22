@@ -62,6 +62,10 @@ export default function CheckoutPage() {
     const [paymentCancelled, setPaymentCancelled] = useState(false);
     const [paymentFailed, setPaymentFailed] = useState<{ message: string; reference: string } | null>(null);
 
+    // Server-confirmed amounts (set after create-order API responds)
+    const [serverShipping, setServerShipping] = useState<number | null>(null);
+    const [serverTotal, setServerTotal] = useState<number | null>(null);
+
     // Cart validation state
     const [validating, setValidating] = useState(false);
     const [cartValid, setCartValid] = useState<boolean | null>(null);
@@ -187,7 +191,10 @@ export default function CheckoutPage() {
         sessionStorage.removeItem('vanam_coupon');
     };
 
-    const effectiveTotal = Math.max(0, summary.total - discountAmount);
+    // Use server-confirmed total if available, otherwise fall back to local estimate
+    const effectiveTotal = serverTotal !== null ? serverTotal : Math.max(0, summary.total - discountAmount);
+    // Use server-confirmed shipping if available, otherwise use local cart summary
+    const effectiveShipping = serverShipping !== null ? serverShipping : summary.shipping;
 
     // Validate cart contents against database before allowing payment
     const validateCartContents = useCallback(async () => {
@@ -251,10 +258,27 @@ export default function CheckoutPage() {
             return;
         }
 
-        // Validate form
-        if (!formData.customerName || !formData.mobile || !formData.address ||
-            !formData.city || !formData.state || !formData.pincode) {
-            setError('Please fill in all required fields');
+        // CK-M3: per-field validation — highlight and scroll to the first empty required field
+        const requiredFields = [
+            { name: 'customerName', label: 'Full Name' },
+            { name: 'mobile', label: 'Mobile Number' },
+            { name: 'address', label: 'Address' },
+            { name: 'pincode', label: 'Pincode' },
+            { name: 'city', label: 'City' },
+            { name: 'state', label: 'State' },
+        ] as const;
+
+        const firstEmpty = requiredFields.find(f => !formData[f.name as keyof typeof formData]);
+        if (firstEmpty) {
+            setError(`Please fill in "${firstEmpty.label}"`);
+            const el = document.getElementById(firstEmpty.name);
+            if (el) {
+                el.style.borderColor = '#ef4444';
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                el.focus();
+                // Reset border after 3s
+                setTimeout(() => { el.style.borderColor = ''; }, 3000);
+            }
             return;
         }
 
@@ -292,9 +316,16 @@ export default function CheckoutPage() {
             const paymentData = await paymentRes.json();
             if (!paymentRes.ok) throw new Error(paymentData.error);
 
-            // Update displayed amounts from server response
+            // Update displayed amounts from server-confirmed values
             if (paymentData.discountAmount !== undefined) {
                 setDiscountAmount(paymentData.discountAmount);
+            }
+            // BUG-C2/M4 fix: always show server-confirmed shipping and total
+            if (paymentData.shippingCost !== undefined) {
+                setServerShipping(paymentData.shippingCost);
+            }
+            if (paymentData.totalAmount !== undefined) {
+                setServerTotal(paymentData.totalAmount);
             }
 
             // Load Razorpay SDK
@@ -485,6 +516,7 @@ export default function CheckoutPage() {
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className={styles.paymentFailedWhatsapp}
+                                    aria-label="Contact support on WhatsApp"
                                 >
                                     💬 Contact Support on WhatsApp
                                 </a>
@@ -557,6 +589,7 @@ export default function CheckoutPage() {
                                             type="tel"
                                             name="mobile"
                                             autoComplete="tel"
+                                            inputMode="tel"
                                             value={formData.mobile}
                                             onChange={handleChange}
                                             className={styles.input}
@@ -566,7 +599,7 @@ export default function CheckoutPage() {
                                     </div>
 
                                     <div className={styles.formGroup}>
-                                        <label htmlFor="email" className={styles.label}>Email</label>
+                                        <label htmlFor="email" className={styles.label}>Email (Optional)</label>
                                         <input
                                             id="email"
                                             type="email"
@@ -685,7 +718,7 @@ export default function CheckoutPage() {
 
                                 <div className={styles.summaryRow}>
                                     <span>Shipping</span>
-                                    <span>{summary.shipping === 0 ? 'FREE' : `₹${summary.shipping}`}</span>
+                                    <span>{effectiveShipping === 0 ? 'FREE' : `₹${effectiveShipping}`}</span>
                                 </div>
 
                                 {/* Coupon discount display */}
@@ -707,7 +740,7 @@ export default function CheckoutPage() {
 
                                 <div className={styles.summaryTotal}>
                                     <span>Total</span>
-                                    <span>₹{effectiveTotal.toLocaleString('en-IN')}</span>
+                                    <span>₹{effectiveTotal.toLocaleString('en-IN')}{serverTotal === null && <span className={styles.estLabel}>(est.)</span>}</span>
                                 </div>
 
                                 <button
@@ -729,7 +762,7 @@ export default function CheckoutPage() {
                                     ) : cartValid === false ? (
                                         '⚠️ Fix Cart Issues First'
                                     ) : (
-                                        `🔒 Pay ₹${effectiveTotal.toLocaleString('en-IN')}`
+                                        `🔒 Pay ₹${effectiveTotal.toLocaleString('en-IN')}${serverTotal === null ? ' (est.)' : ''}`
                                     )}
                                 </button>
 

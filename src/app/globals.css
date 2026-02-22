@@ -92,7 +92,10 @@
 
   /* Spacing */
   --container-max: 1280px;
-  --header-height: 72px;
+  /* topRow (~101px) + bottomRow nav links (~36px) — keeps sticky elements correctly positioned */
+  --header-height: 140px;
+  /* Mobile-only: topRow + CategoryStrip */
+  --header-height-mobile: 130px;
 }
 
 /* Google Fonts Import - Using swap for faster text rendering */
@@ -147,8 +150,15 @@ body {
   -moz-osx-font-smoothing: grayscale;
   font-optical-sizing: auto;
   letter-spacing: -0.01em;
-  padding-top: 100px;
-  /* Offset for fixed navbar */
+  padding-top: 104px;
+  /* Offset for fixed navbar: topRow only on tablet (768–1023px) */
+}
+
+/* Desktop: topRow + bottomRow nav links */
+@media (min-width: 1024px) {
+  body {
+    padding-top: 140px;
+  }
 }
 
 /* Mobile: Adjusted padding + scroll performance */
@@ -1922,4 +1932,51 @@ body {
 .app-wrapper,
 .main-content {
   overflow: visible !important;
+}
+
+/* ============================================
+   UI-H6: FOCUS-VISIBLE ACCESSIBILITY
+   Keyboard users get a clear, branded focus ring on all interactive elements.
+   :focus-visible only fires for keyboard/programmatic focus, not mouse clicks.
+   ============================================ */
+:focus-visible {
+  outline: 2.5px solid var(--primary-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Ensure buttons and links use the same ring */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2.5px solid var(--primary-500);
+  outline-offset: 2px;
+}
+
+/* Remove default outline (already handled by :focus-visible above) */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ============================================
+   UI-L4: SUPPRESS HOVER LIFT ON TOUCH DEVICES
+   btn-primary hover lifts 1px. On touch, hover sticks after tap —
+   suppressing it prevents buttons from staying elevated after a tap.
+   ============================================ */
+@media (hover: none) {
+  .btn-primary:hover:not(:disabled) {
+    transform: none;
+  }
+
+  .btn-whatsapp:hover:not(:disabled) {
+    transform: none;
+  }
+
+  .card:hover {
+    transform: none;
+    box-shadow: var(--shadow-soft);
+  }
 }

@@ -1,4 +1,5 @@
 
+import crypto from 'crypto';
 import prisma from '@/lib/prisma';
 import { ProductWithVariants } from '@/lib/variants';
 import { Prisma } from '@prisma/client';
@@ -110,7 +111,6 @@ export function calculateOrderTotals(
  * Entropy: 2^32 per millisecond — astronomically collision-resistant.
  */
 export function generateOrderNumber(): string {
-    const crypto = require('crypto') as typeof import('crypto');
     const randomPart = crypto.randomBytes(4).toString('hex').toUpperCase();
     return `VAN${Date.now()}${randomPart}`;
 }
@@ -218,15 +218,23 @@ export async function decrementStock(tx: Prisma.TransactionClient, items: CartSn
                 }
             }
         } else if (item.comboId) {
-            await tx.combo.update({
-                where: { id: item.comboId },
+            // Guard against going negative under concurrent orders (same as product path)
+            const updatedCombo = await tx.combo.updateMany({
+                where: { id: item.comboId, stock: { gte: item.quantity } },
                 data: { stock: { decrement: item.quantity } },
             });
+            if (updatedCombo.count === 0) {
+                throw new OrderError(`Insufficient stock for ${item.name}: stock was taken by a concurrent order`);
+            }
         } else if (item.hamperId) {
-            await tx.giftHamper.update({
-                where: { id: item.hamperId },
+            // Guard against going negative under concurrent orders (same as product path)
+            const updatedHamper = await tx.giftHamper.updateMany({
+                where: { id: item.hamperId, stock: { gte: item.quantity } },
                 data: { stock: { decrement: item.quantity } },
             });
+            if (updatedHamper.count === 0) {
+                throw new OrderError(`Insufficient stock for ${item.name}: stock was taken by a concurrent order`);
+            }
         }
     }
 }
@@ -297,15 +305,27 @@ export async function restoreStock(
                 });
             }
         } else if (item.comboId) {
-            await tx.combo.update({
-                where: { id: item.comboId },
-                data: { stock: { increment: item.quantity } },
-            });
+            // Guard: skip if combo was deleted after order was placed
+            const combo = await tx.combo.findUnique({ where: { id: item.comboId } });
+            if (!combo) {
+                console.warn(`restoreStock: combo ${item.comboId} no longer exists, skipping stock restore`);
+            } else {
+                await tx.combo.update({
+                    where: { id: item.comboId },
+                    data: { stock: { increment: item.quantity } },
+                });
+            }
         } else if (item.hamperId) {
-            await tx.giftHamper.update({
-                where: { id: item.hamperId },
-                data: { stock: { increment: item.quantity } },
-            });
+            // Guard: skip if hamper was deleted after order was placed
+            const hamper = await tx.giftHamper.findUnique({ where: { id: item.hamperId } });
+            if (!hamper) {
+                console.warn(`restoreStock: hamper ${item.hamperId} no longer exists, skipping stock restore`);
+            } else {
+                await tx.giftHamper.update({
+                    where: { id: item.hamperId },
+                    data: { stock: { increment: item.quantity } },
+                });
+            }
         }
     }
 }
