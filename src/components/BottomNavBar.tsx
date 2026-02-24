@@ -4,12 +4,14 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
+import { useWishlist } from '@/context/WishlistContext';
 import styles from './BottomNavBar.module.css';
 
 export default function BottomNavBar() {
     const pathname = usePathname();
     const { isAuthenticated } = useAuth();
     const { summary } = useCart();
+    const { count: wishlistCount } = useWishlist();
 
     // Hide on checkout/payment pages
     const hiddenRoutes = ['/checkout', '/payment'];
@@ -28,6 +30,16 @@ export default function BottomNavBar() {
                 </svg>
             ),
             exact: true,
+        },
+        {
+            href: isAuthenticated ? '/wishlist' : '/login?redirect=/wishlist',
+            label: 'Wishlist',
+            icon: (
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+            ),
+            badge: wishlistCount > 0 ? wishlistCount : null,
         },
         {
             href: '/cart',

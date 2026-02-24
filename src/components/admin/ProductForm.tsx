@@ -276,7 +276,7 @@ export default function ProductForm({ initialData, categories, onSubmit, loading
                             ? {
                                 ...v,
                                 colors: v.colors.map((c, i) =>
-                                    i === colorIndex ? { ...c, image: data.url } : c
+                                    i === colorIndex ? { ...c, images: [...(c.images || []), data.url] } : c
                                 )
                             }
                             : v

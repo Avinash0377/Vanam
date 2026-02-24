@@ -97,6 +97,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             mergeGuestCart(newToken, JSON.parse(guestCart));
             localStorage.removeItem('vanam_guest_cart');
         }
+
+        // Merge guest wishlist with user wishlist
+        const guestWishlist = localStorage.getItem('vanam_guest_wishlist');
+        if (guestWishlist) {
+            mergeGuestWishlist(newToken, JSON.parse(guestWishlist));
+            localStorage.removeItem('vanam_guest_wishlist');
+        }
     };
 
     const logout = () => {
@@ -120,6 +127,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             });
         } catch (error) {
             console.error('Failed to merge cart:', error);
+        }
+    };
+
+    const mergeGuestWishlist = async (authToken: string, guestItems: { productId?: string; comboId?: string; hamperId?: string }[]) => {
+        try {
+            for (const item of guestItems) {
+                await fetch('/api/wishlist', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`,
+                    },
+                    body: JSON.stringify({
+                        productId: item.productId,
+                        comboId: item.comboId,
+                        hamperId: item.hamperId,
+                    }),
+                });
+            }
+        } catch (error) {
+            console.error('Failed to merge wishlist:', error);
         }
     };
 

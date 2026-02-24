@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
+import { useWishlist } from '@/context/WishlistContext';
 import styles from './ProductDetails.module.css';
 
 interface VariantColor {
@@ -45,6 +46,7 @@ interface ProductDetailsProps {
 export default function ProductDetails({ type, initialData }: ProductDetailsProps) {
     const params = useParams();
     const { addItem } = useCart();
+    const { isInWishlist, toggleWishlist } = useWishlist();
     const [product, setProduct] = useState<ProductDetailsData | null>(initialData || null);
     const [loading, setLoading] = useState(!initialData);
     const [quantity, setQuantity] = useState(1);
@@ -393,6 +395,40 @@ export default function ProductDetails({ type, initialData }: ProductDetailsProp
                                 disabled={currentStock <= 0}
                             >
                                 {currentStock <= 0 ? 'Out of Stock' : 'Add to Basket'}
+                            </button>
+
+                            <button
+                                className={`${styles.wishlistDetailBtn} ${product && isInWishlist(
+                                    type === 'product' || type === 'pot' ? product.id : undefined,
+                                    type === 'combo' ? product.id : undefined,
+                                    type === 'hamper' ? product.id : undefined
+                                ) ? styles.wishlistDetailBtnActive : ''}`}
+                                onClick={() => {
+                                    if (!product) return;
+                                    toggleWishlist({
+                                        productId: type === 'product' || type === 'pot' ? product.id : undefined,
+                                        comboId: type === 'combo' ? product.id : undefined,
+                                        hamperId: type === 'hamper' ? product.id : undefined,
+                                        name: product.name,
+                                        slug: product.slug,
+                                        price: currentPrice,
+                                        image: displayImages[0] || '/placeholder-plant.jpg',
+                                        type: type === 'pot' ? 'product' : type,
+                                    });
+                                }}
+                            >
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill={product && isInWishlist(
+                                    type === 'product' || type === 'pot' ? product.id : undefined,
+                                    type === 'combo' ? product.id : undefined,
+                                    type === 'hamper' ? product.id : undefined
+                                ) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                                </svg>
+                                {product && isInWishlist(
+                                    type === 'product' || type === 'pot' ? product.id : undefined,
+                                    type === 'combo' ? product.id : undefined,
+                                    type === 'hamper' ? product.id : undefined
+                                ) ? 'Wishlisted' : 'Add to Wishlist'}
                             </button>
 
                         </div>

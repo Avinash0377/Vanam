@@ -4,6 +4,7 @@ import { ReactNode, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { AuthProvider } from '@/context/AuthContext';
 import { CartProvider } from '@/context/CartContext';
+import { WishlistProvider } from '@/context/WishlistContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import BottomNavBar from '@/components/BottomNavBar';
@@ -32,15 +33,17 @@ export default function Providers({ children }: ProvidersProps) {
     return (
         <AuthProvider>
             <CartProvider>
-                <div className="app-wrapper">
-                    {!isAdminPage && <Navbar />}
-                    <main className="main-content">
-                        {children}
-                    </main>
-                    {!isAdminPage && <Footer />}
-                    {/* Mobile Bottom Navigation - CSS handles visibility */}
-                    {!isAdminPage && <BottomNavBar />}
-                </div>
+                <WishlistProvider>
+                    <div className="app-wrapper">
+                        {!isAdminPage && <Navbar />}
+                        <main className="main-content">
+                            {children}
+                        </main>
+                        {!isAdminPage && <Footer />}
+                        {/* Mobile Bottom Navigation - CSS handles visibility */}
+                        {!isAdminPage && <BottomNavBar />}
+                    </div>
+                </WishlistProvider>
             </CartProvider>
         </AuthProvider>
     );

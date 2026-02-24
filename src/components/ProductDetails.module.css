@@ -543,6 +543,42 @@
     min-height: 48px;
 }
 
+/* Wishlist Button on Product Details */
+.wishlistDetailBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    min-height: 48px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #666;
+    background: #fff;
+    border: 2px solid #e8e8e0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+}
+
+.wishlistDetailBtn:hover {
+    border-color: #e53935;
+    color: #e53935;
+    background: #fff5f5;
+}
+
+.wishlistDetailBtnActive {
+    color: #e53935;
+    border-color: #e53935;
+    background: #fff5f5;
+}
+
+.wishlistDetailBtnActive:hover {
+    color: #c62828;
+    border-color: #c62828;
+}
+
 /* ==========================================
    MOBILE STYLES (< 768px)
    ========================================== */

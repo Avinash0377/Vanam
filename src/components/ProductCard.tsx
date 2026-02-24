@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
+import { useWishlist } from '@/context/WishlistContext';
 import { TagIcon, getTagColors } from './TagIcons';
 import styles from './ProductCard.module.css';
 
@@ -62,7 +63,29 @@ export default function ProductCard({
     productType,
 }: ProductCardProps) {
     const { addItem } = useCart();
+    const { isInWishlist, toggleWishlist } = useWishlist();
     const [showToast, setShowToast] = useState(false);
+
+    // Determine the correct ID key for wishlist checks
+    const wishlistProductId = type === 'product' || type === 'pot' ? id : undefined;
+    const wishlistComboId = type === 'combo' ? id : undefined;
+    const wishlistHamperId = type === 'hamper' ? id : undefined;
+    const wishlisted = isInWishlist(wishlistProductId, wishlistComboId, wishlistHamperId);
+
+    const handleWishlistToggle = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleWishlist({
+            productId: wishlistProductId,
+            comboId: wishlistComboId,
+            hamperId: wishlistHamperId,
+            name,
+            slug,
+            price,
+            image: image || '/placeholder-plant.jpg',
+            type: type === 'pot' ? 'product' : type,
+        });
+    };
 
     // Seeds don't have size variants
     const isSeed = productType === 'SEED';
@@ -281,6 +304,18 @@ export default function ProductCard({
                             </>
                         )}
                     </div>
+
+                    {/* Wishlist Heart */}
+                    <button
+                        className={`${styles.wishlistBtn} ${wishlisted ? styles.wishlistBtnActive : ''}`}
+                        onClick={handleWishlistToggle}
+                        aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+                        title={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+                    >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill={wishlisted ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                        </svg>
+                    </button>
                 </div>
 
                 <div className={styles.body}>

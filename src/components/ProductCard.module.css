@@ -98,6 +98,41 @@
     z-index: 2;
 }
 
+/* Wishlist Heart Button */
+.wishlistBtn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.95);
+    color: #666;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.wishlistBtn:hover {
+    transform: scale(1.12);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+    color: #e53935;
+}
+
+.wishlistBtnActive {
+    color: #e53935;
+    background: rgba(255, 255, 255, 0.98);
+}
+
+.wishlistBtnActive:hover {
+    color: #c62828;
+}
+
 .iconWrapper {
     width: 40px;
     height: 40px;
@@ -626,6 +661,18 @@
         bottom: 8px;
         right: 8px;
         gap: 4px;
+    }
+
+    .wishlistBtn {
+        top: 8px;
+        right: 8px;
+        width: 32px;
+        height: 32px;
+    }
+
+    .wishlistBtn svg {
+        width: 16px;
+        height: 16px;
     }
 }
 
