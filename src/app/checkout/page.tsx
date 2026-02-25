@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
+import { CheckIcon, XIcon, CartIcon } from '@/components/Icons';
 import styles from './page.module.css';
 
 declare global {
@@ -404,7 +405,7 @@ export default function CheckoutPage() {
     if (items.length === 0) {
         return (
             <div className={styles.empty}>
-                <span className={styles.emptyIcon}>🛒</span>
+                <span className={styles.emptyIcon}><CartIcon size={48} color="#9ca3af" /></span>
                 <h2>Your cart is empty</h2>
                 <p>Add some items before checkout</p>
             </div>
@@ -532,7 +533,7 @@ export default function CheckoutPage() {
 
                         {cartValid === true && !validating && (
                             <div className={styles.validationSuccess}>
-                                ✅ All items verified and in stock
+                                <CheckIcon size={18} color="#16a34a" /> All items verified and in stock
                             </div>
                         )}
 
@@ -549,7 +550,7 @@ export default function CheckoutPage() {
                                                 }`}
                                         >
                                             {issue.issue === 'OUT_OF_STOCK' || issue.issue === 'NOT_FOUND' || issue.issue === 'INACTIVE'
-                                                ? '❌'
+                                                ? <XIcon size={16} color="#dc2626" />
                                                 : '⚠️'}{' '}
                                             {issue.message}
                                         </div>

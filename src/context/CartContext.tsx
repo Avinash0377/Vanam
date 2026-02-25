@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 
 interface CartItem {
@@ -49,14 +49,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const [isLoading, setIsLoading] = useState(false);
     const [deliveryData, setDeliveryData] = useState<{ shipping: number; freeDeliveryMinAmount: number; freeDeliveryEnabled: boolean }>({ shipping: 99, freeDeliveryMinAmount: 999, freeDeliveryEnabled: true });
 
-    const calculateSummary = (cartItems: CartItem[]): CartSummary => {
-        const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-        const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const summary = useMemo((): CartSummary => {
+        const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+        const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
         const shipping = deliveryData.freeDeliveryEnabled && subtotal >= deliveryData.freeDeliveryMinAmount ? 0 : deliveryData.shipping;
         return { itemCount, subtotal, shipping, total: subtotal + shipping, freeDeliveryMinAmount: deliveryData.freeDeliveryMinAmount, freeDeliveryEnabled: deliveryData.freeDeliveryEnabled };
-    };
-
-    const summary = calculateSummary(items);
+    }, [items, deliveryData]);
 
     // Load cart on mount or auth change
     useEffect(() => {
@@ -84,7 +82,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }
     }, [isAuthenticated, token]);
 
-    const refreshCart = async () => {
+    const refreshCart = useCallback(async () => {
         if (!token) return;
 
         setIsLoading(true);
@@ -158,9 +156,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [token]);
 
-    const saveGuestCart = (cartItems: CartItem[]) => {
+    const saveGuestCart = useCallback((cartItems: CartItem[]) => {
         const guestCart = {
             items: cartItems.filter(i => i.type === 'product').map(i => ({
                 id: i.id,
@@ -196,9 +194,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
             })),
         };
         localStorage.setItem('vanam_guest_cart', JSON.stringify(guestCart));
-    };
+    }, []);
 
-    const addItem = async (item: Omit<CartItem, 'quantity'>, quantity = 1) => {
+    const addItem = useCallback(async (item: Omit<CartItem, 'quantity'>, quantity = 1) => {
         if (isAuthenticated && token) {
             // Add to server cart
             try {
@@ -251,9 +249,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
             setItems(newItems);
             saveGuestCart(newItems);
         }
-    };
+    }, [isAuthenticated, token, items, refreshCart, saveGuestCart]);
 
-    const updateQuantity = async (itemId: string, type: string, quantity: number): Promise<string | null> => {
+    const updateQuantity = useCallback(async (itemId: string, type: string, quantity: number): Promise<string | null> => {
         if (quantity < 1) return null;
 
         if (isAuthenticated && token) {
@@ -288,9 +286,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
             saveGuestCart(newItems);
             return null;
         }
-    };
+    }, [isAuthenticated, token, items, refreshCart, saveGuestCart]);
 
-    const removeItem = async (itemId: string, type: string) => {
+    const removeItem = useCallback(async (itemId: string, type: string) => {
         if (isAuthenticated && token) {
             try {
                 await fetch(`/api/cart/${itemId}?type=${type}`, {
@@ -306,9 +304,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
             setItems(newItems);
             saveGuestCart(newItems);
         }
-    };
+    }, [isAuthenticated, token, items, refreshCart, saveGuestCart]);
 
-    const clearCart = async () => {
+    const clearCart = useCallback(async () => {
         if (isAuthenticated && token) {
             try {
                 await fetch('/api/cart', {
@@ -323,21 +321,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
             setItems([]);
             localStorage.removeItem('vanam_guest_cart');
         }
-    };
+    }, [isAuthenticated, token]);
+
+    const contextValue = useMemo(() => ({
+        items,
+        summary,
+        isLoading,
+        addItem,
+        updateQuantity,
+        removeItem,
+        clearCart,
+        refreshCart,
+    }), [items, summary, isLoading, addItem, updateQuantity, removeItem, clearCart, refreshCart]);
 
     return (
-        <CartContext.Provider
-            value={{
-                items,
-                summary,
-                isLoading,
-                addItem,
-                updateQuantity,
-                removeItem,
-                clearCart,
-                refreshCart,
-            }}
-        >
+        <CartContext.Provider value={contextValue}>
             {children}
         </CartContext.Provider>
     );

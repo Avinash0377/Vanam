@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { ArrowLeftIcon, UploadIcon } from '@/components/Icons';
 import styles from '../page.module.css';
@@ -158,7 +159,7 @@ export default function NewComboPage() {
                         <div className={styles.imageUpload}>
                             <div className={`${styles.imagePreview} ${imageUrl ? styles.hasImage : ''}`}>
                                 {imageUrl ? (
-                                    <img src={imageUrl} alt="Preview" />
+                                    <Image src={imageUrl} alt="Preview" width={120} height={120} style={{ objectFit: 'contain' }} />
                                 ) : (
                                     <UploadIcon size={32} color="#a3a3a3" />
                                 )}

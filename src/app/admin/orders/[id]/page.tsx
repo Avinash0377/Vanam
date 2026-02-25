@@ -3,7 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
+import { ArrowLeftIcon, MailIcon, RefreshIcon, CheckIcon } from '@/components/Icons';
 import styles from './page.module.css';
 
 interface OrderItem {
@@ -67,6 +69,7 @@ export default function OrderDetailsPage() {
     const [trackingNumber, setTrackingNumber] = useState('');
     const [courierName, setCourierName] = useState('');
     const [trackingSaved, setTrackingSaved] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (token && id) {
@@ -76,6 +79,7 @@ export default function OrderDetailsPage() {
 
     const fetchOrder = async () => {
         try {
+            setError(null);
             const res = await fetch(`/api/admin/orders/${id}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
@@ -84,9 +88,12 @@ export default function OrderDetailsPage() {
                 setOrder(data);
                 setTrackingNumber(data.trackingNumber || '');
                 setCourierName(data.courierName || '');
+            } else {
+                setError(data.error || 'Failed to load order');
             }
-        } catch (error) {
-            console.error('Failed to fetch order:', error);
+        } catch (err) {
+            console.error('Failed to fetch order:', err);
+            setError('Failed to load order. Please check your connection.');
         } finally {
             setLoading(false);
         }
@@ -191,8 +198,25 @@ export default function OrderDetailsPage() {
             <div className={styles.page}>
                 <div className="container">
                     <div className={styles.notFound}>
-                        <h2>Order not found</h2>
-                        <Link href="/admin/orders">← Back to Orders</Link>
+                        {error ? (
+                            <>
+                                <h2>Something went wrong</h2>
+                                <p>{error}</p>
+                                <button onClick={() => { setLoading(true); fetchOrder(); }} style={{
+                                    padding: '0.625rem 1.25rem', fontSize: '0.875rem', fontWeight: 600,
+                                    color: 'white', background: 'var(--primary-600)', border: 'none',
+                                    borderRadius: '10px', cursor: 'pointer', marginTop: '0.5rem',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem'
+                                }}>
+                                    <RefreshIcon size={16} /> Try Again
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <h2>Order not found</h2>
+                                <Link href="/admin/orders">← Back to Orders</Link>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>
@@ -337,7 +361,7 @@ export default function OrderDetailsPage() {
                             disabled={savingTracking}
                             className={styles.saveTrackingBtn}
                         >
-                            {savingTracking ? 'Saving...' : trackingSaved ? '✅ Saved!' : 'Save Tracking'}
+                            {savingTracking ? 'Saving...' : trackingSaved ? <><CheckIcon size={16} /> Saved!</> : 'Save Tracking'}
                         </button>
                         {(order.trackingNumber || order.courierName) && (
                             <span className={styles.trackingNote}>
@@ -362,7 +386,7 @@ export default function OrderDetailsPage() {
                                 <div key={item.id} className={styles.orderItem}>
                                     <div className={styles.itemImage}>
                                         {image ? (
-                                            <img src={image} alt={item.name} />
+                                            <Image src={image} alt={item.name} width={56} height={56} className={styles.itemImg} />
                                         ) : (
                                             <span>🌱</span>
                                         )}
@@ -383,7 +407,7 @@ export default function OrderDetailsPage() {
                                             {item.selectedColor && (
                                                 <span className={styles.itemVariant}>
                                                     {item.colorImage ? (
-                                                        <img src={item.colorImage} alt={item.selectedColor} className={styles.colorSwatch} />
+                                                        <Image src={item.colorImage} alt={item.selectedColor} width={16} height={16} className={styles.colorSwatch} />
                                                     ) : null}
                                                     {item.selectedColor}
                                                 </span>

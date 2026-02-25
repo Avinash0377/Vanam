@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo } from 'react';
 import { useAuth } from './AuthContext';
 
 interface WishlistItem {
@@ -77,10 +77,10 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     const [items, setItems] = useState<WishlistItem[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
-    // Build lookup sets for O(1) checks
-    const wishlistedProductIds = new Set(items.filter(i => i.productId).map(i => i.productId!));
-    const wishlistedComboIds = new Set(items.filter(i => i.comboId).map(i => i.comboId!));
-    const wishlistedHamperIds = new Set(items.filter(i => i.hamperId).map(i => i.hamperId!));
+    // Build memoized lookup sets for O(1) checks — only recomputed when items change
+    const wishlistedProductIds = useMemo(() => new Set(items.filter(i => i.productId).map(i => i.productId!)), [items]);
+    const wishlistedComboIds = useMemo(() => new Set(items.filter(i => i.comboId).map(i => i.comboId!)), [items]);
+    const wishlistedHamperIds = useMemo(() => new Set(items.filter(i => i.hamperId).map(i => i.hamperId!)), [items]);
 
     const isInWishlist = useCallback((productId?: string, comboId?: string, hamperId?: string): boolean => {
         if (productId) return wishlistedProductIds.has(productId);
@@ -107,7 +107,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
         }
     }, [isAuthenticated, token]);
 
-    const refreshWishlist = async () => {
+    const refreshWishlist = useCallback(async () => {
         if (!token) return;
 
         setIsLoading(true);
@@ -125,18 +125,18 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [token]);
 
-    const saveGuestWishlist = (wishlistItems: WishlistItem[]) => {
+    const saveGuestWishlist = useCallback((wishlistItems: WishlistItem[]) => {
         localStorage.setItem('vanam_guest_wishlist', JSON.stringify(wishlistItems));
-    };
+    }, []);
 
-    const toggleWishlist = async (params: WishlistToggleParams) => {
+    const toggleWishlist = useCallback(async (params: WishlistToggleParams) => {
         if (isAuthenticated && token) {
             // Optimistic update
-            const wasInWishlist = isInWishlist(params.productId, params.comboId, params.hamperId);
+            const alreadyWishlisted = isInWishlist(params.productId, params.comboId, params.hamperId);
 
-            if (wasInWishlist) {
+            if (alreadyWishlisted) {
                 // Optimistically remove
                 setItems(prev => prev.filter(item => {
                     if (params.productId) return item.productId !== params.productId;
@@ -241,9 +241,9 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
             setItems(newItems);
             saveGuestWishlist(newItems);
         }
-    };
+    }, [isAuthenticated, token, items, isInWishlist, refreshWishlist, saveGuestWishlist]);
 
-    const removeItem = async (itemId: string) => {
+    const removeItem = useCallback(async (itemId: string) => {
         if (isAuthenticated && token) {
             // Optimistic remove
             setItems(prev => prev.filter(item => item.id !== itemId));
@@ -262,20 +262,20 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
             setItems(newItems);
             saveGuestWishlist(newItems);
         }
-    };
+    }, [isAuthenticated, token, items, refreshWishlist, saveGuestWishlist]);
+
+    const contextValue = useMemo(() => ({
+        items,
+        count: items.length,
+        isLoading,
+        isInWishlist,
+        toggleWishlist,
+        removeItem,
+        refreshWishlist,
+    }), [items, isLoading, isInWishlist, toggleWishlist, removeItem, refreshWishlist]);
 
     return (
-        <WishlistContext.Provider
-            value={{
-                items,
-                count: items.length,
-                isLoading,
-                isInWishlist,
-                toggleWishlist,
-                removeItem,
-                refreshWishlist,
-            }}
-        >
+        <WishlistContext.Provider value={contextValue}>
             {children}
         </WishlistContext.Provider>
     );

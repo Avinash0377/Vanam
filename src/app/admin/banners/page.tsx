@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import styles from './page.module.css';
 
@@ -321,7 +322,7 @@ export default function AdminBannersPage() {
                             <div className={styles.imageUploadArea}>
                                 {form.imageUrl ? (
                                     <div className={styles.imagePreviewBox}>
-                                        <img src={form.imageUrl} alt="Banner" className={styles.imagePreview} />
+                                        <Image src={form.imageUrl} alt="Banner" width={300} height={160} className={styles.imagePreview} style={{ objectFit: 'contain' }} />
                                         <button
                                             type="button"
                                             className={styles.removeImageBtn}

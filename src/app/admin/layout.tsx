@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import {
     DashboardIcon,
@@ -32,6 +33,7 @@ const navItems = [
     { href: '/admin/analytics', icon: FolderIcon, label: 'Analytics' },
     { href: '/admin/customers', icon: UsersIcon, label: 'Customers' },
     { href: '/admin/sales-reports', icon: TrendingUpIcon, label: 'Reports' },
+    { href: '/admin/visiting-report', icon: ActivityIcon, label: 'Store Pulse' },
     { href: '/admin/delivery-settings', icon: TruckIcon, label: 'Delivery' },
     { href: '/admin/coupons', icon: TagIcon, label: 'Coupons' },
     { href: '/admin/payment-logs', icon: ActivityIcon, label: 'Pay Logs' },
@@ -83,14 +85,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         <line x1="3" y1="18" x2="21" y2="18" />
                     </svg>
                 </button>
-                <span className={styles.logo}><img src="/logo.png" alt="Vanam" className={styles.logoImage} /> Admin</span>
+                <span className={styles.logo}><Image src="/logo.png" alt="Vanam" width={28} height={28} className={styles.logoImage} /> Admin</span>
                 <Link href="/" className={styles.homeBtn}><HomeIcon size={20} /></Link>
             </header>
 
             {/* Sidebar */}
             <aside className={`${styles.sidebar} ${sidebarOpen ? styles.open : ''}`}>
                 <div className={styles.sidebarHeader}>
-                    <img src="/logo.png" alt="" className={styles.sidebarLogo} />
+                    <Image src="/logo.png" alt="" width={32} height={32} className={styles.sidebarLogo} />
                     <span className={styles.sidebarLogoText}>Vanam</span>
                     <span className={styles.badge}>Admin</span>
                 </div>

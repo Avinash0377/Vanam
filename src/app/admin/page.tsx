@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -9,7 +9,8 @@ import {
     ClockIcon,
     CalendarIcon,
     FolderIcon,
-    HomeIcon
+    HomeIcon,
+    RefreshIcon
 } from '@/components/Icons';
 import styles from './page.module.css';
 
@@ -46,20 +47,7 @@ export default function AdminDashboard() {
     const [error, setError] = useState<string | null>(null);
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-    useEffect(() => {
-        if (token) {
-            fetchDashboard();
-        }
-    }, [token]);
-
-    // Auto-refresh every 60 seconds
-    useEffect(() => {
-        if (!token) return;
-        const interval = setInterval(() => fetchDashboard(true), 60000);
-        return () => clearInterval(interval);
-    }, [token]);
-
-    const fetchDashboard = async (silent = false) => {
+    const fetchDashboard = useCallback(async (silent = false) => {
         try {
             if (!silent) setLoading(true);
             setError(null);
@@ -78,7 +66,20 @@ export default function AdminDashboard() {
         } finally {
             if (!silent) setLoading(false);
         }
-    };
+    }, [token]);
+
+    useEffect(() => {
+        if (token) {
+            fetchDashboard();
+        }
+    }, [token, fetchDashboard]);
+
+    // Auto-refresh every 60 seconds
+    useEffect(() => {
+        if (!token) return;
+        const interval = setInterval(() => fetchDashboard(true), 60000);
+        return () => clearInterval(interval);
+    }, [token, fetchDashboard]);
 
     if (loading) {
         return (
@@ -106,7 +107,7 @@ export default function AdminDashboard() {
                         <h3>Something went wrong</h3>
                         <p>{error}</p>
                         <button className={styles.retryBtn} onClick={() => fetchDashboard()}>
-                            ↻ Try Again
+                            <RefreshIcon size={16} /> <span style={{ marginLeft: '4px' }}>Try Again</span>
                         </button>
                     </div>
                 </div>
@@ -132,7 +133,7 @@ export default function AdminDashboard() {
                             onClick={() => fetchDashboard()}
                             title="Refresh dashboard"
                         >
-                            ↻
+                            <RefreshIcon size={20} />
                         </button>
                         <Link href="/admin/products/new" className="btn btn-primary">
                             + Add Product

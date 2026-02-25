@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { withAdmin } from '@/lib/middleware';
 import { JWTPayload } from '@/lib/auth';
+import { clearDeliverySettingsCache } from '@/lib/order-utils';
 
 const SINGLETON_ID = 'default';
 
@@ -72,6 +73,9 @@ async function updateDeliveryConfig(request: NextRequest, _user: JWTPayload) {
                 deliveryChargeType,
             },
         });
+
+        // Bust the in-memory cache so the next cart fetch gets fresh settings
+        clearDeliverySettingsCache();
 
         return NextResponse.json({ settings, message: 'Delivery config updated successfully' });
     } catch (error) {

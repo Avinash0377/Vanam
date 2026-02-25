@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
-import { TrashIcon, CartIcon, LeafIcon, ArrowRightIcon, TruckIcon, ShieldIcon, TagIcon } from '@/components/Icons';
+import { TrashIcon, CartIcon, LeafIcon, ArrowRightIcon, TruckIcon, ShieldIcon, TagIcon, CheckIcon, XIcon } from '@/components/Icons';
 import styles from './page.module.css';
 import { trackViewCart, trackBeginCheckout } from '@/lib/analytics';
 
@@ -393,7 +393,7 @@ export default function CartPage() {
                             </div>
                             {pincodeMessage && (
                                 <div className={`${styles.pincodeResult} ${pincodeStatus === 'valid' ? styles.pincodeSuccess : styles.pincodeError}`}>
-                                    {pincodeStatus === 'valid' ? '✅' : '❌'} {pincodeMessage}
+                                    {pincodeStatus === 'valid' ? <CheckIcon size={16} color="#16a34a" /> : <XIcon size={16} color="#dc2626" />} <span style={{ marginLeft: '4px' }}>{pincodeMessage}</span>
                                 </div>
                             )}
                         </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import styles from './page.module.css';
 
@@ -170,7 +171,7 @@ export default function AdminCategoriesPage() {
                             <div key={category.id} className={styles.card}>
                                 <div className={styles.cardIcon}>
                                     {category.image ? (
-                                        <img src={category.image} alt={category.name} className={styles.categoryImage} />
+                                        <Image src={category.image} alt={category.name} width={48} height={48} className={styles.categoryImage} />
                                     ) : (
                                         <span>📁</span>
                                     )}

@@ -26,7 +26,7 @@ async function getOrders(request: NextRequest, user: JWTPayload) {
             ];
         }
 
-        const [orders, total] = await Promise.all([
+        const [orders, total, pendingCount, packingCount, shippedCount, deliveredCount] = await Promise.all([
             prisma.order.findMany({
                 where,
                 include: {
@@ -39,6 +39,10 @@ async function getOrders(request: NextRequest, user: JWTPayload) {
                 take: limit,
             }),
             prisma.order.count({ where }),
+            prisma.order.count({ where: { orderStatus: 'PENDING' } }),
+            prisma.order.count({ where: { orderStatus: 'PACKING' } }),
+            prisma.order.count({ where: { orderStatus: 'SHIPPED' } }),
+            prisma.order.count({ where: { orderStatus: 'DELIVERED' } }),
         ]);
 
         return NextResponse.json({
@@ -48,6 +52,12 @@ async function getOrders(request: NextRequest, user: JWTPayload) {
                 page,
                 limit,
                 totalPages: Math.ceil(total / limit),
+            },
+            statusCounts: {
+                PENDING: pendingCount,
+                PACKING: packingCount,
+                SHIPPED: shippedCount,
+                DELIVERED: deliveredCount,
             },
         });
 

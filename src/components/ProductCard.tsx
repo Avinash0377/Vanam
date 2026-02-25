@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { TagIcon, getTagColors } from './TagIcons';
@@ -42,7 +43,7 @@ interface ProductCardProps {
     productType?: string;
 }
 
-export default function ProductCard({
+function ProductCard({
     id,
     name,
     slug,
@@ -281,25 +282,21 @@ export default function ProductCard({
                     <div className={styles.suitableForBadge}>
                         {suitableFor === 'INDOOR' && (
                             <div className={styles.iconWrapper} title="Indoor Plant">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src="/icons/indoor.png" alt="Indoor" className={styles.typeIcon} />
+                                <Image src="/icons/indoor.png" alt="Indoor" width={20} height={20} className={styles.typeIcon} />
                             </div>
                         )}
                         {suitableFor === 'OUTDOOR' && (
                             <div className={styles.iconWrapper} title="Outdoor Plant">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src="/icons/outdoor.png" alt="Outdoor" className={styles.typeIcon} />
+                                <Image src="/icons/outdoor.png" alt="Outdoor" width={20} height={20} className={styles.typeIcon} />
                             </div>
                         )}
                         {suitableFor === 'BOTH' && (
                             <>
                                 <div className={styles.iconWrapper} title="Indoor & Outdoor">
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img src="/icons/indoor.png" alt="Indoor" className={styles.typeIcon} />
+                                    <Image src="/icons/indoor.png" alt="Indoor" width={20} height={20} className={styles.typeIcon} />
                                 </div>
                                 <div className={styles.iconWrapper} title="Indoor & Outdoor">
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img src="/icons/outdoor.png" alt="Outdoor" className={styles.typeIcon} />
+                                    <Image src="/icons/outdoor.png" alt="Outdoor" width={20} height={20} className={styles.typeIcon} />
                                 </div>
                             </>
                         )}
@@ -422,3 +419,5 @@ export default function ProductCard({
         </div>
     );
 }
+
+export default memo(ProductCard);

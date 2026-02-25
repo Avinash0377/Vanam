@@ -11,6 +11,8 @@ export const metadata: Metadata = {
     },
 };
 
+export const revalidate = 120;
+
 function serializeHamper(h: Record<string, unknown>) {
     return {
         id: h.id as string,

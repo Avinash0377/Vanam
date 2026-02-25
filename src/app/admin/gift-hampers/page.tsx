@@ -2,12 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import {
     StarIcon,
     EditIcon,
     TrashIcon,
     GiftIcon,
+    GiftPlantIcon,
+    RefreshIcon
 } from '@/components/Icons';
 import styles from '../combos/page.module.css';
 
@@ -31,6 +34,7 @@ export default function AdminGiftHampersPage() {
     const { token } = useAuth();
     const [hampers, setHampers] = useState<Hamper[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (token) {
@@ -40,16 +44,19 @@ export default function AdminGiftHampersPage() {
 
     const fetchHampers = async () => {
         setLoading(true);
+        setError(null);
         try {
             const res = await fetch('/api/hampers?all=true', {
                 headers: { Authorization: `Bearer ${token}` },
             });
+            if (!res.ok) throw new Error(`Server returned ${res.status}`);
             const data = await res.json();
             if (data.hampers) {
                 setHampers(data.hampers);
             }
-        } catch (error) {
-            console.error('Failed to fetch hampers:', error);
+        } catch (err) {
+            console.error('Failed to fetch hampers:', err);
+            setError('Failed to load gift hampers. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -98,6 +105,18 @@ export default function AdminGiftHampersPage() {
             <div className={styles.tableWrapper}>
                 {loading ? (
                     <div className={styles.loading}>Loading gift hampers...</div>
+                ) : error ? (
+                    <div className={styles.loading}>
+                        <p>{error}</p>
+                        <button onClick={fetchHampers} style={{
+                            padding: '0.625rem 1.25rem', fontSize: '0.875rem', fontWeight: 600,
+                            color: 'white', background: 'var(--primary-600)', border: 'none',
+                            borderRadius: '10px', cursor: 'pointer', marginTop: '0.5rem',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem'
+                        }}>
+                            <RefreshIcon size={16} /> Try Again
+                        </button>
+                    </div>
                 ) : hampers.length === 0 ? (
                     <div className={styles.empty}>
                         <p>No gift hampers found</p>
@@ -124,9 +143,9 @@ export default function AdminGiftHampersPage() {
                                             <div className={styles.itemCell}>
                                                 <div className={styles.itemImage}>
                                                     {hamper.images?.[0] ? (
-                                                        <img src={hamper.images[0]} alt={hamper.name} />
+                                                        <Image src={hamper.images[0]} alt={hamper.name} width={48} height={48} className={styles.itemImg} />
                                                     ) : (
-                                                        '🎁'
+                                                        <GiftPlantIcon size={24} color="#9ca3af" />
                                                     )}
                                                 </div>
                                                 <div className={styles.itemName}>

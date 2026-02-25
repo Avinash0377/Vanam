@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, useCallback, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
@@ -54,32 +54,36 @@ export default function CustomerDetailPage({
     const [stats, setStats] = useState<Stats | null>(null);
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        fetchUserDetail();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [token, id]);
-
-    const fetchUserDetail = async () => {
+    const fetchUserDetail = useCallback(async () => {
         if (!token) return;
+        setError(null);
+        setLoading(true);
         try {
             const res = await fetch(`/api/admin/users/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (!res.ok) {
-                router.push('/admin/customers');
+                if (res.status === 404) setError('Customer not found');
+                else throw new Error(`Server returned ${res.status}`);
                 return;
             }
             const data = await res.json();
             setUser(data.user);
             setStats(data.stats);
             setOrders(data.orders || []);
-        } catch (error) {
-            console.error('Failed to fetch user:', error);
+        } catch (err) {
+            console.error('Failed to fetch user:', err);
+            setError('Failed to load customer details. Please try again.');
         } finally {
             setLoading(false);
         }
-    };
+    }, [token, id]);
+
+    useEffect(() => {
+        fetchUserDetail();
+    }, [fetchUserDetail]);
 
     const formatCurrency = (amount: number) => `₹${amount.toLocaleString('en-IN')}`;
 
@@ -116,10 +120,21 @@ export default function CustomerDetailPage({
         );
     }
 
-    if (!user) {
+    if (error || !user) {
         return (
-            <div className={styles.page}>
-                <p>Customer not found</p>
+            <div className={styles.page} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '50vh', gap: '1rem' }}>
+                <p>{error || 'Customer not found'}</p>
+                {error && (
+                    <button
+                        onClick={() => fetchUserDetail()}
+                        className="btn btn-primary"
+                    >
+                        Try Again
+                    </button>
+                )}
+                <Link href="/admin/customers" className="btn btn-outline" style={{ marginTop: '1rem' }}>
+                    Back to Customers
+                </Link>
             </div>
         );
     }

@@ -11,6 +11,8 @@ export const metadata: Metadata = {
     },
 };
 
+export const revalidate = 120;
+
 function serializeCombo(c: Record<string, unknown>) {
     return {
         id: c.id as string,

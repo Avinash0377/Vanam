@@ -27,8 +27,8 @@ async function getUsers(request: NextRequest) {
             }
             : {};
 
-        // Fetch users with order aggregation
-        const [users, total] = await Promise.all([
+        // Fetch users with order aggregation + global summary stats
+        const [users, total, totalWithOrders, revenueResult] = await Promise.all([
             prisma.user.findMany({
                 where,
                 select: {
@@ -51,6 +51,11 @@ async function getUsers(request: NextRequest) {
                 take: limit,
             }),
             prisma.user.count({ where }),
+            prisma.user.count({ where: { orders: { some: {} } } }),
+            prisma.order.aggregate({
+                where: { orderStatus: { in: ['PAID', 'PACKING', 'SHIPPED', 'DELIVERED'] } },
+                _sum: { totalAmount: true },
+            }),
         ]);
 
         // Transform users to include computed stats
@@ -82,6 +87,10 @@ async function getUsers(request: NextRequest) {
                 limit,
                 total,
                 totalPages: Math.ceil(total / limit),
+            },
+            summary: {
+                totalWithOrders,
+                totalRevenue: revenueResult._sum.totalAmount || 0,
             },
         });
 

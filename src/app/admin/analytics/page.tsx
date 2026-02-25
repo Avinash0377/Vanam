@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { DashboardIcon, PackageIcon, FolderIcon, PlantIcon } from '@/components/Icons';
+import { DashboardIcon, PackageIcon, FolderIcon, PlantIcon, RefreshIcon } from '@/components/Icons';
 import styles from './page.module.css';
 
 interface CategoryStat {
@@ -33,11 +33,7 @@ export default function AnalyticsPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        fetchAnalytics();
-    }, [token]);
-
-    const fetchAnalytics = async () => {
+    const fetchAnalytics = useCallback(async () => {
         if (!token) return;
         setError(null);
         try {
@@ -54,7 +50,11 @@ export default function AnalyticsPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [token]);
+
+    useEffect(() => {
+        fetchAnalytics();
+    }, [fetchAnalytics]);
 
     const formatCurrency = (amount: number) => {
         return `₹${amount.toLocaleString('en-IN')}`;
@@ -81,9 +81,10 @@ export default function AnalyticsPage() {
                 <button onClick={() => { setLoading(true); fetchAnalytics(); }} style={{
                     padding: '0.625rem 1.25rem', fontSize: '0.875rem', fontWeight: 600,
                     color: 'white', background: 'var(--primary-600)', border: 'none',
-                    borderRadius: '10px', cursor: 'pointer', marginTop: '0.5rem'
+                    borderRadius: '10px', cursor: 'pointer', marginTop: '0.5rem',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem'
                 }}>
-                    ↻ Try Again
+                    <RefreshIcon size={16} /> Try Again
                 </button>
             </div>
         );
@@ -210,22 +211,24 @@ export default function AnalyticsPage() {
             <div className={styles.section}>
                 <h2 className={styles.sectionTitle}>Revenue Distribution</h2>
                 <div className={styles.chartContainer}>
-                    {categories.map((cat) => {
-                        const maxSales = Math.max(...categories.map(c => c.totalSales));
-                        const percentage = maxSales > 0 ? (cat.totalSales / maxSales) * 100 : 0;
-                        return (
-                            <div key={cat.id} className={styles.barRow}>
-                                <span className={styles.barLabel}>{cat.name}</span>
-                                <div className={styles.barWrapper}>
-                                    <div
-                                        className={styles.bar}
-                                        style={{ width: `${percentage}%` }}
-                                    />
+                    {(() => {
+                        const maxSales = Math.max(...categories.map(c => c.totalSales), 0);
+                        return categories.map((cat) => {
+                            const percentage = maxSales > 0 ? (cat.totalSales / maxSales) * 100 : 0;
+                            return (
+                                <div key={cat.id} className={styles.barRow}>
+                                    <span className={styles.barLabel}>{cat.name}</span>
+                                    <div className={styles.barWrapper}>
+                                        <div
+                                            className={styles.bar}
+                                            style={{ width: `${percentage}%` }}
+                                        />
+                                    </div>
+                                    <span className={styles.barValue}>{formatCurrency(cat.totalSales)}</span>
                                 </div>
-                                <span className={styles.barValue}>{formatCurrency(cat.totalSales)}</span>
-                            </div>
-                        );
-                    })}
+                            );
+                        });
+                    })()}
                 </div>
             </div>
         </div>

@@ -6,9 +6,9 @@ import { JWTPayload } from '@/lib/auth';
 async function getDashboardStats(request: NextRequest, user: JWTPayload) {
     try {
 
-        // Get current date info
+        // Get current date info — create separate instances to avoid mutation
         const now = new Date();
-        const startOfDay = new Date(now.setHours(0, 0, 0, 0));
+        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
         // Fetch stats in parallel

@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { SearchIcon, MessageIcon } from '@/components/Icons';
+import { SearchIcon, MessageIcon, RefreshIcon } from '@/components/Icons';
 import styles from './page.module.css';
 
 interface Order {
@@ -35,14 +35,9 @@ export default function AdminOrdersPage() {
     const [statusFilter, setStatusFilter] = useState('');
     const [search, setSearch] = useState('');
     const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
+    const [statusCounts, setStatusCounts] = useState<Record<string, number>>({});
 
-    useEffect(() => {
-        if (token) {
-            fetchOrders();
-        }
-    }, [token, statusFilter]);
-
-    const fetchOrders = async (page = 1) => {
+    const fetchOrders = useCallback(async (page = 1) => {
         setLoading(true);
         setError(null);
         try {
@@ -60,13 +55,20 @@ export default function AdminOrdersPage() {
             const data = await res.json();
             setOrders(data.orders);
             setPagination(data.pagination);
+            if (data.statusCounts) setStatusCounts(data.statusCounts);
         } catch (err) {
             console.error('Failed to fetch orders:', err);
             setError('Failed to load orders. Please check your connection and try again.');
         } finally {
             setLoading(false);
         }
-    };
+    }, [token, statusFilter, search]);
+
+    useEffect(() => {
+        if (token) {
+            fetchOrders();
+        }
+    }, [token, statusFilter, fetchOrders]);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -147,7 +149,7 @@ export default function AdminOrdersPage() {
                             onClick={() => setStatusFilter(statusFilter === status ? '' : status)}
                         >
                             <span className={styles.statValue}>
-                                {orders.filter(o => o.orderStatus === status).length}
+                                {statusCounts[status] ?? 0}
                             </span>
                             <span className={styles.statLabel}>{status}</span>
                         </button>
@@ -201,7 +203,7 @@ export default function AdminOrdersPage() {
                             </svg>
                             <p>{error}</p>
                             <button className={styles.retryBtn} onClick={() => fetchOrders()}>
-                                ↻ Try Again
+                                <RefreshIcon size={16} /> <span style={{ marginLeft: '4px' }}>Try Again</span>
                             </button>
                         </div>
                     ) : orders.length === 0 ? (

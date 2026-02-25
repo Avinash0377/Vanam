@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, useInView } from 'framer-motion';
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useState } from 'react';
 
 interface FadeInProps {
     children: React.ReactNode;
@@ -23,6 +23,7 @@ export default function FadeIn({
     const ref = useRef(null);
     // Trigger animation earlier and only once
     const isInView = useInView(ref, { once: true, margin: "50px 0px -50px 0px" });
+    const [animationDone, setAnimationDone] = useState(false);
 
     const variants = useMemo(() => {
         const distance = 30; // Reduced distance for snappier feel
@@ -55,11 +56,12 @@ export default function FadeIn({
             ref={ref}
             initial={variants.initial}
             animate={isInView ? variants.animate : variants.initial}
+            onAnimationComplete={() => setAnimationDone(true)}
             className={className}
             style={{
                 width: fullWidth ? '100%' : 'auto',
-                willChange: 'transform, opacity',
-                transform: 'translateZ(0)' // Force GPU layer
+                // Only promote to GPU layer during animation, release after
+                willChange: animationDone ? 'auto' : 'transform, opacity',
             }}
         >
             {children}
@@ -70,12 +72,14 @@ export default function FadeIn({
 export function StaggerContainer({ children, className = "", delay = 0 }: { children: React.ReactNode, className?: string, delay?: number }) {
     const ref = useRef(null);
     const isInView = useInView(ref, { once: true, margin: "50px 0px -50px 0px" });
+    const [animationDone, setAnimationDone] = useState(false);
 
     return (
         <motion.div
             ref={ref}
             initial="hidden"
             animate={isInView ? "show" : "hidden"}
+            onAnimationComplete={() => setAnimationDone(true)}
             variants={{
                 hidden: { opacity: 0 },
                 show: {
@@ -88,8 +92,7 @@ export function StaggerContainer({ children, className = "", delay = 0 }: { chil
             }}
             className={className}
             style={{
-                willChange: 'opacity',
-                transform: 'translateZ(0)'
+                willChange: animationDone ? 'auto' : 'opacity',
             }}
         >
             {children}

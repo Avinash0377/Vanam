@@ -11,6 +11,9 @@ export const metadata: Metadata = {
     },
 };
 
+// Revalidate every 2 minutes — balances freshness with DB load
+export const revalidate = 120;
+
 // Serialize product for client component — strip Prisma internals
 function serializeProduct(p: Record<string, unknown>) {
     return {

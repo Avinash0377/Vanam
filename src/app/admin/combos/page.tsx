@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import {
     StarIcon,
     EditIcon,
     TrashIcon,
     PackageIcon,
+    RefreshIcon
 } from '@/components/Icons';
 import styles from './page.module.css';
 
@@ -29,6 +31,7 @@ export default function AdminCombosPage() {
     const { token } = useAuth();
     const [combos, setCombos] = useState<Combo[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (token) {
@@ -38,16 +41,19 @@ export default function AdminCombosPage() {
 
     const fetchCombos = async () => {
         setLoading(true);
+        setError(null);
         try {
             const res = await fetch('/api/combos?all=true', {
                 headers: { Authorization: `Bearer ${token}` },
             });
+            if (!res.ok) throw new Error(`Server returned ${res.status}`);
             const data = await res.json();
             if (data.combos) {
                 setCombos(data.combos);
             }
-        } catch (error) {
-            console.error('Failed to fetch combos:', error);
+        } catch (err) {
+            console.error('Failed to fetch combos:', err);
+            setError('Failed to load combos. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -96,6 +102,18 @@ export default function AdminCombosPage() {
             <div className={styles.tableWrapper}>
                 {loading ? (
                     <div className={styles.loading}>Loading combos...</div>
+                ) : error ? (
+                    <div className={styles.loading}>
+                        <p>{error}</p>
+                        <button onClick={fetchCombos} style={{
+                            padding: '0.625rem 1.25rem', fontSize: '0.875rem', fontWeight: 600,
+                            color: 'white', background: 'var(--primary-600)', border: 'none',
+                            borderRadius: '10px', cursor: 'pointer', marginTop: '0.5rem',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem'
+                        }}>
+                            <RefreshIcon size={16} /> Try Again
+                        </button>
+                    </div>
                 ) : combos.length === 0 ? (
                     <div className={styles.empty}>
                         <p>No combos found</p>
@@ -122,9 +140,9 @@ export default function AdminCombosPage() {
                                             <div className={styles.itemCell}>
                                                 <div className={styles.itemImage}>
                                                     {combo.images?.[0] ? (
-                                                        <img src={combo.images[0]} alt={combo.name} />
+                                                        <Image src={combo.images[0]} alt={combo.name} width={48} height={48} className={styles.itemImg} />
                                                     ) : (
-                                                        '📦'
+                                                        <PackageIcon size={24} color="#9ca3af" />
                                                     )}
                                                 </div>
                                                 <div className={styles.itemName}>

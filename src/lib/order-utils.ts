@@ -46,17 +46,43 @@ const DEFAULT_DELIVERY_SETTINGS = {
     deliveryChargeType: 'FLAT' as const,
 };
 
+/** In-memory cache for delivery settings — avoids DB hit on every cart fetch */
+let deliverySettingsCache: {
+    data: { freeDeliveryEnabled: boolean; freeDeliveryMinAmount: number; flatDeliveryCharge: number } | null;
+    expiresAt: number;
+} = { data: null, expiresAt: 0 };
+
+const DELIVERY_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+/** Invalidate the cache — call when admin updates delivery settings */
+export function clearDeliverySettingsCache() {
+    deliverySettingsCache = { data: null, expiresAt: 0 };
+}
+
 /**
  * Fetch the singleton DeliverySettings record (or return defaults).
+ * Uses in-memory cache (5min TTL) unless a transaction client is provided.
  */
 export async function getDeliverySettings(tx?: Prisma.TransactionClient): Promise<{
     freeDeliveryEnabled: boolean;
     freeDeliveryMinAmount: number;
     flatDeliveryCharge: number;
 }> {
+    // Bypass cache when inside a transaction (order finalization needs fresh data)
+    if (!tx && deliverySettingsCache.data && Date.now() < deliverySettingsCache.expiresAt) {
+        return deliverySettingsCache.data;
+    }
+
     const db = tx || prisma;
     const settings = await db.deliverySettings.findUnique({ where: { id: 'default' } });
-    return settings || DEFAULT_DELIVERY_SETTINGS;
+    const result = settings || DEFAULT_DELIVERY_SETTINGS;
+
+    // Only cache non-transactional reads
+    if (!tx) {
+        deliverySettingsCache = { data: result, expiresAt: Date.now() + DELIVERY_CACHE_TTL_MS };
+    }
+
+    return result;
 }
 
 /**

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { UsersIcon, CartIcon, StarIcon, PlusIcon, SearchIcon } from '@/components/Icons';
+import { UsersIcon, CartIcon, StarIcon, PlusIcon, SearchIcon, RefreshIcon } from '@/components/Icons';
 import styles from './page.module.css';
 
 interface User {
@@ -33,6 +33,7 @@ export default function CustomersPage() {
     const [pagination, setPagination] = useState<Pagination | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [summary, setSummary] = useState<{ totalWithOrders: number; totalRevenue: number }>({ totalWithOrders: 0, totalRevenue: 0 });
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [page, setPage] = useState(1);
@@ -71,6 +72,7 @@ export default function CustomersPage() {
             const data = await res.json();
             setUsers(data.users || []);
             setPagination(data.pagination || null);
+            if (data.summary) setSummary(data.summary);
         } catch (err) {
             console.error('Failed to fetch users:', err);
             setError('Failed to load customers. Please check your connection and try again.');
@@ -97,8 +99,8 @@ export default function CustomersPage() {
 
     // Compute summary stats
     const totalCustomers = pagination?.total || 0;
-    const customersWithOrders = users.filter(u => u.orderCount > 0).length;
-    const totalRevenue = users.reduce((sum, u) => sum + u.totalSpent, 0);
+    const customersWithOrders = summary.totalWithOrders;
+    const totalRevenue = summary.totalRevenue;
 
     if (loading && users.length === 0) {
         return (
@@ -121,9 +123,10 @@ export default function CustomersPage() {
                 <button onClick={() => fetchUsers()} style={{
                     padding: '0.625rem 1.25rem', fontSize: '0.875rem', fontWeight: 600,
                     color: 'white', background: 'var(--primary-600)', border: 'none',
-                    borderRadius: '10px', cursor: 'pointer', marginTop: '0.5rem'
+                    borderRadius: '10px', cursor: 'pointer', marginTop: '0.5rem',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem'
                 }}>
-                    ↻ Try Again
+                    <RefreshIcon size={16} /> Try Again
                 </button>
             </div>
         );

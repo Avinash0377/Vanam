@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { CheckIcon, PackageIcon, WhatsAppIcon } from '@/components/Icons';
+import { CheckIcon, PackageIcon, WhatsAppIcon, XIcon, TruckIcon, ActivityIcon as MailIcon } from '@/components/Icons';
 import styles from './page.module.css';
 import { trackPurchase, AnalyticsItem } from '@/lib/analytics';
 
@@ -69,7 +69,7 @@ function OrderConfirmationContent() {
             <div className={styles.page}>
                 <div className={styles.container}>
                     <div className={styles.errorCard}>
-                        <span className={styles.errorIcon}>❌</span>
+                        <span className={styles.errorIcon}><XIcon size={48} color="#dc2626" /></span>
                         <h1>Order Not Found</h1>
                         <p>We couldn't find your order. Please check your email for confirmation.</p>
                         <Link href="/" className="btn btn-primary">
@@ -119,7 +119,7 @@ function OrderConfirmationContent() {
                         </div>
 
                         <div className={styles.infoCard}>
-                            <span className={styles.emoji}>📧</span>
+                            <span className={styles.emoji}><MailIcon size={24} color="#3b82f6" /></span>
                             <div>
                                 <h3>Order Confirmation</h3>
                                 <p>We've sent the order details to your registered email and phone.</p>
@@ -127,7 +127,7 @@ function OrderConfirmationContent() {
                         </div>
 
                         <div className={styles.infoCard}>
-                            <span className={styles.emoji}>🚚</span>
+                            <span className={styles.emoji}><TruckIcon size={24} color="#f59e0b" /></span>
                             <div>
                                 <h3>Delivery Timeline</h3>
                                 <p>Expected delivery within 3-7 business days depending on your location.</p>

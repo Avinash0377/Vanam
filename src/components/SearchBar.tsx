@@ -41,6 +41,8 @@ export default function SearchBar({ mobile = false }: { mobile?: boolean }) {
     }, []);
 
     useEffect(() => {
+        const abortController = new AbortController();
+
         const searchAll = async () => {
             if (query.length < 2) {
                 setResults([]);
@@ -50,21 +52,31 @@ export default function SearchBar({ mobile = false }: { mobile?: boolean }) {
 
             setLoading(true);
             try {
-                const res = await fetch(`/api/search?q=${encodeURIComponent(query)}&limit=8`);
+                const res = await fetch(
+                    `/api/search?q=${encodeURIComponent(query)}&limit=8`,
+                    { signal: abortController.signal }
+                );
                 const data = await res.json();
                 if (data.results) {
                     setResults(data.results);
                     setIsOpen(true);
                 }
             } catch (error) {
+                // Ignore abort errors — they're expected when a new keystroke fires
+                if (error instanceof DOMException && error.name === 'AbortError') return;
                 console.error('Search failed', error);
             } finally {
-                setLoading(false);
+                if (!abortController.signal.aborted) {
+                    setLoading(false);
+                }
             }
         };
 
         const debounce = setTimeout(searchAll, 300);
-        return () => clearTimeout(debounce);
+        return () => {
+            clearTimeout(debounce);
+            abortController.abort();
+        };
     }, [query]);
 
     return (

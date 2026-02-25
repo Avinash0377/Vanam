@@ -6,7 +6,7 @@ import FadeIn, { StaggerContainer } from '@/components/FadeIn';
 import {
     LeafIcon, PlantIcon, TruckIcon, MessageIcon,
     GiftIcon, CheckIcon, TreeIcon, PotIcon,
-    WhatsAppIcon, ArrowRightIcon, ShieldIcon,
+    WhatsAppIcon, ArrowRightIcon, ShieldIcon, GiftPlantIcon
 } from '@/components/Icons';
 import HomeBannerSlider from '@/components/HomeBannerSlider';
 import styles from './page.module.css';
@@ -596,7 +596,7 @@ export default async function HomePage() {
                         <FadeIn direction="up">
                             <div className={styles.featuredHeader}>
                                 <div>
-                                    <span className={styles.sectionBadge}>🎁 Perfect Gifts</span>
+                                    <span className={styles.sectionBadge}><GiftPlantIcon size={16} /> Perfect Gifts</span>
                                     <h2 className={styles.sectionTitle}>Gift Hampers</h2>
                                     <p className={styles.sectionDesc}>
                                         Beautifully wrapped plant gifts for every occasion. Make someone&apos;s day special!

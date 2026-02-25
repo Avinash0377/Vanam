@@ -50,7 +50,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUser(parsedUser);
 
             // Restore cookie for edge middleware (in case cookie was cleared by browser restart)
-            document.cookie = `auth_token=${storedToken}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Strict`;
+            const secureCookie = window.location.protocol === 'https:' ? '; Secure' : '';
+            document.cookie = `auth_token=${storedToken}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Strict${secureCookie}`;
 
             // Validate token against server (prevents role spoofing)
             fetch('/api/auth/me', {
@@ -89,7 +90,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         // Write to cookie so Next.js edge middleware can read it for admin route protection.
         // Not HttpOnly (client JS must read it for API headers), but SameSite=Strict prevents CSRF.
-        document.cookie = `auth_token=${newToken}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Strict`;
+        const secureCookie = window.location.protocol === 'https:' ? '; Secure' : '';
+        document.cookie = `auth_token=${newToken}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Strict${secureCookie}`;
 
         // Merge guest cart with user cart
         const guestCart = localStorage.getItem('vanam_guest_cart');
@@ -132,20 +134,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const mergeGuestWishlist = async (authToken: string, guestItems: { productId?: string; comboId?: string; hamperId?: string }[]) => {
         try {
-            for (const item of guestItems) {
-                await fetch('/api/wishlist', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${authToken}`,
-                    },
-                    body: JSON.stringify({
+            // Single bulk request instead of N sequential calls
+            await fetch('/api/wishlist/merge', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`,
+                },
+                body: JSON.stringify({
+                    items: guestItems.map(item => ({
                         productId: item.productId,
                         comboId: item.comboId,
                         hamperId: item.hamperId,
-                    }),
-                });
-            }
+                    })),
+                }),
+            });
         } catch (error) {
             console.error('Failed to merge wishlist:', error);
         }

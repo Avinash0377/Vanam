@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, Fragment } from 'react';
+import { useState, useEffect, useCallback, Fragment } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import {
     PlantIcon,
@@ -9,7 +10,8 @@ import {
     EyeIcon,
     EditIcon,
     TrashIcon,
-    SearchIcon
+    SearchIcon,
+    RefreshIcon
 } from '@/components/Icons';
 import styles from './page.module.css';
 
@@ -62,13 +64,7 @@ export default function AdminProductsPage() {
     const [suitableFilter, setSuitableFilter] = useState('');
     const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set());
 
-    useEffect(() => {
-        if (token) {
-            fetchProducts();
-        }
-    }, [token, statusFilter, typeFilter, suitableFilter]);
-
-    const fetchProducts = async (page = 1) => {
+    const fetchProducts = useCallback(async (page = 1) => {
         setLoading(true);
         setError(null);
         try {
@@ -94,7 +90,13 @@ export default function AdminProductsPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [token, search, statusFilter, typeFilter, suitableFilter]);
+
+    useEffect(() => {
+        if (token) {
+            fetchProducts();
+        }
+    }, [token, statusFilter, typeFilter, suitableFilter, fetchProducts]);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -306,7 +308,7 @@ export default function AdminProductsPage() {
                             </svg>
                             <p>{error}</p>
                             <button className={styles.retryBtn} onClick={() => fetchProducts()}>
-                                ↻ Try Again
+                                <RefreshIcon size={16} /> <span style={{ marginLeft: '4px' }}>Try Again</span>
                             </button>
                         </div>
                     ) : products.length === 0 ? (
@@ -358,7 +360,7 @@ export default function AdminProductsPage() {
                                                                 const img = product.images?.[0] ||
                                                                     product.sizeVariants?.flatMap(v => v.colors?.flatMap(c => c.images || []) || [])?.[0];
                                                                 return img ? (
-                                                                    <img src={img} alt={product.name} />
+                                                                    <Image src={img} alt={product.name} width={40} height={40} className={styles.productImg} />
                                                                 ) : (
                                                                     <PlantIcon size={20} />
                                                                 );
