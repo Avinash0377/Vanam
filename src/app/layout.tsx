@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
+import { Inter, Lora } from 'next/font/google';
 import './globals.css';
 import Providers from '@/components/Providers';
 import WhatsAppButton from '@/components/WhatsAppButton';
@@ -68,13 +69,28 @@ export const viewport = {
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 const PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
 
+const inter = Inter({
+    subsets: ['latin'],
+    weight: ['400', '500', '600', '700'],
+    display: 'swap',
+    variable: '--font-sans',
+});
+
+const lora = Lora({
+    subsets: ['latin'],
+    weight: ['400', '500', '600', '700'],
+    style: ['normal', 'italic'],
+    display: 'swap',
+    variable: '--font-display',
+});
+
 export default function RootLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
     return (
-        <html lang="en">
+        <html lang="en" className={`${inter.variable} ${lora.variable}`}>
             <body>
                 <Providers>{children}</Providers>
                 <WhatsAppButton />

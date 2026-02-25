@@ -76,10 +76,14 @@ async function createHamper(request: NextRequest, user: JWTPayload) {
 
         const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
+        // Check if slug exists before appending timestamp
+        const existingHamper = await prisma.giftHamper.findUnique({ where: { slug } });
+        const finalSlug = existingHamper ? `${slug}-${Date.now()}` : slug;
+
         const hamper = await prisma.giftHamper.create({
             data: {
                 name,
-                slug: `${slug}-${Date.now()}`,
+                slug: finalSlug,
                 description: description || null,
                 includes: includesArray,
                 giftWrap: giftWrap !== false,

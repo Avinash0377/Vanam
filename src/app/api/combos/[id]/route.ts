@@ -89,7 +89,11 @@ async function updateCombo(
         // Update slug only if name changed
         let slug = existing.slug;
         if (name && name !== existing.name) {
-            slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') + '-' + Date.now();
+            const newSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            const slugExists = await prisma.combo.findFirst({
+                where: { slug: newSlug, id: { not: id } },
+            });
+            slug = slugExists ? `${newSlug}-${Date.now()}` : newSlug;
         }
 
         const combo = await prisma.combo.update({

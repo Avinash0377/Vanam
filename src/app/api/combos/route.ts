@@ -79,10 +79,14 @@ async function createCombo(request: NextRequest, user: JWTPayload) {
 
         const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
+        // Check if slug exists before appending timestamp
+        const existingCombo = await prisma.combo.findUnique({ where: { slug } });
+        const finalSlug = existingCombo ? `${slug}-${Date.now()}` : slug;
+
         const combo = await prisma.combo.create({
             data: {
                 name,
-                slug: `${slug}-${Date.now()}`,
+                slug: finalSlug,
                 description: description || null,
                 includes: includesArray,
                 suitableFor: suitableFor || null,

@@ -54,7 +54,10 @@ export default function PlantsClient({ initialProducts }: PlantsClientProps) {
     const filteredProducts = initialProducts.filter(product => {
         const effectiveSuitable = mobileSuitableFor || suitableFor;
         const effectiveSize = mobileSize || size;
-        const matchesSuitable = !effectiveSuitable || product.suitableFor === effectiveSuitable;
+        // When filtering Indoor → show INDOOR + BOTH; Outdoor → show OUTDOOR + BOTH
+        const matchesSuitable = !effectiveSuitable ||
+            product.suitableFor === effectiveSuitable ||
+            product.suitableFor === 'BOTH';
         const matchesSize = !effectiveSize || product.size === effectiveSize;
         return matchesSuitable && matchesSize;
     });

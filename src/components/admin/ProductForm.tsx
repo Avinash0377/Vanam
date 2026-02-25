@@ -382,6 +382,19 @@ export default function ProductForm({ initialData, categories, onSubmit, loading
             dataToSubmit.stock = stocks.reduce((a, b) => a + b, 0).toString();
         }
 
+        // Auto-derive suitableFor from category name
+        const selectedCategory = categories.find(c => c.id === formData.categoryId);
+        if (selectedCategory) {
+            const catName = selectedCategory.name.toLowerCase();
+            if (catName.includes('indoor')) {
+                dataToSubmit.suitableFor = 'INDOOR';
+            } else if (catName.includes('outdoor')) {
+                dataToSubmit.suitableFor = 'OUTDOOR';
+            } else {
+                dataToSubmit.suitableFor = 'BOTH';
+            }
+        }
+
         onSubmit(dataToSubmit);
     };
 
@@ -536,7 +549,21 @@ export default function ProductForm({ initialData, categories, onSubmit, loading
                                 ))}
                             </select>
                         </div>
-                    </div>
+                        {(formData.productType === 'PLANT' || formData.productType === 'SEED') && (
+                            <div className={styles.statusGroup}>
+                                <label>Suitable For</label>
+                                <select
+                                    name="suitableFor"
+                                    value={formData.suitableFor}
+                                    onChange={handleChange}
+                                    className={styles.statusSelect}
+                                >
+                                    <option value="INDOOR">🏠 Indoor</option>
+                                    <option value="OUTDOOR">🌳 Outdoor</option>
+                                    <option value="BOTH">🌿 Both</option>
+                                </select>
+                            </div>
+                        )}                    </div>
                 </div>
             </div>
 

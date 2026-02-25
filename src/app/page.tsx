@@ -67,7 +67,8 @@ export default async function HomePage() {
     const [
         activeBanners,
         featuredProducts,
-        allPlants,
+        indoorPlants,
+        outdoorPlants,
         pots,
         combos,
         giftHampers,
@@ -88,11 +89,16 @@ export default async function HomePage() {
             take: 5,
             orderBy: [{ displayOrder: 'asc' }, { createdAt: 'desc' }],
         }),
-        // Plants section: prefer showOnHome, fallback to latest
-        // take: 10 so we have enough for 5 indoor + 5 outdoor
+        // Indoor plants: fetch separately to avoid cross-contamination
         prisma.product.findMany({
-            where: { status: 'ACTIVE', productType: 'PLANT' },
-            take: 10,
+            where: { status: 'ACTIVE', productType: 'PLANT', suitableFor: { in: ['INDOOR', 'BOTH'] } },
+            take: 5,
+            orderBy: [{ showOnHome: 'desc' }, { displayOrder: 'asc' }, { createdAt: 'desc' }],
+        }),
+        // Outdoor plants: fetch separately — ensures outdoor-only plants (e.g. Guava) never appear in indoor
+        prisma.product.findMany({
+            where: { status: 'ACTIVE', productType: 'PLANT', suitableFor: { in: ['OUTDOOR', 'BOTH'] } },
+            take: 5,
             orderBy: [{ showOnHome: 'desc' }, { displayOrder: 'asc' }, { createdAt: 'desc' }],
         }),
         // Pots section: prefer showOnHome, fallback to latest
@@ -128,14 +134,6 @@ export default async function HomePage() {
             take: 5,
             orderBy: { createdAt: 'desc' },
         });
-
-    // Split plants by suitability — 5 on desktop (CSS already has 5-col grid at ≥1280px)
-    const indoorPlants = allPlants
-        .filter(p => p.suitableFor === 'INDOOR' || p.suitableFor === 'BOTH')
-        .slice(0, 5);
-    const outdoorPlants = allPlants
-        .filter(p => p.suitableFor === 'OUTDOOR' || p.suitableFor === 'BOTH')
-        .slice(0, 5);
 
     const categoryCounts: Record<string, number> = {
         indoor: indoorCount,
@@ -282,24 +280,19 @@ export default async function HomePage() {
                             </div>
 
                             <div className={styles.floatingPlant1}>
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src="/snake-plant.png" alt="Snake Plant" className={styles.floatingPlantImg} />
+                                <Image src="/snake-plant.png" alt="Snake Plant" width={100} height={120} className={styles.floatingPlantImg} loading="lazy" />
                             </div>
                             <div className={styles.floatingPlant2}>
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src="/peace-lily.png" alt="Peace Lily" className={styles.floatingPlantImg} />
+                                <Image src="/peace-lily.png" alt="Peace Lily" width={100} height={120} className={styles.floatingPlantImg} loading="lazy" />
                             </div>
                             <div className={styles.floatingPlant3}>
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src="/pothos.png" alt="Pothos" className={styles.floatingPlantImg} />
+                                <Image src="/pothos.png" alt="Pothos" width={100} height={120} className={styles.floatingPlantImg} loading="lazy" />
                             </div>
                             <div className={styles.floatingPlant4}>
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src="/rubber-plant.png" alt="Rubber Plant" className={styles.floatingPlantImg} />
+                                <Image src="/rubber-plant.png" alt="Rubber Plant" width={100} height={120} className={styles.floatingPlantImg} loading="lazy" />
                             </div>
                             <div className={styles.floatingPlant5}>
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src="/succulent.png" alt="Succulent" className={styles.floatingPlantImgSmall} />
+                                <Image src="/succulent.png" alt="Succulent" width={80} height={90} className={styles.floatingPlantImgSmall} loading="lazy" />
                             </div>
 
                             <div className={styles.floatingBadge1}>
@@ -371,11 +364,11 @@ export default async function HomePage() {
                         </div>
                     </FadeIn>
 
-                    <div className={styles.productGrid}>
-                        {products.map((product, idx) => {
+                    <StaggerContainer className={styles.productGrid}>
+                        {products.map((product) => {
                             const p = serializeProduct(product as unknown as Record<string, unknown>);
                             return (
-                                <FadeIn key={p.id} direction="up" delay={idx * 0.1}>
+                                <FadeIn key={p.id} direction="up">
                                     <ProductCard
                                         id={p.id}
                                         name={p.name}
@@ -396,7 +389,7 @@ export default async function HomePage() {
                                 </FadeIn>
                             );
                         })}
-                    </div>
+                    </StaggerContainer>
                 </div>
             </section>
 
@@ -420,11 +413,11 @@ export default async function HomePage() {
                             </div>
                         </FadeIn>
 
-                        <div className={styles.productGrid}>
-                            {indoorPlants.map((product, idx) => {
+                        <StaggerContainer className={styles.productGrid}>
+                            {indoorPlants.map((product) => {
                                 const p = serializeProduct(product as unknown as Record<string, unknown>);
                                 return (
-                                    <FadeIn key={p.id} direction="up" delay={idx * 0.1}>
+                                    <FadeIn key={p.id} direction="up">
                                         <ProductCard
                                             id={p.id}
                                             name={p.name}
@@ -444,7 +437,7 @@ export default async function HomePage() {
                                     </FadeIn>
                                 );
                             })}
-                        </div>
+                        </StaggerContainer>
                     </div>
                 </section>
             )}
@@ -469,11 +462,11 @@ export default async function HomePage() {
                             </div>
                         </FadeIn>
 
-                        <div className={styles.productGrid}>
-                            {outdoorPlants.map((product, idx) => {
+                        <StaggerContainer className={styles.productGrid}>
+                            {outdoorPlants.map((product) => {
                                 const p = serializeProduct(product as unknown as Record<string, unknown>);
                                 return (
-                                    <FadeIn key={p.id} direction="up" delay={idx * 0.1}>
+                                    <FadeIn key={p.id} direction="up">
                                         <ProductCard
                                             id={p.id}
                                             name={p.name}
@@ -493,7 +486,7 @@ export default async function HomePage() {
                                     </FadeIn>
                                 );
                             })}
-                        </div>
+                        </StaggerContainer>
                     </div>
                 </section>
             )}
@@ -518,11 +511,11 @@ export default async function HomePage() {
                             </div>
                         </FadeIn>
 
-                        <div className={styles.productGrid}>
-                            {pots.map((product, idx) => {
+                        <StaggerContainer className={styles.productGrid}>
+                            {pots.map((product) => {
                                 const p = serializeProduct(product as unknown as Record<string, unknown>);
                                 return (
-                                    <FadeIn key={p.id} direction="up" delay={idx * 0.1}>
+                                    <FadeIn key={p.id} direction="up">
                                         <ProductCard
                                             id={p.id}
                                             name={p.name}
@@ -541,7 +534,7 @@ export default async function HomePage() {
                                     </FadeIn>
                                 );
                             })}
-                        </div>
+                        </StaggerContainer>
                     </div>
                 </section>
             )}
@@ -566,9 +559,9 @@ export default async function HomePage() {
                             </div>
                         </FadeIn>
 
-                        <div className={styles.productGrid}>
-                            {combos.map((combo, idx) => (
-                                <FadeIn key={combo.id} direction="up" delay={idx * 0.1}>
+                        <StaggerContainer className={styles.productGrid}>
+                            {combos.map((combo) => (
+                                <FadeIn key={combo.id} direction="up">
                                     <ProductCard
                                         id={combo.id}
                                         name={combo.name}
@@ -584,7 +577,7 @@ export default async function HomePage() {
                                     />
                                 </FadeIn>
                             ))}
-                        </div>
+                        </StaggerContainer>
                     </div>
                 </section>
             )}
@@ -609,9 +602,9 @@ export default async function HomePage() {
                             </div>
                         </FadeIn>
 
-                        <div className={styles.productGrid}>
-                            {giftHampers.map((hamper, idx) => (
-                                <FadeIn key={hamper.id} direction="up" delay={idx * 0.1}>
+                        <StaggerContainer className={styles.productGrid}>
+                            {giftHampers.map((hamper) => (
+                                <FadeIn key={hamper.id} direction="up">
                                     <ProductCard
                                         id={hamper.id}
                                         name={hamper.name}
@@ -627,7 +620,7 @@ export default async function HomePage() {
                                     />
                                 </FadeIn>
                             ))}
-                        </div>
+                        </StaggerContainer>
                     </div>
                 </section>
             )}
