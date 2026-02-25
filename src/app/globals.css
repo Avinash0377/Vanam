@@ -702,6 +702,27 @@ img {
   }
 }
 
+/* Global keyframes for mobile bottom sheets (used by inline-style animations) */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
 /* Utility Classes */
 .text-center {
   text-align: center;

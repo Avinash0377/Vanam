@@ -10,25 +10,55 @@
     }
 }
 
-/* Mobile Filter Bar */
-.mobileFilterBar {
+/* Mobile action buttons */
+.mobileActionBtn {
     display: none;
 }
 
 @media (max-width: 767px) {
-    .mobileFilterBar {
-        display: flex;
+    .mobileActionBtn {
+        display: inline-flex;
         align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 16px;
-        padding: 0 4px;
+        gap: 6px;
+        padding: 9px 16px;
+        font-size: 14px;
+        font-weight: 500;
+        color: #374151;
+        background: #ffffff;
+        border: 1px solid #d1d5db;
+        border-radius: 50px;
+        cursor: pointer;
+        min-height: 42px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+        transition: background 0.15s;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .mobileActionBtn:active {
+        background: #f3f4f6;
     }
 
     .sortSelect {
         display: none;
     }
 }
+
+/* Active badge on sort/filter button */
+.activeBadge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    font-size: 10px;
+    font-weight: 700;
+    color: white;
+    background: #1a4d2e;
+    border-radius: 50%;
+    padding: 0 4px;
+}
+
 
 .header {
     margin-bottom: 24px;
