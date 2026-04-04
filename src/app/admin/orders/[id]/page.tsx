@@ -401,7 +401,7 @@ export default function OrderDetailsPage() {
                                         )}
                                         <div className={styles.itemMeta}>
                                             <span className={styles.itemQuantity}>Qty: {item.quantity}</span>
-                                            {item.selectedSize && (
+                                            {item.selectedSize && item.selectedSize.toUpperCase() !== 'DEFAULT' && (
                                                 <span className={styles.itemVariant}>Size: {item.selectedSize}</span>
                                             )}
                                             {item.selectedColor && (

@@ -144,7 +144,7 @@ export default function ProductClient({ product }: { product: ProductData }) {
     const handleWhatsApp = () => {
         trackWhatsAppClick('product_page', product.id);
         let message = `Hi! I'm interested in:\n\n🌿 *${product.name}*`;
-        if (selectedSize) message += `\n📏 Size: ${selectedSize}`;
+        if (selectedSize && selectedSize.toUpperCase() !== 'DEFAULT') message += `\n📏 Size: ${selectedSize}`;
         if (selectedColor) message += `\n🎨 Color: ${selectedColor.name}`;
         message += `\n💰 Price: ₹${currentPrice.toLocaleString('en-IN')}`;
         message += `\n\nPlease share more details.`;

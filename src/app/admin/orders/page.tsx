@@ -110,6 +110,7 @@ export default function AdminOrdersPage() {
             SHIPPED: styles.statusShipped,
             DELIVERED: styles.statusDelivered,
             CANCELLED: styles.statusCancelled,
+            REFUNDED: styles.statusRefunded,
         };
         return statusStyles[status] || '';
     };
@@ -125,7 +126,7 @@ export default function AdminOrdersPage() {
         });
     };
 
-    const statusOptions = ['PENDING', 'PAID', 'PACKING', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
+    const statusOptions = ['PENDING', 'PAID', 'PACKING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED'];
 
     return (
         <div className={styles.page}>
@@ -237,7 +238,7 @@ export default function AdminOrdersPage() {
                                                 <span className={styles.customerMobile}>{order.mobile}</span>
                                             </div>
                                         </td>
-                                        <td>{order.items?.length || 0} items</td>
+                                        <td>{order.items?.length || 0} {(order.items?.length || 0) === 1 ? 'item' : 'items'}</td>
                                         <td className={styles.amountCell}>
                                             ₹{order.totalAmount.toLocaleString('en-IN')}
                                         </td>

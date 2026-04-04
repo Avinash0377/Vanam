@@ -181,7 +181,7 @@ export default function CartPage() {
             <div className="container">
                 <div className={styles.header}>
                     <h1 className={styles.title}>Shopping Cart</h1>
-                    <span className={styles.itemCount}>{items.length} items</span>
+                    <span className={styles.itemCount}>{items.length} {items.length === 1 ? 'item' : 'items'}</span>
                 </div>
 
                 {stockError && (
@@ -232,9 +232,9 @@ export default function CartPage() {
                                     </span>
 
                                     {/* Variant Details */}
-                                    {(item.size || item.color) && (
+                                    {((item.size && item.size.toUpperCase() !== 'DEFAULT') || item.color) && (
                                         <div className={styles.variantInfo}>
-                                            {item.size && (
+                                            {item.size && item.size.toUpperCase() !== 'DEFAULT' && (
                                                 <span className={styles.variantTag}>
                                                     📏 Size: <strong>{item.size.toUpperCase()}</strong>
                                                 </span>

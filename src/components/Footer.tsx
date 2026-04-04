@@ -52,15 +52,15 @@ export default function Footer() {
                         <h4 className={styles.columnTitle}>Contact Us</h4>
                         <ul className={styles.contactList}>
                             <li className={styles.contactItem}>
-                                <span className={styles.contactIcon}>📞</span>
+                                <span className={styles.contactIcon} style={{ color: '#16a34a' }}>☏</span>
                                 <a href="tel:+918897249374">+91 88972 49374</a>
                             </li>
                             <li className={styles.contactItem}>
-                                <span className={styles.contactIcon}>✉️</span>
+                                <span className={styles.contactIcon} style={{ color: '#16a34a' }}>✉</span>
                                 <a href="mailto:vanamstore@gmail.com">vanamstore@gmail.com</a>
                             </li>
                             <li className={styles.contactItem}>
-                                <span className={styles.contactIcon}>💬</span>
+                                <span className={styles.contactIcon} style={{ color: '#25d366' }}>💬</span>
                                 <a
                                     href="https://wa.me/918897249374"
                                     target="_blank"

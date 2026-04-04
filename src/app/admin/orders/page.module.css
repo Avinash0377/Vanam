@@ -401,6 +401,11 @@
     color: #dc2626;
 }
 
+.statusRefunded {
+    background: #f5f3ff;
+    color: #7c3aed;
+}
+
 /* Actions */
 .actions {
     display: flex;

@@ -336,7 +336,7 @@ export default async function HomePage() {
                                     <div className={styles.categoryInfo}>
                                         <h3>{category.name}</h3>
                                         <p>{category.description}</p>
-                                        <span className={styles.categoryCount}>{categoryCounts[category.key]} items <ArrowRightIcon size={14} /></span>
+                                        <span className={styles.categoryCount}>{categoryCounts[category.key]} {categoryCounts[category.key] === 1 ? 'item' : 'items'} <ArrowRightIcon size={14} /></span>
                                     </div>
                                 </Link>
                             </FadeIn>
@@ -651,29 +651,7 @@ export default async function HomePage() {
                 </div>
             </section>
 
-            {/* Gallery Section */}
-            <section className={styles.gallery}>
-                <div className="container">
-                    <FadeIn direction="up">
-                        <div className={styles.sectionHeader}>
-                            <span className={styles.sectionBadge}>@vanamstore</span>
-                            <h2 className={styles.sectionTitle}>Join Our Plant Community</h2>
-                            <p className={styles.sectionDesc}>
-                                Share your plant journey with us on Instagram!
-                            </p>
-                        </div>
-                        <div className={styles.galleryGrid}>
-                            {[LeafIcon, PlantIcon, TreeIcon, PotIcon, GiftIcon, LeafIcon].map((IconComponent, idx) => (
-                                <FadeIn key={idx} direction="up" delay={idx * 0.05}>
-                                    <div className={styles.galleryItem}>
-                                        <IconComponent size={48} color="#16a34a" />
-                                    </div>
-                                </FadeIn>
-                            ))}
-                        </div>
-                    </FadeIn>
-                </div>
-            </section>
+
 
             {/* CTA Section */}
             <section className={styles.cta}>

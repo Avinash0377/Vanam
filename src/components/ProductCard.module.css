@@ -203,6 +203,8 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+    /* Push actions to card bottom so buttons align across grid */
+    margin-top: auto;
 }
 
 /* Rating Row */
@@ -436,6 +438,9 @@
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
+    /* Limit to one row on desktop cards to maintain consistent card height */
+    max-height: 40px;
+    overflow: hidden;
 }
 
 .colorBtn {
