@@ -89,6 +89,14 @@ async function handleDelete(request: NextRequest, user: JWTPayload) {
             );
         }
 
+        // Validate publicId prefix to prevent unauthorized deletions outside vanam-store
+        if (!publicId.startsWith('vanam-store/')) {
+            return NextResponse.json(
+                { error: 'Unauthorized to delete this resource' },
+                { status: 403 }
+            );
+        }
+
         const success = await deleteImage(publicId);
 
         if (!success) {

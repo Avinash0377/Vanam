@@ -7,7 +7,9 @@ import { useAuth } from '@/context/AuthContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useCart } from '@/context/CartContext';
 import styles from './page.module.css';
+import { getProductHref } from '@/lib/variants';
 
+// ... other code ...
 export default function WishlistPage() {
     const router = useRouter();
     const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -65,9 +67,9 @@ export default function WishlistPage() {
     };
 
     const getItemUrl = (item: typeof items[0]) => {
-        if (item.product) return `/plants/${item.product.slug}`;
-        if (item.combo) return `/combos/${item.combo.slug}`;
-        if (item.hamper) return `/gift-hampers/${item.hamper.slug}`;
+        if (item.product) return getProductHref(item.product.productType, item.product.slug, item.product.category?.name);
+        if (item.combo) return getProductHref('combo', item.combo.slug);
+        if (item.hamper) return getProductHref('hamper', item.hamper.slug);
         return '#';
     };
 

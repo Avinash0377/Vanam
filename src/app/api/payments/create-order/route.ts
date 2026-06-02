@@ -50,16 +50,23 @@ async function createPaymentOrder(request: NextRequest, user: JWTPayload) {
         // Extract coupon code from request (optional, will be re-validated server-side)
         const rawCouponCode = body.couponCode;
 
-        // Validate pincode is serviceable
-        const serviceablePincode = await prisma.serviceablePincode.findFirst({
-            where: { pincode, isActive: true },
+        // Validate pincode is serviceable (check Pan India setting first)
+        const deliveryConfig = await prisma.deliverySettings.findUnique({
+            where: { id: 'default' },
+            select: { panIndiaEnabled: true },
         });
 
-        if (!serviceablePincode) {
-            return NextResponse.json(
-                { error: 'Delivery not available in this area.' },
-                { status: 400 }
-            );
+        if (!deliveryConfig?.panIndiaEnabled) {
+            const serviceablePincode = await prisma.serviceablePincode.findFirst({
+                where: { pincode, isActive: true },
+            });
+
+            if (!serviceablePincode) {
+                return NextResponse.json(
+                    { error: 'Delivery not available in this area.' },
+                    { status: 400 }
+                );
+            }
         }
 
         // SECURITY: Fetch cart items from MongoDB (NOT from frontend)

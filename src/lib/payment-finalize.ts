@@ -102,12 +102,20 @@ export async function finalizePayment(
         }
 
         // 4. Re-validate pincode (may have been deactivated since payment was initiated)
-        const serviceablePincode = await prisma.serviceablePincode.findFirst({
-            where: { pincode: pendingPayment.pincode, isActive: true },
+        // Check Pan India setting first
+        const deliveryConfig = await prisma.deliverySettings.findUnique({
+            where: { id: 'default' },
+            select: { panIndiaEnabled: true },
         });
 
-        if (!serviceablePincode) {
-            return { success: false, error: 'Delivery not available in this area.' };
+        if (!deliveryConfig?.panIndiaEnabled) {
+            const serviceablePincode = await prisma.serviceablePincode.findFirst({
+                where: { pincode: pendingPayment.pincode, isActive: true },
+            });
+
+            if (!serviceablePincode) {
+                return { success: false, error: 'Delivery not available in this area.' };
+            }
         }
 
         // 5. Fetch delivery settings from DB

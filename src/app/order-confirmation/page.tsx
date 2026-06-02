@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { CheckIcon, PackageIcon, WhatsAppIcon, XIcon, TruckIcon, ActivityIcon as MailIcon } from '@/components/Icons';
 import styles from './page.module.css';
 import { trackPurchase, AnalyticsItem } from '@/lib/analytics';
+import { useAuth } from '@/context/AuthContext';
 
 export default function OrderConfirmationPage() {
     return (
@@ -27,6 +28,7 @@ function OrderConfirmationContent() {
     const searchParams = useSearchParams();
     const orderNumber = searchParams.get('orderNumber');
     const [showConfetti, setShowConfetti] = useState(true);
+    const { token } = useAuth();
 
     useEffect(() => {
         // Hide confetti after animation
@@ -36,13 +38,17 @@ function OrderConfirmationContent() {
 
     // Fire purchase event ONCE — sessionStorage guard prevents duplicate on refresh
     useEffect(() => {
-        if (!orderNumber) return;
+        if (!orderNumber || !token) return;
 
         const flagKey = `vanam_purchase_tracked_${orderNumber}`;
         if (sessionStorage.getItem(flagKey)) return; // already fired
 
         // Fetch order value from backend — never trust frontend for price
-        fetch(`/api/orders?orderNumber=${orderNumber}`)
+        fetch(`/api/orders?orderNumber=${orderNumber}`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        })
             .then((res) => res.ok ? res.json() : null)
             .then((data) => {
                 const order = data?.orders?.[0];
@@ -62,7 +68,7 @@ function OrderConfirmationContent() {
                 sessionStorage.setItem(flagKey, '1'); // mark as fired
             })
             .catch(() => null); // silent — never break the confirmation page
-    }, [orderNumber]);
+    }, [orderNumber, token]);
 
     if (!orderNumber) {
         return (

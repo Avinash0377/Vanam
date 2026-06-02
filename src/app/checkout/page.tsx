@@ -56,7 +56,7 @@ interface ValidationIssue {
 
 export default function CheckoutPage() {
     const router = useRouter();
-    const { token, isAuthenticated } = useAuth();
+    const { token, isAuthenticated, user } = useAuth();
     const { items, summary, clearCart } = useCart();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -90,6 +90,10 @@ export default function CheckoutPage() {
     const [pincodeLoading, setPincodeLoading] = useState(false);
     const [pincodeError, setPincodeError] = useState('');
 
+    // Pincode delivery validation state (checks your backend, not just the external API)
+    const [pincodeServiceable, setPincodeServiceable] = useState<boolean | null>(null);
+    const [pincodeCheckMsg, setPincodeCheckMsg] = useState('');
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
 
@@ -97,6 +101,11 @@ export default function CheckoutPage() {
         if (name === 'pincode') {
             const onlyNums = value.replace(/\D/g, '').slice(0, 6);
             setFormData(prev => ({ ...prev, [name]: onlyNums }));
+            // Reset delivery check when pincode changes
+            if (onlyNums.length < 6) {
+                setPincodeServiceable(null);
+                setPincodeCheckMsg('');
+            }
             return;
         }
 
@@ -106,44 +115,96 @@ export default function CheckoutPage() {
         }));
     };
 
-    // Auto-fetch location when pincode reaches 6 digits
+    // Auto-fetch location AND check delivery availability when pincode reaches 6 digits
     useEffect(() => {
-        const fetchLocation = async () => {
+        const fetchLocationAndCheckDelivery = async () => {
             if (formData.pincode.length !== 6) {
-                if (pincodeError) setPincodeError('');
+                setPincodeError('');
                 return;
             }
 
             setPincodeLoading(true);
             setPincodeError('');
+            setPincodeServiceable(null);
+            setPincodeCheckMsg('');
 
-            try {
-                const res = await fetch(`https://api.postalpincode.in/pincode/${formData.pincode}`);
-                const data = await res.json();
+            // Run both checks in parallel: external API for city/state, backend for delivery
+            const [locationResult, deliveryResult] = await Promise.allSettled([
+                // 1. External API for city/state autofill
+                fetch(`https://api.postalpincode.in/pincode/${formData.pincode}`)
+                    .then(res => res.json())
+                    .catch(() => null),
+                // 2. Backend delivery check
+                fetch(`/api/pincode/check?pincode=${formData.pincode}`)
+                    .then(res => res.json())
+                    .catch(() => null),
+            ]);
 
-                if (data && data[0] && data[0].Status === 'Success') {
-                    // Get the first valid post office
-                    const postOffice = data[0].PostOffice[0];
-                    setFormData(prev => ({
-                        ...prev,
-                        city: postOffice.District || postOffice.Block || prev.city,
-                        state: postOffice.State || prev.state,
-                    }));
-                } else {
-                    setPincodeError('Invalid Pincode. Please check again.');
-                    setFormData(prev => ({ ...prev, city: '', state: '' })); // clear invalid location
-                }
-            } catch (err) {
-                console.error('Pincode fetch error:', err);
-                // Fail silently on network error, let user type it manually
-            } finally {
-                setPincodeLoading(false);
+            // Handle location autofill
+            const locationData = locationResult.status === 'fulfilled' ? locationResult.value : null;
+            if (locationData && locationData[0] && locationData[0].Status === 'Success') {
+                const postOffice = locationData[0].PostOffice[0];
+                setFormData(prev => ({
+                    ...prev,
+                    city: postOffice.District || postOffice.Block || prev.city,
+                    state: postOffice.State || prev.state,
+                }));
+            } else if (locationData) {
+                setPincodeError('Invalid Pincode. Please check again.');
+                setFormData(prev => ({ ...prev, city: '', state: '' }));
             }
+
+            // Handle delivery availability
+            const deliveryData = deliveryResult.status === 'fulfilled' ? deliveryResult.value : null;
+            if (deliveryData) {
+                if (deliveryData.available) {
+                    setPincodeServiceable(true);
+                    const location = [deliveryData.city, deliveryData.state].filter(Boolean).join(', ');
+                    setPincodeCheckMsg(location ? `Delivery available to ${location}` : 'Delivery available in your area!');
+                } else {
+                    setPincodeServiceable(false);
+                    setPincodeCheckMsg('Sorry, we don\'t deliver to this pincode yet.');
+                }
+            } else {
+                // Backend check failed — don't block, let server-side create-order handle it
+                setPincodeServiceable(null);
+                setPincodeCheckMsg('');
+            }
+
+            setPincodeLoading(false);
         };
 
-        const timeoutId = setTimeout(fetchLocation, 400); // 400ms debounce
+        const timeoutId = setTimeout(fetchLocationAndCheckDelivery, 400);
         return () => clearTimeout(timeoutId);
     }, [formData.pincode]);
+
+    // Carry over validated pincode and prefill user profile data
+    useEffect(() => {
+        if (user) {
+            setFormData(prev => ({
+                ...prev,
+                customerName: prev.customerName || user.name || '',
+                mobile: prev.mobile || user.mobile || '',
+                email: prev.email || user.email || '',
+            }));
+        }
+    }, [user]);
+
+    useEffect(() => {
+        try {
+            const storedPincode = sessionStorage.getItem('vanam_checkout_pincode');
+            if (storedPincode && storedPincode.length === 6) {
+                setFormData(prev => ({
+                    ...prev,
+                    pincode: storedPincode,
+                }));
+                // Clear sessionStorage after loading to avoid stale values
+                sessionStorage.removeItem('vanam_checkout_pincode');
+            }
+        } catch {
+            // ignore
+        }
+    }, []);
 
     // Read coupon from sessionStorage on mount and re-validate server-side
     useEffect(() => {
@@ -645,11 +706,24 @@ export default function CheckoutPage() {
                                             {pincodeLoading && (
                                                 <div className={styles.pincodeLoader}>
                                                     <span className={styles.btnSpinner} style={{ width: '16px', height: '16px', borderTopColor: '#16a34a' }} />
-                                                    <span style={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: 500 }}>Fetching location...</span>
+                                                    <span style={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: 500 }}>Checking delivery...</span>
                                                 </div>
                                             )}
                                         </div>
                                         {pincodeError && <p className={styles.formError} style={{ marginTop: '0.25rem' }}>{pincodeError}</p>}
+                                        {/* Delivery availability status */}
+                                        {!pincodeLoading && pincodeServiceable === true && (
+                                            <div className={styles.pincodeSuccess}>
+                                                <CheckIcon size={15} color="#16a34a" />
+                                                <span>{pincodeCheckMsg}</span>
+                                            </div>
+                                        )}
+                                        {!pincodeLoading && pincodeServiceable === false && (
+                                            <div className={styles.pincodeFailure}>
+                                                <XIcon size={15} color="#dc2626" />
+                                                <span>{pincodeCheckMsg}</span>
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div className={styles.formGroup}>
@@ -748,7 +822,7 @@ export default function CheckoutPage() {
                                     id="pay-btn"
                                     type="submit"
                                     className={`btn btn-primary btn-lg ${styles.payBtn}`}
-                                    disabled={loading || validating || cartValid !== true}
+                                    disabled={loading || validating || cartValid !== true || pincodeServiceable === false || pincodeLoading}
                                 >
                                     {loading ? (
                                         <span className={styles.btnLoading}>
@@ -762,6 +836,8 @@ export default function CheckoutPage() {
                                         </span>
                                     ) : cartValid === false ? (
                                         '⚠️ Fix Cart Issues First'
+                                    ) : pincodeServiceable === false ? (
+                                        '📍 Delivery not available at this pincode'
                                     ) : (
                                         `🔒 Pay ₹${effectiveTotal.toLocaleString('en-IN')}${serverTotal === null ? ' (est.)' : ''}`
                                     )}

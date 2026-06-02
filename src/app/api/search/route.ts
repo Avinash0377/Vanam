@@ -1,13 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { ProductStatus } from '@prisma/client';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { getProductHref } from '@/lib/variants';
 
-// GET /api/search?q=monstera&limit=8
-// Searches products, combos, and hampers in parallel
 export async function GET(request: NextRequest) {
     try {
-        // Rate limit: 30 search requests/min per IP to prevent regex DoS
         const ip = getClientIp(request);
         const rateLimit = checkRateLimit(`search:${ip}`, { maxRequests: 30, windowSeconds: 60 });
         if (!rateLimit.allowed) {
@@ -99,7 +97,7 @@ export async function GET(request: NextRequest) {
                 price: p.price,
                 image: p.images[0] || null,
                 type: p.productType?.toLowerCase() || 'product',
-                href: `/product/${p.slug}`,
+                href: getProductHref(p.productType, p.slug),
             })),
             ...combos.map(c => ({
                 id: c.id,
@@ -108,7 +106,7 @@ export async function GET(request: NextRequest) {
                 price: c.price,
                 image: c.images[0] || null,
                 type: 'combo',
-                href: `/combos/${c.slug}`,
+                href: getProductHref('combo', c.slug),
             })),
             ...hampers.map(h => ({
                 id: h.id,
@@ -117,7 +115,7 @@ export async function GET(request: NextRequest) {
                 price: h.price,
                 image: h.images[0] || null,
                 type: 'hamper',
-                href: `/gift-hampers/${h.slug}`,
+                href: getProductHref('hamper', h.slug),
             })),
         ].slice(0, limit);
 

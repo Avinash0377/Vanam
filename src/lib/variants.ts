@@ -64,3 +64,45 @@ export function getVariantStock(
     }
     return product.stock;
 }
+
+/**
+ * Generate product/combo/hamper detail page URL path
+ */
+export function getProductHref(
+    type?: string | null,
+    slug?: string | null,
+    category?: string | null
+): string {
+    if (!slug) return '#';
+    const normalizedType = (type || '').toUpperCase();
+    if (normalizedType === 'COMBO' || normalizedType === 'COMBOS') {
+        return `/combos/${slug}`;
+    }
+    if (normalizedType === 'HAMPER' || normalizedType === 'HAMPERS' || normalizedType === 'GIFT-HAMPER' || normalizedType === 'GIFT-HAMPERS') {
+        return `/gift-hampers/${slug}`;
+    }
+    if (normalizedType === 'POT' || normalizedType === 'PLANTER') {
+        return `/pots/${slug}`;
+    }
+    if (normalizedType === 'PLANT') {
+        return `/plants/${slug}`;
+    }
+
+    // Fallbacks based on category if type is generic or missing
+    const normalizedCategory = (category || '').toLowerCase();
+    if (normalizedCategory === 'pots' || normalizedCategory === 'planters') {
+        return `/pots/${slug}`;
+    }
+    if (normalizedCategory === 'combos') {
+        return `/combos/${slug}`;
+    }
+    if (normalizedCategory === 'gift-hampers' || normalizedCategory === 'hampers') {
+        return `/gift-hampers/${slug}`;
+    }
+    if (normalizedCategory === 'plants') {
+        return `/plants/${slug}`;
+    }
+
+    return `/product/${slug}`;
+}
+

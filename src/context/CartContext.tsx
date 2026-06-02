@@ -19,6 +19,7 @@ interface CartItem {
     colorHex?: string;
     customMessage?: string;
     category?: string;
+    productType?: string;
 }
 
 interface CartSummary {
@@ -73,7 +74,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
                 }
                 const loadedItems: CartItem[] = [];
                 // Reconstruct items from stored structure
-                if (parsed.items) loadedItems.push(...parsed.items.map((i: any) => ({ ...i, type: 'product', size: i.size })));
+                if (parsed.items) loadedItems.push(...parsed.items.map((i: any) => ({ ...i, type: 'product', size: i.size, productType: i.productType })));
                 if (parsed.comboItems) loadedItems.push(...parsed.comboItems.map((i: any) => ({ ...i, type: 'combo' })));
                 if (parsed.hamperItems) loadedItems.push(...parsed.hamperItems.map((i: any) => ({ ...i, type: 'hamper' })));
 
@@ -95,7 +96,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             if (data.cart) {
                 const cartItems: CartItem[] = [];
 
-                data.cart.items?.forEach((item: { id: string; quantity: number; size?: string; selectedColor?: string; colorImage?: string; product: { id: string; name: string; slug: string; price: number; images: string[]; size?: string; category?: { name: string } } }) => {
+                data.cart.items?.forEach((item: { id: string; quantity: number; size?: string; selectedColor?: string; colorImage?: string; product: { id: string; name: string; slug: string; price: number; images: string[]; size?: string; category?: { name: string }; productType?: string } }) => {
                     cartItems.push({
                         id: item.id,
                         productId: item.product.id,
@@ -108,6 +109,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
                         size: item.size || item.product.size,
                         color: item.selectedColor,
                         category: item.product.category?.name || 'Plant',
+                        productType: item.product.productType,
                     });
                 });
 
@@ -172,6 +174,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
                 color: i.color,
                 colorHex: i.colorHex,
                 category: i.category,
+                productType: i.productType,
             })),
             comboItems: cartItems.filter(i => i.type === 'combo').map(i => ({
                 id: i.id,

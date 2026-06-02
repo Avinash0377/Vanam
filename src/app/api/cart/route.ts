@@ -24,6 +24,7 @@ async function getCart(request: NextRequest, user: JWTPayload) {
                         status: true,
                         size: true,
                         sizeVariants: true,
+                        productType: true,
                         category: {
                             select: { name: true },
                         },
@@ -161,15 +162,18 @@ async function addToCart(request: NextRequest, user: JWTPayload) {
                 return NextResponse.json({ error: 'Product is not available' }, { status: 400 });
             }
 
-            // Fix 3: Check variant-level stock if size provided
-            const availableStock = getVariantStock(product as { stock: number; sizeVariants?: SizeVariant[] }, size);
-            if (availableStock < safeQuantity) {
-                return NextResponse.json({ error: 'Insufficient stock for selected size' }, { status: 400 });
-            }
-
             existingItem = await prisma.cart.findFirst({
                 where: { userId: user.userId, productId, size, selectedColor },
             });
+
+            const currentQty = existingItem?.quantity || 0;
+            const targetQty = Math.min(10, currentQty + safeQuantity);
+
+            // Fix 3: Check variant-level stock if size provided against TARGET quantity
+            const availableStock = getVariantStock(product as { stock: number; sizeVariants?: SizeVariant[] }, size);
+            if (availableStock < targetQty) {
+                return NextResponse.json({ error: `Insufficient stock. Only ${availableStock} available.` }, { status: 400 });
+            }
         } else if (comboId) {
             const combo = await prisma.combo.findUnique({ where: { id: comboId } });
             if (!combo) return NextResponse.json({ error: 'Combo not found' }, { status: 404 });
@@ -179,11 +183,16 @@ async function addToCart(request: NextRequest, user: JWTPayload) {
                 return NextResponse.json({ error: 'Combo is not available' }, { status: 400 });
             }
 
-            if (combo.stock < safeQuantity) return NextResponse.json({ error: 'Insufficient stock' }, { status: 400 });
-
             existingItem = await prisma.cart.findFirst({
                 where: { userId: user.userId, comboId },
             });
+
+            const currentQty = existingItem?.quantity || 0;
+            const targetQty = Math.min(10, currentQty + safeQuantity);
+
+            if (combo.stock < targetQty) {
+                return NextResponse.json({ error: `Insufficient stock. Only ${combo.stock} available.` }, { status: 400 });
+            }
         } else if (hamperId) {
             const hamper = await prisma.giftHamper.findUnique({ where: { id: hamperId } });
             if (!hamper) return NextResponse.json({ error: 'Hamper not found' }, { status: 404 });
@@ -193,11 +202,16 @@ async function addToCart(request: NextRequest, user: JWTPayload) {
                 return NextResponse.json({ error: 'Gift hamper is not available' }, { status: 400 });
             }
 
-            if (hamper.stock < safeQuantity) return NextResponse.json({ error: 'Insufficient stock' }, { status: 400 });
-
             existingItem = await prisma.cart.findFirst({
                 where: { userId: user.userId, hamperId },
             });
+
+            const currentQty = existingItem?.quantity || 0;
+            const targetQty = Math.min(10, currentQty + safeQuantity);
+
+            if (hamper.stock < targetQty) {
+                return NextResponse.json({ error: `Insufficient stock. Only ${hamper.stock} available.` }, { status: 400 });
+            }
         }
 
         if (existingItem) {

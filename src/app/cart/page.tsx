@@ -9,6 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { TrashIcon, CartIcon, LeafIcon, ArrowRightIcon, TruckIcon, ShieldIcon, TagIcon, CheckIcon, XIcon } from '@/components/Icons';
 import styles from './page.module.css';
 import { trackViewCart, trackBeginCheckout } from '@/lib/analytics';
+import { getProductHref } from '@/lib/variants';
 
 export default function CartPage() {
     const router = useRouter();
@@ -144,6 +145,12 @@ export default function CartPage() {
         } else {
             sessionStorage.removeItem('vanam_coupon');
         }
+        // Store validated pincode to carry it over to checkout page
+        if (validatedPincode) {
+            sessionStorage.setItem('vanam_checkout_pincode', validatedPincode);
+        } else {
+            sessionStorage.removeItem('vanam_checkout_pincode');
+        }
         router.push('/checkout');
     };
 
@@ -214,7 +221,7 @@ export default function CartPage() {
                                 <div className={styles.itemDetails}>
                                     <div className={styles.itemHeader}>
                                         <h3 className={styles.itemName}>
-                                            <Link href={`/${item.type === 'combo' ? 'combos' : item.type === 'hamper' ? 'gift-hampers' : (item.category || '').toLowerCase() === 'pots' ? 'pots' : 'plants'}/${item.slug}`}>
+                                            <Link href={getProductHref(item.productType || item.type, item.slug, item.category)}>
                                                 {item.name}
                                             </Link>
                                         </h3>

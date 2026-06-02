@@ -27,6 +27,7 @@ async function getOrders(request: NextRequest, user: JWTPayload) {
         const page = Math.max(1, parseInt(searchParams.get('page') || '1') || 1);
         const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '10') || 10));
         const status = searchParams.get('status');
+        const orderNumber = searchParams.get('orderNumber');
 
         // BUG-09 fix: validate status against allowed enum values before using in query
         const VALID_ORDER_STATUSES = ['PENDING', 'PAID', 'PACKING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED'];
@@ -43,6 +44,10 @@ async function getOrders(request: NextRequest, user: JWTPayload) {
 
         if (safeStatus) {
             where.orderStatus = safeStatus;
+        }
+
+        if (orderNumber) {
+            where.orderNumber = orderNumber;
         }
 
         const [orders, total] = await Promise.all([
@@ -134,16 +139,23 @@ async function createOrder(request: NextRequest, user: JWTPayload) {
         // Normalize coupon code if provided
         const couponCode = normalizeCouponCode(body.couponCode);
 
-        // Validate pincode is serviceable
-        const serviceablePincode = await prisma.serviceablePincode.findFirst({
-            where: { pincode, isActive: true },
+        // Validate pincode is serviceable (check Pan India setting first)
+        const deliveryConfig = await prisma.deliverySettings.findUnique({
+            where: { id: 'default' },
+            select: { panIndiaEnabled: true },
         });
 
-        if (!serviceablePincode) {
-            return NextResponse.json(
-                { error: 'Delivery not available in this area.' },
-                { status: 400 }
-            );
+        if (!deliveryConfig?.panIndiaEnabled) {
+            const serviceablePincode = await prisma.serviceablePincode.findFirst({
+                where: { pincode, isActive: true },
+            });
+
+            if (!serviceablePincode) {
+                return NextResponse.json(
+                    { error: 'Delivery not available in this area.' },
+                    { status: 400 }
+                );
+            }
         }
 
         // Get user's cart items with product sizeVariants
