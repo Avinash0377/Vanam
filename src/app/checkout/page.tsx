@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
-import { CheckIcon, XIcon, CartIcon } from '@/components/Icons';
+import { CheckIcon, XIcon, CartIcon, ShieldIcon, MessageIcon } from '@/components/Icons';
 import styles from './page.module.css';
 
 declare global {
@@ -61,6 +62,7 @@ export default function CheckoutPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [paymentCancelled, setPaymentCancelled] = useState(false);
+    const [snackbarVisible, setSnackbarVisible] = useState(false);
     const [paymentFailed, setPaymentFailed] = useState<{ message: string; reference: string } | null>(null);
 
     // Server-confirmed amounts (set after create-order API responds)
@@ -442,6 +444,9 @@ export default function CheckoutPage() {
                     ondismiss: () => {
                         setLoading(false);
                         setPaymentCancelled(true);
+                        setSnackbarVisible(true);
+                        // Auto-dismiss snackbar after 5s
+                        setTimeout(() => setSnackbarVisible(false), 5000);
                         // Log cancellation — fire-and-forget, never blocks UI
                         fetch('/api/payments/cancel', {
                             method: 'POST',
@@ -482,15 +487,15 @@ export default function CheckoutPage() {
                 {!isAuthenticated && (
                     <div className={styles.loginRequired}>
                         <div className={styles.loginCard}>
-                            <div className={styles.loginIcon}>🔐</div>
+                            <div className={styles.loginIcon}><ShieldIcon size={40} color="#1a4d2e" /></div>
                             <h2>Login Required</h2>
                             <p>Please login or create an account to proceed with checkout.</p>
 
                             <div className={styles.loginBenefits}>
-                                <div className={styles.benefit}>✓ Track your orders</div>
-                                <div className={styles.benefit}>✓ Save delivery addresses</div>
-                                <div className={styles.benefit}>✓ Get exclusive offers</div>
-                                <div className={styles.benefit}>✓ Faster checkout next time</div>
+                                <div className={styles.benefit}><CheckIcon size={14} color="#16a34a" /> Track your orders</div>
+                                <div className={styles.benefit}><CheckIcon size={14} color="#16a34a" /> Save delivery addresses</div>
+                                <div className={styles.benefit}><CheckIcon size={14} color="#16a34a" /> Get exclusive offers</div>
+                                <div className={styles.benefit}><CheckIcon size={14} color="#16a34a" /> Faster checkout next time</div>
                             </div>
 
                             <div className={styles.loginButtons}>
@@ -544,28 +549,12 @@ export default function CheckoutPage() {
                             </div>
                         )}
 
-                        {/* Payment cancelled — friendly with retry prompt */}
-                        {paymentCancelled && !loading && (
-                            <div className={styles.cancelledBanner}>
-                                <span>😕 Payment was cancelled.</span>
-                                <button
-                                    type="button"
-                                    className={styles.retryBtn}
-                                    onClick={() => {
-                                        setPaymentCancelled(false);
-                                        // Scroll to pay button
-                                        document.getElementById('pay-btn')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                    }}
-                                >
-                                    Try Again
-                                </button>
-                            </div>
-                        )}
+                        {/* Payment cancelled snackbar is rendered at the bottom of the component */}
 
                         {/* Payment failed — friendly with WhatsApp support */}
                         {paymentFailed && (
                             <div className={styles.paymentFailedBanner}>
-                                <div className={styles.paymentFailedTitle}>⚠️ Payment Not Confirmed</div>
+                                <div className={styles.paymentFailedTitle}><XIcon size={18} color="#9a3412" /> Payment Not Confirmed</div>
                                 <p className={styles.paymentFailedMsg}>
                                     Your money is safe — if it was deducted, it will be refunded within 5–7 days.
                                     Please contact us with your reference number.
@@ -580,7 +569,7 @@ export default function CheckoutPage() {
                                     className={styles.paymentFailedWhatsapp}
                                     aria-label="Contact support on WhatsApp"
                                 >
-                                    💬 Contact Support on WhatsApp
+                                    <MessageIcon size={16} color="white" /> Contact Support on WhatsApp
                                 </a>
                             </div>
                         )}
@@ -600,7 +589,7 @@ export default function CheckoutPage() {
 
                         {cartValid === false && validationIssues.length > 0 && !validating && (
                             <div className={styles.validationBanner}>
-                                <h3>⚠️ Cart Issues Found</h3>
+                                <h3><XIcon size={18} color="#92400e" /> Cart Issues Found</h3>
                                 <div className={styles.validationIssues}>
                                     {validationIssues.map((issue) => (
                                         <div
@@ -612,7 +601,7 @@ export default function CheckoutPage() {
                                         >
                                             {issue.issue === 'OUT_OF_STOCK' || issue.issue === 'NOT_FOUND' || issue.issue === 'INACTIVE'
                                                 ? <XIcon size={16} color="#dc2626" />
-                                                : '⚠️'}{' '}
+                                                : <XIcon size={16} color="#92400e" />}{' '}
                                             {issue.message}
                                         </div>
                                     ))}
@@ -835,11 +824,11 @@ export default function CheckoutPage() {
                                             Verifying Cart...
                                         </span>
                                     ) : cartValid === false ? (
-                                        '⚠️ Fix Cart Issues First'
+                                        'Fix Cart Issues First'
                                     ) : pincodeServiceable === false ? (
-                                        '📍 Delivery not available at this pincode'
+                                        'Delivery not available at this pincode'
                                     ) : (
-                                        `🔒 Pay ₹${effectiveTotal.toLocaleString('en-IN')}${serverTotal === null ? ' (est.)' : ''}`
+                                        `Pay \u20B9${effectiveTotal.toLocaleString('en-IN')}${serverTotal === null ? ' (est.)' : ''}`
                                     )}
                                 </button>
 
@@ -851,6 +840,42 @@ export default function CheckoutPage() {
                     </>
                 )}
             </div>
+
+            {/* Payment Cancelled Snackbar — rendered via portal to escape any overflow/z-index */}
+            {snackbarVisible && typeof document !== 'undefined' && createPortal(
+                <div className={styles.snackbar}>
+                    <div className={styles.snackbarContent}>
+                        <span className={styles.snackbarIcon}>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="12" y1="8" x2="12" y2="12" />
+                                <line x1="12" y1="16" x2="12.01" y2="16" />
+                            </svg>
+                        </span>
+                        <span className={styles.snackbarText}>Payment was cancelled</span>
+                    </div>
+                    <button
+                        type="button"
+                        className={styles.snackbarAction}
+                        onClick={() => {
+                            setSnackbarVisible(false);
+                            setPaymentCancelled(false);
+                            document.getElementById('pay-btn')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }}
+                    >
+                        Retry
+                    </button>
+                    <button
+                        type="button"
+                        className={styles.snackbarClose}
+                        onClick={() => setSnackbarVisible(false)}
+                        aria-label="Dismiss"
+                    >
+                        <XIcon size={14} color="#888" />
+                    </button>
+                </div>,
+                document.body
+            )}
         </div>
     );
 }
