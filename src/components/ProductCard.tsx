@@ -377,26 +377,43 @@ function ProductCard({
                 )}
 
                 {/* Color Selector - Shows only for selected size */}
-                {currentColors.length > 0 && (
-                    <div className={styles.colorSection}>
-                        <span className={styles.colorLabel}>Select Color</span>
-                        <div className={styles.colorOptions}>
-                            {currentColors.map((color, idx) => (
-                                <button
-                                    key={idx}
-                                    className={`${styles.colorBtn} ${selectedColor?.hex === color.hex ? styles.colorSelected : ''}`}
-                                    onClick={(e) => handleColorSelect(e, color)}
-                                    title={color.name}
-                                    style={{ backgroundColor: color.hex }}
-                                >
-                                    {selectedColor?.hex === color.hex && (
-                                        <span className={styles.colorCheck}>✓</span>
-                                    )}
-                                </button>
-                            ))}
+                {currentColors.length > 0 && (() => {
+                    const MAX_VISIBLE = 3;
+                    // Ensure the selected color is always visible
+                    let visibleColors = currentColors.slice(0, MAX_VISIBLE);
+                    const selectedIdx = currentColors.findIndex(c => c.hex === selectedColor?.hex);
+                    if (selectedIdx >= MAX_VISIBLE && selectedColor) {
+                        // Swap the selected color into the last visible slot
+                        visibleColors = [...visibleColors.slice(0, MAX_VISIBLE - 1), currentColors[selectedIdx]];
+                    }
+                    const remainingCount = currentColors.length - MAX_VISIBLE;
+
+                    return (
+                        <div className={styles.colorSection}>
+                            <span className={styles.colorLabel}>Select Color</span>
+                            <div className={styles.colorOptions}>
+                                {visibleColors.map((color, idx) => (
+                                    <button
+                                        key={idx}
+                                        className={`${styles.colorBtn} ${selectedColor?.hex === color.hex ? styles.colorSelected : ''}`}
+                                        onClick={(e) => handleColorSelect(e, color)}
+                                        title={color.name}
+                                        style={{ backgroundColor: color.hex }}
+                                    >
+                                        {selectedColor?.hex === color.hex && (
+                                            <span className={styles.colorCheck}>✓</span>
+                                        )}
+                                    </button>
+                                ))}
+                                {remainingCount > 0 && (
+                                    <Link href={productUrl} className={styles.colorMore}>
+                                        +{remainingCount}
+                                    </Link>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                )}
+                    );
+                })()}
 
                 {/* Add to Basket Button */}
                 <button

@@ -1,3 +1,7 @@
+/* ============================================
+   PRODUCT DETAIL PAGE — Mobile-first Design
+   ============================================ */
+
 .page {
     padding: 1.5rem 0;
     min-height: 80vh;
@@ -25,7 +29,10 @@
     }
 }
 
-/* Gallery */
+/* ==========================================
+   IMAGE GALLERY
+   ========================================== */
+
 .gallery {
     display: flex;
     flex-direction: column;
@@ -59,6 +66,28 @@
 
 .image {
     object-fit: cover;
+}
+
+/* Image pagination dots — shown on mobile, hidden on desktop */
+.imageDots {
+    display: none;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.2s ease;
+}
+
+.dotActive {
+    background: white;
+    transform: scale(1.3);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
 .placeholder {
@@ -143,7 +172,10 @@
     object-fit: cover;
 }
 
-/* Details */
+/* ==========================================
+   PRODUCT DETAILS
+   ========================================== */
+
 .details {
     display: flex;
     flex-direction: column;
@@ -202,6 +234,10 @@
     border-radius: var(--radius-full);
 }
 
+/* ==========================================
+   PRICE
+   ========================================== */
+
 .priceRow {
     display: flex;
     align-items: baseline;
@@ -244,7 +280,10 @@
     border-radius: var(--radius-full);
 }
 
-/* Variant Selectors */
+/* ==========================================
+   VARIANT SELECTORS
+   ========================================== */
+
 .variantSection {
     margin-bottom: 1.5rem;
     padding: 1.25rem;
@@ -369,6 +408,10 @@
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
 }
 
+/* ==========================================
+   STOCK STATUS
+   ========================================== */
+
 .stockStatus {
     margin-bottom: 1.5rem;
 }
@@ -387,6 +430,10 @@
     color: var(--error);
     font-weight: 600;
 }
+
+/* ==========================================
+   CONTENT SECTIONS
+   ========================================== */
 
 .section {
     margin-bottom: 1.5rem;
@@ -407,6 +454,10 @@
     line-height: 1.7;
     margin: 0;
 }
+
+/* ==========================================
+   ACTIONS — Add to Cart / WhatsApp / Qty
+   ========================================== */
 
 .actions {
     display: flex;
@@ -453,7 +504,78 @@
     font-size: 1.125rem;
 }
 
-/* Loading & Not Found */
+/* Add to Cart Button */
+.addToCartBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.875rem 2rem;
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1;
+    color: white;
+    background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+    border: none;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 14px rgba(26, 77, 46, 0.35);
+    white-space: nowrap;
+}
+
+.addToCartBtn:hover:not(:disabled) {
+    background: linear-gradient(135deg, var(--primary-700), var(--primary-800));
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(26, 77, 46, 0.45);
+}
+
+.addToCartBtn:active:not(:disabled) {
+    transform: scale(0.97);
+}
+
+.addToCartBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: var(--neutral-300);
+    box-shadow: none;
+}
+
+/* WhatsApp Button */
+.whatsappBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.875rem 2rem;
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1;
+    color: white;
+    background: linear-gradient(135deg, #25d366, #128c7e);
+    border: none;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35);
+    white-space: nowrap;
+}
+
+.whatsappBtn:hover {
+    background: linear-gradient(135deg, #22c35e, #0d7a6e);
+    transform: translateY(-1px);
+}
+
+.whatsappBtn:active {
+    transform: scale(0.97);
+}
+
+/* ==========================================
+   LOADING & NOT FOUND
+   ========================================== */
+
 .loading,
 .notFound {
     display: flex;
@@ -482,10 +604,14 @@
     color: var(--neutral-500);
 }
 
-/* Toast Notification */
+/* ==========================================
+   TOAST NOTIFICATION
+   ========================================== */
+
 .toast {
     position: fixed;
-    bottom: 2rem;
+    /* Default: top-based for desktop — clears header */
+    top: calc(var(--header-height) + 1rem);
     left: 50%;
     transform: translateX(-50%);
     display: flex;
@@ -498,8 +624,8 @@
     font-size: 0.9375rem;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    z-index: 1000;
-    animation: slideUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    z-index: 9999;
+    animation: toastSlide 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
     letter-spacing: 0.02em;
 }
 
@@ -514,14 +640,436 @@
     color: #1a4d2e;
 }
 
-@keyframes slideUp {
+@keyframes toastSlide {
     0% {
-        transform: translateX(-50%) translateY(100%);
+        transform: translateX(-50%) translateY(-100%) scale(0.8);
         opacity: 0;
     }
 
     100% {
-        transform: translateX(-50%) translateY(0);
+        transform: translateX(-50%) translateY(0) scale(1);
         opacity: 1;
+    }
+}
+
+
+/* ============================================================
+   MOBILE PRODUCT PAGE — PREMIUM COMPACT LAYOUT (≤767px)
+   ============================================================ */
+
+@media (max-width: 767px) {
+
+    /* ---- Page ---- */
+    .page {
+        padding: 0.5rem 0 0;
+        /* Bottom clearance: fixed action bar (~120px) + BottomNavBar (56px) + safe area */
+        padding-bottom: calc(190px + env(safe-area-inset-bottom, 0px));
+        min-height: auto;
+    }
+
+    /* ---- Layout: Stack vertically, tight spacing ---- */
+    .layout {
+        gap: 0;
+    }
+
+    /* ==========================================
+       MOBILE GALLERY
+       ========================================== */
+
+    .gallery {
+        gap: 0;
+        margin: 0 -1rem;
+        /* Full-bleed image on mobile */
+    }
+
+    .mainImage {
+        aspect-ratio: 4 / 5;
+        border-radius: 0;
+        background: #f5f5f5;
+        /* Prevent scroll interference with swipe */
+        touch-action: pan-y pinch-zoom;
+    }
+
+    /* Show image dots on mobile */
+    .imageDots {
+        display: flex;
+        justify-content: center;
+        gap: 6px;
+        position: absolute;
+        bottom: 14px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 6px 12px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 20px;
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        z-index: 2;
+    }
+
+    .discountBadge {
+        top: 12px;
+        left: 12px;
+        padding: 6px 14px;
+        font-size: 0.8125rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+    }
+
+    /* Hide thumbnails on mobile — dots + swipe replace them */
+    .thumbnails {
+        display: none;
+    }
+
+    .thumbnail.active {
+        border-color: var(--primary-500);
+        box-shadow: 0 2px 8px rgba(26, 77, 46, 0.2);
+    }
+
+    /* ==========================================
+       MOBILE DETAILS — Clean card layout
+       ========================================== */
+
+    .details {
+        padding: 16px 0 0;
+    }
+
+    /* Category label */
+    .category {
+        font-size: 0.6875rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        margin-bottom: 6px;
+        color: var(--primary-500);
+    }
+
+    /* Product name */
+    .name {
+        font-size: 1.25rem;
+        line-height: 1.3;
+        margin-bottom: 8px;
+        letter-spacing: -0.02em;
+    }
+
+    /* Meta tags */
+    .meta {
+        gap: 6px;
+        margin-bottom: 12px;
+    }
+
+    .tag {
+        padding: 4px 10px;
+        font-size: 0.6875rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+    }
+
+    /* ---- Price Row ---- */
+    .priceRow {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 16px;
+        padding: 14px 16px;
+        background: linear-gradient(135deg, #f0f9f4, #e8f5e9);
+        border-radius: 14px;
+        border: 1px solid #c8e6c9;
+    }
+
+    .price {
+        font-size: 1.5rem;
+        color: var(--primary-700);
+        letter-spacing: -0.02em;
+    }
+
+    .comparePrice {
+        font-size: 0.9rem;
+        color: #999;
+    }
+
+    .discountText {
+        padding: 3px 8px;
+        font-size: 0.6875rem;
+        font-weight: 700;
+        background: #fff7ed;
+        color: #ea580c;
+        border: 1px solid #fed7aa;
+    }
+
+    /* ==========================================
+       MOBILE VARIANT SELECTORS
+       ========================================== */
+
+    .variantSection {
+        margin-bottom: 12px;
+        padding: 14px;
+        border-radius: 14px;
+        background: #fafafa;
+        border: 1px solid #f0f0f0;
+    }
+
+    .variantLabel {
+        font-size: 0.75rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        gap: 8px;
+        letter-spacing: 0.06em;
+        color: var(--neutral-600);
+    }
+
+    .selectedValue {
+        font-size: 0.75rem;
+        padding: 2px 10px;
+    }
+
+    /* Size buttons — pill-style */
+    .sizeOptions {
+        gap: 8px;
+    }
+
+    .sizeBtn {
+        min-width: 52px;
+        /* Touch-friendly */
+        min-height: 44px;
+        padding: 10px 16px;
+        font-size: 0.8125rem;
+        border-radius: 12px;
+        border-width: 1.5px;
+    }
+
+    .sizeBtn.selected {
+        box-shadow: 0 2px 8px rgba(26, 77, 46, 0.3);
+    }
+
+    .sizeBtn .soldOut {
+        top: -6px;
+        right: -6px;
+        font-size: 0.5rem;
+        padding: 1px 5px;
+    }
+
+    /* Color buttons — slightly smaller but still touch-friendly */
+    .colorOptions {
+        gap: 10px;
+    }
+
+    .colorBtn {
+        width: 40px;
+        height: 40px;
+        border-width: 2.5px;
+    }
+
+    .checkIcon {
+        width: 16px;
+        height: 16px;
+    }
+
+    /* ==========================================
+       MOBILE STOCK STATUS
+       ========================================== */
+
+    .stockStatus {
+        margin-bottom: 12px;
+        padding: 10px 14px;
+        border-radius: 10px;
+        font-size: 0.8125rem;
+    }
+
+    .inStock {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 14px;
+        background: #dcfce7;
+        color: #166534;
+        border-radius: 10px;
+        font-size: 0.8125rem;
+    }
+
+    .lowStock {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 14px;
+        background: #fef3c7;
+        color: #92400e;
+        border-radius: 10px;
+        font-size: 0.8125rem;
+    }
+
+    .outOfStock {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 14px;
+        background: #fee2e2;
+        color: #991b1b;
+        border-radius: 10px;
+        font-size: 0.8125rem;
+    }
+
+    /* ==========================================
+       MOBILE CONTENT SECTIONS
+       ========================================== */
+
+    .section {
+        margin-bottom: 10px;
+        padding: 16px;
+        border-radius: 14px;
+        background: #fafaf9;
+        border: 1px solid #f0ece4;
+    }
+
+    .section h3 {
+        font-size: 0.875rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+        color: var(--neutral-800);
+        letter-spacing: -0.01em;
+    }
+
+    .section p {
+        font-size: 0.8125rem;
+        line-height: 1.65;
+        color: var(--neutral-600);
+    }
+
+    /* ==========================================
+       MOBILE ACTION BAR — Fixed bottom CTA
+       ========================================== */
+
+    .actions {
+        position: fixed;
+        bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+        left: 0;
+        right: 0;
+        z-index: 90;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 0;
+        padding: 12px 1rem;
+        background: white;
+        border-top: 1px solid #eee;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+        border-radius: 0;
+    }
+
+    /* Quantity selector — compact inline */
+    .quantity {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+        padding: 4px;
+        background: #f5f5f5;
+        border-radius: 12px;
+        flex-shrink: 0;
+    }
+
+    .quantity button {
+        width: 38px;
+        height: 36px;
+        font-size: 1.15rem;
+        border-radius: 10px;
+    }
+
+    .quantity span {
+        min-width: 36px;
+        font-size: 1rem;
+    }
+
+    /* Add to Cart — fills row beside quantity */
+    .addToCartBtn {
+        flex: 1;
+        min-height: 44px;
+        padding: 0 12px;
+        font-size: 0.875rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(26, 77, 46, 0.25);
+    }
+
+    .addToCartBtn:hover:not(:disabled) {
+        transform: none;
+    }
+
+    /* WhatsApp — full width second row */
+    .whatsappBtn {
+        flex-basis: 100%;
+        min-height: 42px;
+        padding: 0 12px;
+        font-size: 0.8125rem;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(37, 211, 102, 0.25);
+    }
+
+    .whatsappBtn:hover {
+        transform: none;
+    }
+
+    /* ==========================================
+       MOBILE TOAST — Above BottomNavBar
+       ========================================== */
+
+    .toast {
+        top: auto;
+        bottom: calc(130px + env(safe-area-inset-bottom, 0px));
+        left: 1rem;
+        right: 1rem;
+        transform: none;
+        justify-content: center;
+        padding: 12px 16px;
+        font-size: 0.875rem;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        animation: mobileToastSlide 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    @keyframes mobileToastSlide {
+        0% {
+            transform: translateY(20px);
+            opacity: 0;
+        }
+
+        100% {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    /* ---- Loading / Not Found ---- */
+    .loading,
+    .notFound {
+        min-height: 50vh;
+        padding: 2rem 1rem;
+    }
+
+    .notFound span {
+        font-size: 3.5rem;
+    }
+}
+
+/* ============================================================
+   TABLET (768px – 1023px)
+   ============================================================ */
+
+@media (min-width: 768px) and (max-width: 1023px) {
+    .layout {
+        gap: 2rem;
+    }
+
+    .mainImage {
+        aspect-ratio: 1;
+        border-radius: 16px;
+    }
+
+    .name {
+        font-size: 1.75rem;
+    }
+
+    .actions {
+        flex-wrap: nowrap;
     }
 }

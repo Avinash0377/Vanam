@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
 import styles from './page.module.css';
@@ -45,6 +45,10 @@ export default function ProductClient({ product }: { product: ProductData }) {
     const [quantity, setQuantity] = useState(1);
     const [activeImage, setActiveImage] = useState(0);
     const [showToast, setShowToast] = useState(false);
+
+    // Touch swipe refs (handlers defined after displayImages)
+    const touchStartX = useRef<number | null>(null);
+    const touchStartY = useRef<number | null>(null);
 
     // Variant selection state
     const [selectedSize, setSelectedSize] = useState<string | null>(
@@ -93,6 +97,28 @@ export default function ProductClient({ product }: { product: ProductData }) {
         if (selectedColor?.images?.length) return selectedColor.images;
         return product.images;
     }, [selectedColor, product.images]);
+
+    // Touch swipe handlers for mobile gallery (must be after displayImages)
+    const handleTouchStart = useCallback((e: React.TouchEvent) => {
+        touchStartX.current = e.touches[0].clientX;
+        touchStartY.current = e.touches[0].clientY;
+    }, []);
+
+    const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+        if (touchStartX.current === null || touchStartY.current === null) return;
+        const deltaX = e.changedTouches[0].clientX - touchStartX.current;
+        const deltaY = e.changedTouches[0].clientY - touchStartY.current;
+        // Only swipe if horizontal movement > vertical (not scrolling)
+        if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+            if (deltaX < 0 && activeImage < displayImages.length - 1) {
+                setActiveImage(prev => prev + 1);
+            } else if (deltaX > 0 && activeImage > 0) {
+                setActiveImage(prev => prev - 1);
+            }
+        }
+        touchStartX.current = null;
+        touchStartY.current = null;
+    }, [activeImage, displayImages.length]);
 
     // Handle size selection
     const handleSizeSelect = (size: string) => {
@@ -163,7 +189,11 @@ export default function ProductClient({ product }: { product: ProductData }) {
             <div className={styles.layout}>
                 {/* ── Image Gallery ── */}
                 <div className={styles.gallery}>
-                    <div className={styles.mainImage}>
+                    <div
+                        className={styles.mainImage}
+                        onTouchStart={handleTouchStart}
+                        onTouchEnd={handleTouchEnd}
+                    >
                         {displayImages[activeImage] ? (
                             <Image
                                 src={displayImages[activeImage]}
@@ -172,12 +202,26 @@ export default function ProductClient({ product }: { product: ProductData }) {
                                 sizes="(max-width: 768px) 100vw, 50vw"
                                 className={styles.image}
                                 priority
+                                draggable={false}
                             />
                         ) : (
                             <div className={styles.placeholder}>🌱</div>
                         )}
                         {discount > 0 && (
                             <span className={styles.discountBadge}>{discount}% OFF</span>
+                        )}
+                        {/* Image counter dots — visible on mobile */}
+                        {displayImages.length > 1 && (
+                            <div className={styles.imageDots}>
+                                {displayImages.map((_, idx) => (
+                                    <button
+                                        key={idx}
+                                        className={`${styles.dot} ${idx === activeImage ? styles.dotActive : ''}`}
+                                        onClick={() => setActiveImage(idx)}
+                                        aria-label={`Image ${idx + 1}`}
+                                    />
+                                ))}
+                            </div>
                         )}
                     </div>
                     {displayImages.length > 1 && (
@@ -312,14 +356,14 @@ export default function ProductClient({ product }: { product: ProductData }) {
                         </div>
 
                         <button
-                            className="btn btn-primary btn-lg"
+                            className={styles.addToCartBtn}
                             onClick={handleAddToCart}
                             disabled={currentStock <= 0}
                         >
                             {currentStock <= 0 ? 'Out of Stock' : 'Add to Cart'}
                         </button>
 
-                        <button className="btn btn-whatsapp btn-lg" onClick={handleWhatsApp}>
+                        <button className={styles.whatsappBtn} onClick={handleWhatsApp}>
                             💬 Order on WhatsApp
                         </button>
                     </div>

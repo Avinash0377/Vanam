@@ -390,7 +390,7 @@ export default function ProductDetails({ type, initialData }: ProductDetailsProp
                             </div>
 
                             <button
-                                className="btn btn-primary btn-lg"
+                                className={styles.addToBasketBtn}
                                 onClick={handleAddToCart}
                                 disabled={currentStock <= 0}
                             >
@@ -424,11 +424,13 @@ export default function ProductDetails({ type, initialData }: ProductDetailsProp
                                 ) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                                 </svg>
-                                {product && isInWishlist(
-                                    type === 'product' || type === 'pot' ? product.id : undefined,
-                                    type === 'combo' ? product.id : undefined,
-                                    type === 'hamper' ? product.id : undefined
-                                ) ? 'Wishlisted' : 'Add to Wishlist'}
+                                <span className={styles.wishlistText}>
+                                    {product && isInWishlist(
+                                        type === 'product' || type === 'pot' ? product.id : undefined,
+                                        type === 'combo' ? product.id : undefined,
+                                        type === 'hamper' ? product.id : undefined
+                                    ) ? 'Wishlisted' : 'Wishlist'}
+                                </span>
                             </button>
 
                         </div>
