@@ -84,6 +84,9 @@ export function getProductHref(
     if (normalizedType === 'POT' || normalizedType === 'PLANTER') {
         return `/pots/${slug}`;
     }
+    if (normalizedType === 'SEED' || normalizedType === 'ACCESSORY') {
+        return `/product/${slug}`;
+    }
     if (normalizedType === 'PLANT') {
         return `/plants/${slug}`;
     }

@@ -259,9 +259,15 @@ function ProfileContent() {
                         <span className={styles.detailLabel}>Full Name</span>
                         <span className={styles.detailValue}>{user.name}</span>
                     </div>
+                    {user.mobile && (
+                        <div className={styles.detailRow}>
+                            <span className={styles.detailLabel}>Mobile</span>
+                            <span className={styles.detailValue}>{user.mobile}</span>
+                        </div>
+                    )}
                     <div className={styles.detailRow}>
                         <span className={styles.detailLabel}>Email</span>
-                        <span className={styles.detailValue}>{user.email}</span>
+                        <span className={styles.detailValue}>{user.email || '—'}</span>
                     </div>
                 </div>
 

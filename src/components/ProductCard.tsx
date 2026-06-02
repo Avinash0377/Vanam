@@ -249,13 +249,17 @@ function ProductCard({
         setSelectedColor(color);
     };
 
-    const productUrl = type === 'product'
-        ? `/plants/${slug}`
-        : type === 'pot'
-            ? `/pots/${slug}`
-            : type === 'combo'
-                ? `/combos/${slug}`
-                : `/gift-hampers/${slug}`;
+    const getProductUrl = () => {
+        if (type === 'combo') return `/combos/${slug}`;
+        if (type === 'hamper') return `/gift-hampers/${slug}`;
+        if (type === 'pot') return `/pots/${slug}`;
+        // Seeds & accessories use the universal /product/ route
+        const pt = (productType || '').toUpperCase();
+        if (pt === 'SEED' || pt === 'ACCESSORY') return `/product/${slug}`;
+        // Default: plants
+        return `/plants/${slug}`;
+    };
+    const productUrl = getProductUrl();
 
     return (
         <div className={styles.card}>
