@@ -151,6 +151,9 @@ async function addToCart(request: NextRequest, user: JWTPayload) {
             );
         }
 
+        // SECURITY: Limit total distinct items in cart to prevent abuse/slow queries
+        const MAX_CART_ITEMS = 50;
+
         let existingItem;
 
         if (productId) {
@@ -226,6 +229,15 @@ async function addToCart(request: NextRequest, user: JWTPayload) {
                 },
             });
         } else {
+            // Enforce max distinct items limit only when creating a NEW cart entry
+            const cartItemCount = await prisma.cart.count({ where: { userId: user.userId } });
+            if (cartItemCount >= MAX_CART_ITEMS) {
+                return NextResponse.json(
+                    { error: `Cart is full. Maximum ${MAX_CART_ITEMS} different items allowed.` },
+                    { status: 400 }
+                );
+            }
+
             await prisma.cart.create({
                 data: {
                     userId: user.userId,

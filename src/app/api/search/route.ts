@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { ProductStatus } from '@prisma/client';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
@@ -25,7 +25,12 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ results: [] });
         }
 
-        const searchFilter = { contains: query, mode: 'insensitive' as const };
+        // SECURITY: Escape regex special characters to prevent ReDoS on MongoDB.
+        // Prisma's `contains` with `mode: insensitive` internally generates a regex query,
+        // so special chars like *, +, ?, ^, $, etc. must be escaped.
+        const safeQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+        const searchFilter = { contains: safeQuery, mode: 'insensitive' as const };
 
         // Search all three collections in parallel
         const [products, combos, hampers] = await Promise.all([

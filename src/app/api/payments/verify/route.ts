@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/middleware';
 import { JWTPayload } from '@/lib/auth';
-import { verifyPaymentSignature } from '@/lib/razorpay';
+import { verifyPaymentSignature, fetchPayment } from '@/lib/razorpay';
 import { finalizePayment, markPendingPaymentFailed } from '@/lib/payment-finalize';
 import prisma from '@/lib/prisma';
 import { checkRateLimit } from '@/lib/rate-limit';
@@ -88,6 +88,45 @@ async function verifyPayment(request: NextRequest, user: JWTPayload) {
                 { error: 'Unauthorized' },
                 { status: 403 }
             );
+        }
+
+        // SECURITY: Re-validate amount against Razorpay's actual payment record.
+        // This prevents scenarios where a tampered payment of ₹1 could create a ₹10,000 order.
+        // The webhook handler already does this — now the /verify endpoint does too.
+        try {
+            const razorpayPayment = await fetchPayment(razorpay_payment_id);
+            const expectedAmountPaise = Math.round(pendingPayment.amount * 100);
+            const actualAmountPaise = razorpayPayment.amount as number;
+
+            if (actualAmountPaise !== expectedAmountPaise) {
+                logPaymentEvent({
+                    eventType: 'FAILED',
+                    status: 'FAILED',
+                    correlationId: razorpay_order_id,
+                    razorpayOrderId: razorpay_order_id,
+                    razorpayPaymentId: razorpay_payment_id,
+                    amount: actualAmountPaise / 100,
+                    message: `Amount mismatch in /verify: expected ${expectedAmountPaise} paise, got ${actualAmountPaise} paise`,
+                    request,
+                }).catch(() => null);
+
+                await markPendingPaymentFailed(razorpay_order_id);
+                return NextResponse.json(
+                    { error: 'Payment amount mismatch. Please contact support.' },
+                    { status: 400 }
+                );
+            }
+        } catch (fetchError) {
+            // If Razorpay API is unreachable, log but don't block — signature was already verified
+            logPaymentEvent({
+                eventType: 'VERIFICATION_STARTED',
+                status: 'INFO',
+                correlationId: razorpay_order_id,
+                razorpayOrderId: razorpay_order_id,
+                razorpayPaymentId: razorpay_payment_id,
+                message: `Razorpay fetchPayment failed (non-blocking): ${fetchError instanceof Error ? fetchError.message : 'Unknown'}`,
+                request,
+            }).catch(() => null);
         }
 
         // DUPLICATE ATTEMPT: Already processed — log once per 60s to prevent spam, then return

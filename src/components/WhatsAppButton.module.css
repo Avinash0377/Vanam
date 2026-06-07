@@ -104,23 +104,23 @@
 /* Mobile adjustments */
 @media (max-width: 768px) {
     .wrapper {
-        bottom: 80px;
-        /* Above bottom nav bar */
-        right: 16px;
+        bottom: 90px;
+        /* Above bottom nav bar (56px) + enough clearance from page content */
+        right: 12px;
     }
 
     .button {
-        width: 52px;
-        height: 52px;
+        width: 48px;
+        height: 48px;
     }
 
     .icon {
-        width: 52px;
-        height: 52px;
+        width: 48px;
+        height: 48px;
     }
 
     .tooltip {
         font-size: 12px;
         padding: 7px 12px;
     }
-}
+}
