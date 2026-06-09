@@ -139,6 +139,25 @@ model Category {
 }
 
 
+// ==================== SUBCATEGORY (Bubble Filters) ====================
+model Subcategory {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  name         String                    // Display name: "Air Purifying", "Ceramic Pots"
+  slug         String   @unique
+  image        String?                   // Circular bubble thumbnail URL
+  productType  String                    // "PLANT" or "POT" — which page this appears on
+  matchTags    String[]                  // Tags to match: ["Air Purifying", "NASA Approved"]
+  matchField   String?                   // Optional field match: "suitableFor:INDOOR", "material:ceramic"
+  displayOrder Int      @default(0)      // Sort order in the bubble row
+  isActive     Boolean  @default(true)   // Toggle visibility
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([productType, isActive])
+  @@index([displayOrder])
+}
+
+
 // ==================== PRODUCT ====================
 
 // Color type for size variants

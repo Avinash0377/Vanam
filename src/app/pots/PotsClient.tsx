@@ -47,8 +47,47 @@ function normSize(s: string): string {
     return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 }
 
+interface SubcategoryData {
+    id: string;
+    name: string;
+    slug: string;
+    image: string | null;
+    matchTags: string[];
+    matchField: string | null;
+    displayOrder: number;
+}
+
 interface PotsClientProps {
     initialProducts: Pot[];
+    subcategories: SubcategoryData[];
+}
+
+// Build a filter function from subcategory DB data
+function buildFilterFn(sc: SubcategoryData): (p: Pot) => boolean {
+    return (product: Pot) => {
+        // Match by tags — product must have at least one matching tag
+        if (sc.matchTags.length > 0) {
+            const hasTag = sc.matchTags.some(tag => 
+                product.tags?.some(pTag => 
+                    pTag.toLowerCase().trim() === tag.toLowerCase().trim()
+                )
+            );
+            if (hasTag) return true;
+        }
+
+        // Match by field (e.g., "material:ceramic")
+        if (sc.matchField) {
+            const [field, value] = sc.matchField.split(':');
+            if (field && value) {
+                const productValue = (product as unknown as Record<string, unknown>)[field];
+                if (typeof productValue === 'string') {
+                    if (productValue.toLowerCase() === value.toLowerCase()) return true;
+                }
+            }
+        }
+
+        return sc.matchTags.length === 0 && !sc.matchField;
+    };
 }
 
 const btnStyle = (active: boolean) => ({
@@ -64,12 +103,19 @@ const btnStyle = (active: boolean) => ({
     minHeight: 40,
 });
 
-export default function PotsClient({ initialProducts }: PotsClientProps) {
+export default function PotsClient({ initialProducts, subcategories }: PotsClientProps) {
     // Unified state
     const [selectedMaterial, setSelectedMaterial] = useState('All');
     const [selectedSize, setSelectedSize] = useState('All');
     const [sortBy, setSortBy] = useState('featured');
     const [filteredPots, setFilteredPots] = useState<Pot[]>(initialProducts);
+    const [subcategory, setSubcategory] = useState('all');
+
+    // Build the full subcategory list with "All Pots" prepended
+    const allSubcategories = [
+        { id: 'all', name: 'All Pots', slug: 'all', image: '/all-pots.png', matchTags: [] as string[], matchField: null, displayOrder: -1 },
+        ...subcategories,
+    ];
 
     // Mobile sheet open state
     const [sortOpen, setSortOpen] = useState(false);
@@ -80,8 +126,17 @@ export default function PotsClient({ initialProducts }: PotsClientProps) {
     const [tempMaterial, setTempMaterial] = useState('All');
     const [tempSize, setTempSize] = useState('All');
 
+    // Get the active subcategory
+    const activeSubcategory = allSubcategories.find(sc => sc.slug === subcategory);
+
     useEffect(() => {
         let filtered = initialProducts;
+
+        // Subcategory filter
+        if (activeSubcategory && activeSubcategory.slug !== 'all') {
+            filtered = filtered.filter(p => buildFilterFn(activeSubcategory)(p));
+        }
+
         if (selectedMaterial !== 'All') {
             filtered = filtered.filter(p => p.material?.toLowerCase() === selectedMaterial.toLowerCase());
         }
@@ -93,7 +148,8 @@ export default function PotsClient({ initialProducts }: PotsClientProps) {
             );
         }
         setFilteredPots(filtered);
-    }, [selectedMaterial, selectedSize, initialProducts]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedMaterial, selectedSize, subcategory, initialProducts]);
 
     const sortedPots = [...filteredPots].sort((a, b) => {
         switch (sortBy) {
@@ -117,6 +173,11 @@ export default function PotsClient({ initialProducts }: PotsClientProps) {
 
     const tempFilterCount = (tempMaterial !== 'All' ? 1 : 0) + (tempSize !== 'All' ? 1 : 0);
 
+    // Handle subcategory click
+    const handleSubcategoryClick = (key: string) => {
+        setSubcategory(key);
+    };
+
     return (
         <>
             <div className={styles.page}>
@@ -130,6 +191,33 @@ export default function PotsClient({ initialProducts }: PotsClientProps) {
                             From classic terracotta to modern ceramic designs.
                         </p>
                     </div>
+
+                    {/* ── Subcategory Bubble Row ─────────────────────────────── */}
+                    {allSubcategories.length > 1 && (
+                        <div className={styles.subcategoryRow} role="tablist" aria-label="Pot subcategories">
+                            {allSubcategories.map((sc) => (
+                                <button
+                                    key={sc.slug}
+                                    className={`${styles.subcategoryBubble}${subcategory === sc.slug ? ` ${styles.active}` : ''}`}
+                                    onClick={() => handleSubcategoryClick(sc.slug)}
+                                    role="tab"
+                                    aria-selected={subcategory === sc.slug}
+                                    aria-label={`Filter by ${sc.name}`}
+                                >
+                                    <div className={styles.bubbleImage}>
+                                        <img
+                                            src={sc.image || '/placeholder-plant.jpg'}
+                                            alt={sc.name}
+                                            loading="lazy"
+                                            width={120}
+                                            height={120}
+                                        />
+                                    </div>
+                                    <span className={styles.bubbleLabel}>{sc.name}</span>
+                                </button>
+                            ))}
+                        </div>
+                    )}
 
                     <div className={styles.layout}>
                         {/* Filters Sidebar — desktop only */}
@@ -157,7 +245,7 @@ export default function PotsClient({ initialProducts }: PotsClientProps) {
 
                                 <button
                                     className={styles.clearBtn}
-                                    onClick={() => { setSelectedMaterial('All'); setSelectedSize('All'); }}
+                                    onClick={() => { setSelectedMaterial('All'); setSelectedSize('All'); setSubcategory('all'); }}
                                 >
                                     Clear Filters
                                 </button>
@@ -203,7 +291,7 @@ export default function PotsClient({ initialProducts }: PotsClientProps) {
                                     <PotIcon size={64} color="#94a3b8" />
                                     <p>No pots match your filters. Try adjusting your selection.</p>
                                     <button
-                                        onClick={() => { setSelectedMaterial('All'); setSelectedSize('All'); }}
+                                        onClick={() => { setSelectedMaterial('All'); setSelectedSize('All'); setSubcategory('all'); }}
                                         style={{ marginTop: 16, padding: '10px 24px', background: '#f59e0b', color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}
                                     >
                                         Clear Filters

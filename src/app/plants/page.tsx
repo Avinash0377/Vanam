@@ -34,14 +34,34 @@ function serializeProduct(p: Record<string, unknown>) {
     };
 }
 
+function serializeSubcategory(s: Record<string, unknown>) {
+    return {
+        id: s.id as string,
+        name: s.name as string,
+        slug: s.slug as string,
+        image: (s.image as string) || null,
+        matchTags: (s.matchTags as string[]) || [],
+        matchField: (s.matchField as string) || null,
+        displayOrder: s.displayOrder as number,
+    };
+}
+
 export default async function PlantsPage() {
-    // Fetch plants directly from DB — no API roundtrip
-    const rawProducts = await prisma.product.findMany({
-        where: { productType: 'PLANT', status: 'ACTIVE' },
-        orderBy: { createdAt: 'desc' },
-    });
+    // Fetch plants and subcategories in parallel
+    const [rawProducts, rawSubcategories] = await Promise.all([
+        prisma.product.findMany({
+            where: { productType: 'PLANT', status: 'ACTIVE' },
+            orderBy: { createdAt: 'desc' },
+        }),
+        prisma.subcategory.findMany({
+            where: { productType: 'PLANT', isActive: true },
+            orderBy: { displayOrder: 'asc' },
+        }),
+    ]);
 
     const products = rawProducts.map(p => serializeProduct(p as unknown as Record<string, unknown>));
+    const subcategories = rawSubcategories.map(s => serializeSubcategory(s as unknown as Record<string, unknown>));
 
-    return <PlantsClient initialProducts={products} />;
+    return <PlantsClient initialProducts={products} subcategories={subcategories} />;
 }
+

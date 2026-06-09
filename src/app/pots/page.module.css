@@ -121,6 +121,133 @@
     }
 }
 
+/* ── Subcategory Bubble Row ─────────────────────────────────── */
+.subcategoryRow {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 8px 4px 16px;
+    margin-bottom: 8px;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.subcategoryRow::-webkit-scrollbar {
+    display: none;
+}
+
+.subcategoryBubble {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    flex-shrink: 0;
+    border: none;
+    background: none;
+    padding: 0;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.subcategoryBubble:focus-visible .bubbleImage {
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3);
+}
+
+.bubbleImage {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid #e5e7eb;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.2s ease;
+    position: relative;
+    background: #f9fafb;
+}
+
+.bubbleImage img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.subcategoryBubble:hover .bubbleImage {
+    border-color: #fcd34d;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.12);
+}
+
+.subcategoryBubble:hover .bubbleImage img {
+    transform: scale(1.08);
+}
+
+/* Active / selected state — amber ring */
+.subcategoryBubble.active .bubbleImage {
+    border-color: #f59e0b;
+    box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #f59e0b;
+}
+
+.bubbleLabel {
+    font-size: 0.65rem;
+    font-weight: 500;
+    color: #64748b;
+    text-align: center;
+    line-height: 1.3;
+    max-width: 90px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.2s ease, font-weight 0.2s ease;
+}
+
+.subcategoryBubble.active .bubbleLabel {
+    color: #b45309;
+    font-weight: 700;
+}
+
+.subcategoryBubble:hover .bubbleLabel {
+    color: #374151;
+}
+
+@media (min-width: 768px) {
+    .subcategoryRow {
+        gap: 28px;
+        padding: 12px 4px 20px;
+        margin-bottom: 12px;
+    }
+
+    .bubbleImage {
+        width: 110px;
+        height: 110px;
+        border-width: 3px;
+    }
+
+    .subcategoryBubble.active .bubbleImage {
+        box-shadow: 0 0 0 3px #ffffff, 0 0 0 5px #f59e0b;
+    }
+
+    .bubbleLabel {
+        font-size: 0.8rem;
+        max-width: 120px;
+    }
+}
+
+@media (min-width: 1280px) {
+    .bubbleImage {
+        width: 120px;
+        height: 120px;
+    }
+
+    .subcategoryRow {
+        gap: 32px;
+    }
+}
+
 .layout {
     display: grid;
     grid-template-columns: 1fr;

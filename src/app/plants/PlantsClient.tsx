@@ -34,8 +34,50 @@ interface Product {
     tags?: string[];
 }
 
+interface SubcategoryData {
+    id: string;
+    name: string;
+    slug: string;
+    image: string | null;
+    matchTags: string[];
+    matchField: string | null;
+    displayOrder: number;
+}
+
 interface PlantsClientProps {
     initialProducts: Product[];
+    subcategories: SubcategoryData[];
+}
+
+// Build a filter function from subcategory DB data
+function buildFilterFn(sc: SubcategoryData): (p: Product) => boolean {
+    return (product: Product) => {
+        // Match by tags — product must have at least one matching tag
+        if (sc.matchTags.length > 0) {
+            const hasTag = sc.matchTags.some(tag => 
+                product.tags?.some(pTag => 
+                    pTag.toLowerCase().trim() === tag.toLowerCase().trim()
+                )
+            );
+            if (hasTag) return true;
+        }
+
+        // Match by field (e.g., "suitableFor:INDOOR" or "material:ceramic")
+        if (sc.matchField) {
+            const [field, value] = sc.matchField.split(':');
+            if (field && value) {
+                const productValue = (product as unknown as Record<string, unknown>)[field];
+                if (typeof productValue === 'string') {
+                    if (productValue.toLowerCase() === value.toLowerCase()) return true;
+                    // For suitableFor, also match BOTH
+                    if (field === 'suitableFor' && productValue === 'BOTH') return true;
+                }
+            }
+        }
+
+        // If no matchTags and no matchField, show nothing (shouldn't happen)
+        return sc.matchTags.length === 0 && !sc.matchField;
+    };
 }
 
 const btnStyle = (active: boolean) => ({
@@ -51,11 +93,18 @@ const btnStyle = (active: boolean) => ({
     minHeight: 40,
 });
 
-export default function PlantsClient({ initialProducts }: PlantsClientProps) {
+export default function PlantsClient({ initialProducts, subcategories }: PlantsClientProps) {
     // Unified state — mobile and desktop share the same values
     const [sortBy, setSortBy] = useState('featured');
     const [suitableFor, setSuitableFor] = useState('');
     const [size, setSize] = useState('');
+    const [subcategory, setSubcategory] = useState('all');
+
+    // Build the full subcategory list with "All Plants" prepended
+    const allSubcategories = [
+        { id: 'all', name: 'All Plants', slug: 'all', image: '/hero-plant.png', matchTags: [] as string[], matchField: null, displayOrder: -1 },
+        ...subcategories,
+    ];
 
     // Mobile sheet open state
     const [sortOpen, setSortOpen] = useState(false);
@@ -75,6 +124,9 @@ export default function PlantsClient({ initialProducts }: PlantsClientProps) {
         return s.toUpperCase();
     };
 
+    // Get the active subcategory and build its filter
+    const activeSubcategory = allSubcategories.find(sc => sc.slug === subcategory);
+
     const filteredProducts = initialProducts.filter(product => {
         // Indoor → show INDOOR + BOTH; Outdoor → show OUTDOOR + BOTH; All → show everything
         const matchesSuitable = !suitableFor ||
@@ -88,7 +140,13 @@ export default function PlantsClient({ initialProducts }: PlantsClientProps) {
                 : normSize(product.size || '') === size
         );
 
-        return matchesSuitable && matchesSize;
+        // Subcategory filter — skip for "All Plants"
+        let matchesSubcategory = true;
+        if (activeSubcategory && activeSubcategory.slug !== 'all') {
+            matchesSubcategory = buildFilterFn(activeSubcategory)(product);
+        }
+
+        return matchesSuitable && matchesSize && matchesSubcategory;
     });
 
     const sortedProducts = [...filteredProducts].sort((a, b) => {
@@ -131,6 +189,11 @@ export default function PlantsClient({ initialProducts }: PlantsClientProps) {
         setTempSize('');
     };
 
+    // Handle subcategory click
+    const handleSubcategoryClick = (key: string) => {
+        setSubcategory(key);
+    };
+
     return (
         <>
             <div className={styles.page}>
@@ -142,6 +205,33 @@ export default function PlantsClient({ initialProducts }: PlantsClientProps) {
                             <p className={styles.subtitle}>Discover our handpicked selection of beautiful plants</p>
                         </div>
                     </div>
+
+                    {/* ── Subcategory Bubble Row ─────────────────────────────── */}
+                    {allSubcategories.length > 1 && (
+                        <div className={styles.subcategoryRow} role="tablist" aria-label="Plant subcategories">
+                            {allSubcategories.map((sc) => (
+                                <button
+                                    key={sc.slug}
+                                    className={`${styles.subcategoryBubble}${subcategory === sc.slug ? ` ${styles.active}` : ''}`}
+                                    onClick={() => handleSubcategoryClick(sc.slug)}
+                                    role="tab"
+                                    aria-selected={subcategory === sc.slug}
+                                    aria-label={`Filter by ${sc.name}`}
+                                >
+                                    <div className={styles.bubbleImage}>
+                                        <img
+                                            src={sc.image || '/hero-plant.png'}
+                                            alt={sc.name}
+                                            loading="lazy"
+                                            width={120}
+                                            height={120}
+                                        />
+                                    </div>
+                                    <span className={styles.bubbleLabel}>{sc.name}</span>
+                                </button>
+                            ))}
+                        </div>
+                    )}
 
                     <div className={styles.layout}>
                         {/* Filters Sidebar — desktop only */}
@@ -170,7 +260,7 @@ export default function PlantsClient({ initialProducts }: PlantsClientProps) {
 
                                 <button
                                     className={styles.clearBtn}
-                                    onClick={() => { setSuitableFor(''); setSize(''); }}
+                                    onClick={() => { setSuitableFor(''); setSize(''); setSubcategory('all'); }}
                                 >
                                     Clear Filters
                                 </button>
@@ -227,7 +317,7 @@ export default function PlantsClient({ initialProducts }: PlantsClientProps) {
                                 <div style={{ textAlign: 'center', padding: '4rem 2rem' }}>
                                     <p style={{ fontSize: '1.25rem', color: '#64748b' }}>🌱 No plants found matching your filters.</p>
                                     <button
-                                        onClick={() => { setSuitableFor(''); setSize(''); }}
+                                        onClick={() => { setSuitableFor(''); setSize(''); setSubcategory('all'); }}
                                         style={{ marginTop: 16, padding: '10px 24px', background: '#1a4d2e', color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}
                                     >
                                         Clear Filters
@@ -418,3 +508,4 @@ export default function PlantsClient({ initialProducts }: PlantsClientProps) {
         </>
     );
 }
+

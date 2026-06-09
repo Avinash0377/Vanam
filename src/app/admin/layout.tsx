@@ -20,12 +20,14 @@ import {
     UserIcon,
     BellIcon,
     ActivityIcon,
+    GridIcon,
 } from '@/components/Icons';
 import styles from './layout.module.css';
 
 const navItems = [
     { href: '/admin', icon: DashboardIcon, label: 'Dashboard' },
     { href: '/admin/products', icon: PlantIcon, label: 'Products' },
+    { href: '/admin/subcategories', icon: GridIcon, label: 'Subcategories' },
     { href: '/admin/combos', icon: PackageIcon, label: 'Combos' },
     { href: '/admin/gift-hampers', icon: GiftIcon, label: 'Gift Hampers' },
     { href: '/admin/banners', icon: HomeIcon, label: 'Banners' },

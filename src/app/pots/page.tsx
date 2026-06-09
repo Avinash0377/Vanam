@@ -32,14 +32,34 @@ function serializeProduct(p: Record<string, unknown>) {
     };
 }
 
+function serializeSubcategory(s: Record<string, unknown>) {
+    return {
+        id: s.id as string,
+        name: s.name as string,
+        slug: s.slug as string,
+        image: (s.image as string) || null,
+        matchTags: (s.matchTags as string[]) || [],
+        matchField: (s.matchField as string) || null,
+        displayOrder: s.displayOrder as number,
+    };
+}
+
 export default async function PotsPage() {
-    const rawProducts = await prisma.product.findMany({
-        where: { productType: 'POT', status: 'ACTIVE' },
-        orderBy: { createdAt: 'desc' },
-        take: 50,
-    });
+    const [rawProducts, rawSubcategories] = await Promise.all([
+        prisma.product.findMany({
+            where: { productType: 'POT', status: 'ACTIVE' },
+            orderBy: { createdAt: 'desc' },
+            take: 50,
+        }),
+        prisma.subcategory.findMany({
+            where: { productType: 'POT', isActive: true },
+            orderBy: { displayOrder: 'asc' },
+        }),
+    ]);
 
     const products = rawProducts.map(p => serializeProduct(p as unknown as Record<string, unknown>));
+    const subcategories = rawSubcategories.map(s => serializeSubcategory(s as unknown as Record<string, unknown>));
 
-    return <PotsClient initialProducts={products} />;
+    return <PotsClient initialProducts={products} subcategories={subcategories} />;
 }
+
