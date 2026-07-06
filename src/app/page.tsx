@@ -86,38 +86,32 @@ export default async function HomePage() {
         // Bestsellers: products marked as featured (star badge)
         prisma.product.findMany({
             where: { status: 'ACTIVE', featured: true },
-            take: 5,
             orderBy: [{ displayOrder: 'asc' }, { createdAt: 'desc' }],
         }),
-        // Indoor plants: fetch separately to avoid cross-contamination
+        // Indoor plants: only show products explicitly enabled for homepage
         prisma.product.findMany({
-            where: { status: 'ACTIVE', productType: 'PLANT', suitableFor: { in: ['INDOOR', 'BOTH'] } },
-            take: 5,
-            orderBy: [{ showOnHome: 'desc' }, { displayOrder: 'asc' }, { createdAt: 'desc' }],
+            where: { status: 'ACTIVE', productType: 'PLANT', suitableFor: { in: ['INDOOR', 'BOTH'] }, showOnHome: true },
+            orderBy: [{ displayOrder: 'asc' }, { createdAt: 'desc' }],
         }),
-        // Outdoor plants: fetch separately — ensures outdoor-only plants (e.g. Guava) never appear in indoor
+        // Outdoor plants: only show products explicitly enabled for homepage
         prisma.product.findMany({
-            where: { status: 'ACTIVE', productType: 'PLANT', suitableFor: { in: ['OUTDOOR', 'BOTH'] } },
-            take: 5,
-            orderBy: [{ showOnHome: 'desc' }, { displayOrder: 'asc' }, { createdAt: 'desc' }],
+            where: { status: 'ACTIVE', productType: 'PLANT', suitableFor: { in: ['OUTDOOR', 'BOTH'] }, showOnHome: true },
+            orderBy: [{ displayOrder: 'asc' }, { createdAt: 'desc' }],
         }),
-        // Pots section: prefer showOnHome, fallback to latest
+        // Pots section: only show products explicitly enabled for homepage
         prisma.product.findMany({
-            where: { status: 'ACTIVE', productType: 'POT' },
-            take: 5,
-            orderBy: [{ showOnHome: 'desc' }, { displayOrder: 'asc' }, { createdAt: 'desc' }],
+            where: { status: 'ACTIVE', productType: 'POT', showOnHome: true },
+            orderBy: [{ displayOrder: 'asc' }, { createdAt: 'desc' }],
         }),
-        // Combos section: prefer showOnHome, fallback to latest
+        // Combos section: only show combos explicitly enabled for homepage
         prisma.combo.findMany({
-            where: { status: 'ACTIVE' },
-            take: 5,
-            orderBy: [{ showOnHome: 'desc' }, { displayOrder: 'asc' }, { createdAt: 'desc' }],
+            where: { status: 'ACTIVE', showOnHome: true },
+            orderBy: [{ displayOrder: 'asc' }, { createdAt: 'desc' }],
         }),
-        // Gift Hampers section: prefer showOnHome, fallback to latest
+        // Gift Hampers section: only show hampers explicitly enabled for homepage
         prisma.giftHamper.findMany({
-            where: { status: 'ACTIVE' },
-            take: 5,
-            orderBy: [{ showOnHome: 'desc' }, { displayOrder: 'asc' }, { createdAt: 'desc' }],
+            where: { status: 'ACTIVE', showOnHome: true },
+            orderBy: [{ displayOrder: 'asc' }, { createdAt: 'desc' }],
         }),
         prisma.product.count({ where: { status: 'ACTIVE', productType: 'PLANT', suitableFor: { in: ['INDOOR', 'BOTH'] } } }),
         prisma.product.count({ where: { status: 'ACTIVE', productType: 'PLANT', suitableFor: { in: ['OUTDOOR', 'BOTH'] } } }),
@@ -126,12 +120,12 @@ export default async function HomePage() {
         prisma.combo.count({ where: { status: 'ACTIVE' } }),
     ]);
 
-    // If no featured, fallback to latest products
+    // If no featured, fallback to latest products (capped to prevent loading entire catalog)
     const products = featuredProducts.length > 0
         ? featuredProducts
         : await prisma.product.findMany({
             where: { status: 'ACTIVE' },
-            take: 5,
+            take: 20,
             orderBy: { createdAt: 'desc' },
         });
 

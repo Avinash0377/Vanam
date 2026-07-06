@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     try {
         const hamper = await prisma.giftHamper.findUnique({
-            where: { slug },
+            where: { slug, status: 'ACTIVE' },
             select: { name: true, description: true, images: true, price: true },
         });
 

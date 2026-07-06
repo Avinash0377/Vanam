@@ -120,6 +120,9 @@ async function createProduct(request: NextRequest, _user: JWTPayload) {
             stock,
             images,
             featured,
+            showOnHome,
+            tags,
+            displayOrder,
         } = body;
 
         // Validation
@@ -160,6 +163,9 @@ async function createProduct(request: NextRequest, _user: JWTPayload) {
                 stock: parseInt(stock) || 0,
                 images: images || [],
                 featured: featured || false,
+                showOnHome: showOnHome || false,
+                tags: tags || [],
+                displayOrder: parseInt(displayOrder) || 0,
             },
             include: {
                 category: true,

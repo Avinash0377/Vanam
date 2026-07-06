@@ -86,6 +86,9 @@ async function updateProduct(
             status,
             // Variant fields
             sizeVariants,
+            showOnHome,
+            tags,
+            displayOrder,
 
         } = body;
 
@@ -131,6 +134,9 @@ async function updateProduct(
         if (images !== undefined) updateData.images = images;
         if (featured !== undefined) updateData.featured = featured;
         if (status !== undefined) updateData.status = status;
+        if (showOnHome !== undefined) updateData.showOnHome = showOnHome;
+        if (tags !== undefined) updateData.tags = tags;
+        if (displayOrder !== undefined) updateData.displayOrder = parseInt(displayOrder) || 0;
 
         // Process variant fields with per-size colors
         if (sizeVariants !== undefined) {

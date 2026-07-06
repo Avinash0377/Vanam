@@ -98,13 +98,34 @@ async function updateOrderStatus(
             );
         }
 
-        // Validate status transitions
+        // Validate status value
         const validStatuses = ['PENDING', 'PAID', 'PACKING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED'];
         if (orderStatus && !validStatuses.includes(orderStatus)) {
             return NextResponse.json(
                 { error: 'Invalid order status' },
                 { status: 400 }
             );
+        }
+
+        // Validate status transitions — prevent illogical state changes
+        if (orderStatus) {
+            const allowedTransitions: Record<string, string[]> = {
+                PENDING:   ['PAID', 'PACKING', 'CANCELLED'],
+                PAID:      ['PACKING', 'CANCELLED', 'REFUNDED'],
+                PACKING:   ['SHIPPED', 'CANCELLED', 'REFUNDED'],
+                SHIPPED:   ['DELIVERED', 'CANCELLED', 'REFUNDED'],
+                DELIVERED: ['REFUNDED'],
+                CANCELLED: [],  // Terminal state
+                REFUNDED:  [],  // Terminal state
+            };
+
+            const allowed = allowedTransitions[order.orderStatus] || [];
+            if (!allowed.includes(orderStatus)) {
+                return NextResponse.json(
+                    { error: `Cannot change order from "${order.orderStatus}" to "${orderStatus}"` },
+                    { status: 400 }
+                );
+            }
         }
 
         const updateData: Record<string, unknown> = {};
