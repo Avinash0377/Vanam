@@ -23,6 +23,7 @@
   "author": "Vanam Store",
   "license": "MIT",
   "dependencies": {
+    "@next/third-parties": "^16.2.9",
     "@prisma/client": "^6.19.3",
     "@types/node": "^25.5.2",
     "@types/react": "^19.2.14",

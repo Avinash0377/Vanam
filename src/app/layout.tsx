@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
+import { GoogleTagManager } from '@next/third-parties/google';
 import { Inter, Lora } from 'next/font/google';
 import './globals.css';
 import Providers from '@/components/Providers';
@@ -92,6 +93,7 @@ export default function RootLayout({
     return (
         <html lang="en" className={`${inter.variable} ${lora.variable}`}>
             <body>
+                <GoogleTagManager gtmId="GTM-TGKXZRKW" />
                 <Providers>{children}</Providers>
                 <WhatsAppButton />
 
