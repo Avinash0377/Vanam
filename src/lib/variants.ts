@@ -14,7 +14,7 @@ export function isDefaultSize(size?: string | null): boolean {
 export interface SizeVariant {
     size: string;
     price: number;
-    comparePrice?: number;
+    comparePrice?: number | null;
     stock: number;
     colors?: VariantColor[];
 }
@@ -29,7 +29,7 @@ export interface ProductWithVariants {
     id: string;
     name: string;
     price: number;
-    comparePrice?: number;
+    comparePrice?: number | null;
     stock: number;
     images: string[];
     status?: string;
