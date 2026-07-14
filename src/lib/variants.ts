@@ -14,6 +14,7 @@ export function isDefaultSize(size?: string | null): boolean {
 export interface SizeVariant {
     size: string;
     price: number;
+    comparePrice?: number;
     stock: number;
     colors?: VariantColor[];
 }
@@ -28,6 +29,7 @@ export interface ProductWithVariants {
     id: string;
     name: string;
     price: number;
+    comparePrice?: number;
     stock: number;
     images: string[];
     status?: string;
@@ -48,6 +50,21 @@ export function getVariantPrice(
         }
     }
     return product.price;
+}
+
+/** Get compare price from size variant or fall back to base compare price */
+export function getVariantComparePrice(
+    product: { comparePrice?: number | null; sizeVariants?: SizeVariant[] },
+    size?: string | null
+): number | undefined {
+    if (product.sizeVariants && product.sizeVariants.length > 0) {
+        const resolvedSize = size || (product.sizeVariants.length === 1 ? product.sizeVariants[0].size : null);
+        if (resolvedSize) {
+            const variant = product.sizeVariants.find(v => v.size === resolvedSize);
+            if (variant && variant.comparePrice) return variant.comparePrice;
+        }
+    }
+    return product.comparePrice || undefined;
 }
 
 /** Get stock from size variant or fall back to base stock */

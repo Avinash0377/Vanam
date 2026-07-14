@@ -18,6 +18,7 @@ interface VariantColor {
 interface SizeVariant {
     size: string;
     price: string;
+    comparePrice?: string;
     stock: string;
     colors: VariantColor[];
 }
@@ -130,13 +131,13 @@ export default function ProductForm({ initialData, categories, onSubmit, loading
             } else {
                 return {
                     ...prev,
-                    sizeVariants: [...prev.sizeVariants, { size, price: '', stock: '', colors: [] }]
+                    sizeVariants: [...prev.sizeVariants, { size, price: '', comparePrice: '', stock: '', colors: [] }]
                 };
             }
         });
     };
 
-    const handleVariantChange = (size: string, field: 'price' | 'stock', value: string) => {
+    const handleVariantChange = (size: string, field: 'price' | 'comparePrice' | 'stock', value: string) => {
         setFormData(prev => ({
             ...prev,
             sizeVariants: prev.sizeVariants.map(v =>
@@ -819,9 +820,10 @@ export default function ProductForm({ initialData, categories, onSubmit, loading
                                                 const existingPrice = formData.sizeVariants[0]?.price || formData.price || '';
                                                 const existingStock = formData.sizeVariants[0]?.stock || formData.stock || '';
                                                 const existingColors = formData.sizeVariants[0]?.colors || [];
+                                                const existingComparePrice = formData.sizeVariants[0]?.comparePrice || formData.comparePrice || '';
                                                 setFormData(prev => ({
                                                     ...prev,
-                                                    sizeVariants: [{ size: 'DEFAULT', price: existingPrice, stock: existingStock, colors: existingColors }]
+                                                    sizeVariants: [{ size: 'DEFAULT', price: existingPrice, comparePrice: existingComparePrice, stock: existingStock, colors: existingColors }]
                                                 }));
                                             } else {
                                                 // Switch to multi-size: clear variants
@@ -878,6 +880,16 @@ export default function ProductForm({ initialData, categories, onSubmit, loading
                                                         placeholder="299"
                                                         min="0"
                                                         required
+                                                    />
+                                                </div>
+                                                <div className={styles.variantField}>
+                                                    <label>MRP (₹)</label>
+                                                    <input
+                                                        type="number"
+                                                        value={variant.comparePrice || ''}
+                                                        onChange={(e) => handleVariantChange(variant.size, 'comparePrice', e.target.value)}
+                                                        placeholder="499"
+                                                        min="0"
                                                     />
                                                 </div>
                                                 <div className={styles.variantField}>

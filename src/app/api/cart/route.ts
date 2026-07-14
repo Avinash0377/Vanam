@@ -3,7 +3,7 @@ import prisma from '@/lib/prisma';
 import { withAuth } from '@/lib/middleware';
 import { JWTPayload } from '@/lib/auth';
 import { ProductStatus } from '@prisma/client';
-import { SizeVariant, getVariantPrice, getVariantStock } from '@/lib/variants';
+import { SizeVariant, getVariantPrice, getVariantComparePrice, getVariantStock } from '@/lib/variants';
 import { getDeliverySettings, getDeliveryCharge } from '@/lib/order-utils';
 
 // GET user's cart
@@ -60,12 +60,14 @@ async function getCart(request: NextRequest, user: JWTPayload) {
         // Separate items by type for frontend consumption
         const items = cartItems.filter(item => item.productId).map(item => {
             const variantPrice = getVariantPrice(item.product!, item.size);
+            const variantComparePrice = getVariantComparePrice(item.product!, item.size);
             return {
                 id: item.id,
                 quantity: item.quantity,
                 product: {
                     ...item.product,
                     price: variantPrice, // Override with variant price
+                    comparePrice: variantComparePrice, // Override with variant compare price
                 },
                 size: item.size,
                 selectedColor: item.selectedColor,

@@ -18,6 +18,7 @@ interface VariantColor {
 interface SizeVariant {
     size: string;
     price: number;
+    comparePrice?: number;
     stock: number;
     colors: VariantColor[];
 }
@@ -135,6 +136,12 @@ function ProductCard({
         return variant ? variant.price : price;
     };
 
+    // Get compare price for selected size (fallback to global comparePrice if variant doesn't have one)
+    const getCurrentComparePrice = (): number | undefined => {
+        const variant = getCurrentVariant();
+        return variant?.comparePrice ? variant.comparePrice : comparePrice;
+    };
+
     // Get stock for selected size
     const getCurrentStock = (): number => {
         const variant = getCurrentVariant();
@@ -147,6 +154,7 @@ function ProductCard({
     };
 
     const currentPrice = getCurrentPrice();
+    const currentComparePrice = getCurrentComparePrice();
     const currentStock = getCurrentStock();
     const currentColors = getCurrentColors();
 
@@ -156,8 +164,8 @@ function ProductCard({
         return variant ? variant.stock <= 0 : false;
     };
 
-    const discount = comparePrice
-        ? Math.round(((comparePrice - currentPrice) / comparePrice) * 100)
+    const discount = currentComparePrice
+        ? Math.round(((currentComparePrice - currentPrice) / currentComparePrice) * 100)
         : 0;
 
     // Generate tags based on product type and suitableFor
@@ -283,6 +291,12 @@ function ProductCard({
                         </span>
                     )}
 
+                    {discount > 0 && (
+                        <span className={styles.discountBadge}>
+                            {discount}% OFF
+                        </span>
+                    )}
+
                     <div className={styles.suitableForBadge}>
                         {suitableFor === 'INDOOR' && (
                             <div className={styles.iconWrapper} title="Indoor Plant">
@@ -324,10 +338,8 @@ function ProductCard({
 
                     <div className={styles.priceRow}>
                         <span className={styles.price}>₹{currentPrice.toLocaleString('en-IN')}</span>
-                        {comparePrice && (
-                            <span className={styles.comparePrice}>
-                                ₹{comparePrice.toLocaleString('en-IN')}
-                            </span>
+                        {currentComparePrice && currentComparePrice > currentPrice && (
+                            <span className={styles.comparePrice}>₹{currentComparePrice.toLocaleString('en-IN')}</span>
                         )}
                     </div>
 

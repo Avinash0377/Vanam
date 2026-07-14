@@ -16,6 +16,7 @@ interface VariantColor {
 interface SizeVariant {
     size: string;
     price: number;
+    comparePrice?: number;
     stock: number;
     colors: VariantColor[];
 }
@@ -119,6 +120,14 @@ export default function ProductDetails({ type, initialData }: ProductDetailsProp
         return product?.price || 0;
     }, [currentVariant, product]);
 
+    // Get current compare price based on variant selection (fallback to global)
+    const currentComparePrice = useMemo(() => {
+        if (currentVariant?.comparePrice) {
+            return currentVariant.comparePrice;
+        }
+        return product?.comparePrice || 0;
+    }, [currentVariant, product]);
+
     // Get current stock based on variant selection
     const currentStock = useMemo(() => {
         if (currentVariant) {
@@ -203,8 +212,8 @@ export default function ProductDetails({ type, initialData }: ProductDetailsProp
         );
     }
 
-    const discount = product.comparePrice
-        ? Math.round(((product.comparePrice - currentPrice) / product.comparePrice) * 100)
+    const discount = currentComparePrice
+        ? Math.round(((currentComparePrice - currentPrice) / currentComparePrice) * 100)
         : 0;
 
     // Parse includes if it's a string (for combos/hampers)
@@ -217,7 +226,8 @@ export default function ProductDetails({ type, initialData }: ProductDetailsProp
         }
     }
 
-    const hasVariants = product.sizeVariants && product.sizeVariants.length > 0 && product.productType !== 'SEED';
+    const visibleSizes = product.sizeVariants?.filter(v => v.size !== 'DEFAULT') || [];
+    const hasVisibleSizes = visibleSizes.length > 0 && product.productType !== 'SEED';
 
     return (
         <div className={styles.page}>
@@ -268,7 +278,7 @@ export default function ProductDetails({ type, initialData }: ProductDetailsProp
                         <h1 className={styles.name}>{product.name}</h1>
 
                         <div className={styles.meta}>
-                            {!hasVariants && product.size && <span className={styles.tag}>{product.size}</span>}
+                            {!hasVisibleSizes && product.size && product.size.toUpperCase() !== 'DEFAULT' && <span className={styles.tag}>{product.size}</span>}
                             {product.suitableFor && <span className={styles.tag}>{product.suitableFor}</span>}
                             {type === 'combo' && <span className={styles.tag}>Combo Pack</span>}
                             {type === 'hamper' && <span className={styles.tag}>Gift Hamper</span>}
@@ -276,25 +286,23 @@ export default function ProductDetails({ type, initialData }: ProductDetailsProp
 
                         <div className={styles.priceRow}>
                             <span className={styles.price}>₹{currentPrice.toLocaleString('en-IN')}</span>
-                            {product.comparePrice && product.comparePrice > currentPrice && (
-                                <span className={styles.priceCompare}>
-                                    <span className={styles.comparePrice}>
-                                        ₹{product.comparePrice.toLocaleString('en-IN')}
-                                    </span>
-                                    <span className={styles.discountText}>Save {discount}%</span>
-                                </span>
+                            {currentComparePrice && currentComparePrice > currentPrice && (
+                                <span className={styles.comparePrice}>₹{currentComparePrice.toLocaleString('en-IN')}</span>
+                            )}
+                            {discount > 0 && (
+                                <span className={styles.discountLabel}>Save {discount}%</span>
                             )}
                         </div>
 
                         {/* Size Variant Selector */}
-                        {hasVariants && (
+                        {hasVisibleSizes && (
                             <div className={styles.variantSection}>
                                 <h3 className={styles.variantLabel}>
                                     Select Size
                                     {selectedSize && <span className={styles.selectedValue}>{selectedSize}</span>}
                                 </h3>
                                 <div className={styles.sizeOptions}>
-                                    {product.sizeVariants!.map((variant) => (
+                                    {visibleSizes.map((variant) => (
                                         <button
                                             key={variant.size}
                                             className={`${styles.sizeBtn} ${selectedSize === variant.size ? styles.selected : ''} ${variant.stock === 0 ? styles.outOfStockBtn : ''}`}

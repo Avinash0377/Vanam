@@ -527,7 +527,14 @@ export default function CheckoutPage() {
                                         <span className={styles.summaryItemName}>
                                             {item.name} × {item.quantity}
                                         </span>
-                                        <span>₹{(item.price * item.quantity).toLocaleString('en-IN')}</span>
+                                        <div className={styles.summaryItemPriceContainer}>
+                                            <span>₹{(item.price * item.quantity).toLocaleString('en-IN')}</span>
+                                            {item.comparePrice && item.comparePrice > item.price && (
+                                                <span className={styles.summaryOriginalPrice}>
+                                                    ₹{(item.comparePrice * item.quantity).toLocaleString('en-IN')}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -770,7 +777,14 @@ export default function CheckoutPage() {
                                             <span className={styles.summaryItemName}>
                                                 {item.name} × {item.quantity}
                                             </span>
-                                            <span>₹{(item.price * item.quantity).toLocaleString('en-IN')}</span>
+                                            <div className={styles.summaryItemPriceContainer}>
+                                                <span>₹{(item.price * item.quantity).toLocaleString('en-IN')}</span>
+                                                {item.comparePrice && item.comparePrice > item.price && (
+                                                    <span className={styles.summaryOriginalPrice}>
+                                                        ₹{(item.comparePrice * item.quantity).toLocaleString('en-IN')}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                     ))}
                                 </div>

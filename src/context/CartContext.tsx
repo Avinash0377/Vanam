@@ -11,6 +11,7 @@ interface CartItem {
     name: string;
     slug: string;
     price: number;
+    comparePrice?: number;
     quantity: number;
     image: string;
     type: 'product' | 'combo' | 'hamper';
@@ -96,13 +97,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
             if (data.cart) {
                 const cartItems: CartItem[] = [];
 
-                data.cart.items?.forEach((item: { id: string; quantity: number; size?: string; selectedColor?: string; colorImage?: string; product: { id: string; name: string; slug: string; price: number; images: string[]; size?: string; category?: { name: string }; productType?: string } }) => {
+                data.cart.items?.forEach((item: { id: string; quantity: number; size?: string; selectedColor?: string; colorImage?: string; product: { id: string; name: string; slug: string; price: number; comparePrice?: number; images: string[]; size?: string; category?: { name: string }; productType?: string } }) => {
                     cartItems.push({
                         id: item.id,
                         productId: item.product.id,
                         name: item.product.name,
                         slug: item.product.slug,
                         price: item.product.price,
+                        comparePrice: item.product.comparePrice,
                         quantity: item.quantity,
                         image: item.colorImage || item.product.images?.[0] || '/placeholder-plant.jpg',
                         type: 'product',
@@ -169,6 +171,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
                 name: i.name,
                 slug: i.slug,
                 price: i.price,
+                comparePrice: i.comparePrice,
                 image: i.image,
                 size: i.size,
                 color: i.color,
@@ -183,6 +186,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
                 name: i.name,
                 slug: i.slug,
                 price: i.price,
+                comparePrice: i.comparePrice,
                 image: i.image,
             })),
             hamperItems: cartItems.filter(i => i.type === 'hamper').map(i => ({
@@ -193,6 +197,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
                 name: i.name,
                 slug: i.slug,
                 price: i.price,
+                comparePrice: i.comparePrice,
                 image: i.image,
             })),
         };

@@ -115,20 +115,29 @@ async function createProduct(request: NextRequest, user: JWTPayload) {
         interface SizeVariantInput {
             size: string;
             price: string;
+            comparePrice?: string;
             stock: string;
             colors?: VariantColor[];
         }
 
-        const processedVariants = (sizeVariants || []).map((v: SizeVariantInput) => ({
-            size: v.size,
-            price: parseFloat(v.price) || 0,
-            stock: parseInt(v.stock) || 0,
-            colors: (v.colors || []).map((c: VariantColor) => ({
-                name: c.name,
-                hex: c.hex,
-                images: c.images || (c.image ? [c.image] : [])
-            }))
-        }));
+        const processedVariants = (sizeVariants || []).map((v: SizeVariantInput) => {
+            const price = parseFloat(v.price) || 0;
+            const cp = v.comparePrice ? parseFloat(v.comparePrice) : null;
+            if (cp !== null && cp <= price) {
+                throw new Error(`Compare price for size ${v.size} must be greater than its selling price`);
+            }
+            return {
+                size: v.size,
+                price,
+                comparePrice: cp,
+                stock: parseInt(v.stock) || 0,
+                colors: (v.colors || []).map((c: VariantColor) => ({
+                    name: c.name,
+                    hex: c.hex,
+                    images: c.images || (c.image ? [c.image] : [])
+                }))
+            };
+        });
 
         // Calculate total stock and min price from variants
         let finalPrice = parseFloat(price) || 0;
@@ -164,9 +173,9 @@ async function createProduct(request: NextRequest, user: JWTPayload) {
 
         return NextResponse.json({ message: 'Product created', product }, { status: 201 });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('Create product error:', error);
-        return NextResponse.json({ error: 'Failed to create product' }, { status: 500 });
+        return NextResponse.json({ error: error.message || 'Failed to create product' }, { status: 500 });
     }
 }
 

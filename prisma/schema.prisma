@@ -169,10 +169,11 @@ type VariantColor {
 
 // Embedded type for size variants with per-size pricing, stock, and colors
 type SizeVariant {
-  size   String          // S, M, L, XL
-  price  Float
-  stock  Int
-  colors VariantColor[]  // Colors available for THIS size only
+  size         String          // S, M, L, XL
+  price        Float
+  comparePrice Float?          // Original MRP for this size
+  stock        Int
+  colors       VariantColor[]  // Colors available for THIS size only
 }
 
 model Product {

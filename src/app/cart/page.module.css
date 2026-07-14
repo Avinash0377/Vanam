@@ -305,15 +305,37 @@
 }
 
 .itemPrice {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.priceContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.125rem;
+}
+
+.sellingPrice {
     font-family: var(--font-display);
     font-size: 1rem;
     font-weight: 700;
     color: var(--neutral-900);
 }
 
+.originalPrice {
+    font-size: 0.8125rem;
+    color: var(--neutral-400);
+    text-decoration: line-through;
+    font-weight: 500;
+}
+
 @media (min-width: 768px) {
-    .itemPrice {
+    .sellingPrice {
         font-size: 1.25rem;
+    }
+    .originalPrice {
+        font-size: 0.875rem;
     }
 }
 

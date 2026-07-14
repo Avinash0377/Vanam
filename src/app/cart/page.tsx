@@ -282,7 +282,16 @@ export default function CartPage() {
                                             </button>
                                         </div>
                                         <div className={styles.itemPrice}>
-                                            ₹{(item.price * item.quantity).toLocaleString('en-IN')}
+                                            <div className={styles.priceContainer}>
+                                                <span className={styles.sellingPrice}>
+                                                    ₹{(item.price * item.quantity).toLocaleString('en-IN')}
+                                                </span>
+                                                {item.comparePrice && item.comparePrice > item.price && (
+                                                    <span className={styles.originalPrice}>
+                                                        ₹{(item.comparePrice * item.quantity).toLocaleString('en-IN')}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

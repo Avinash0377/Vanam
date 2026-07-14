@@ -84,20 +84,31 @@ export async function PUT(
             interface SizeVariantInput {
                 size: string;
                 price: string | number;
+                comparePrice?: string | number | null;
                 stock: string | number;
                 colors?: VariantColor[];
             }
 
-            const processedVariants = (sizeVariants || []).map((v: SizeVariantInput) => ({
-                size: v.size,
-                price: typeof v.price === 'number' ? v.price : (parseFloat(v.price) || 0),
-                stock: typeof v.stock === 'number' ? v.stock : (parseInt(v.stock) || 0),
-                colors: (v.colors || []).map((c: VariantColor) => ({
-                    name: c.name,
-                    hex: c.hex,
-                    images: c.images || (c.image ? [c.image] : [])
-                }))
-            }));
+            const processedVariants = (sizeVariants || []).map((v: SizeVariantInput) => {
+                const price = typeof v.price === 'number' ? v.price : (parseFloat(v.price) || 0);
+                const cp = v.comparePrice ? (typeof v.comparePrice === 'number' ? v.comparePrice : parseFloat(v.comparePrice as string)) : null;
+
+                if (cp !== null && cp <= price) {
+                    throw new Error(`Compare price for size ${v.size} must be greater than its selling price`);
+                }
+
+                return {
+                    size: v.size,
+                    price,
+                    comparePrice: cp,
+                    stock: typeof v.stock === 'number' ? v.stock : (parseInt(v.stock) || 0),
+                    colors: (v.colors || []).map((c: VariantColor) => ({
+                        name: c.name,
+                        hex: c.hex,
+                        images: c.images || (c.image ? [c.image] : [])
+                    }))
+                };
+            });
 
             // Calculate total stock and min price from variants
             let finalPrice = price ? parseFloat(price) : undefined;
@@ -133,9 +144,9 @@ export async function PUT(
             });
 
             return NextResponse.json({ message: 'Product updated', product });
-        } catch (error) {
+        } catch (error: any) {
             console.error('Update product error:', error);
-            return NextResponse.json({ error: 'Failed to update product' }, { status: 500 });
+            return NextResponse.json({ error: error.message || 'Failed to update product' }, { status: 500 });
         }
     });
 }
