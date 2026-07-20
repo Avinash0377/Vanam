@@ -489,8 +489,8 @@
 
 @media (max-width: 600px) {
     .variantRow {
-        grid-template-columns: 1fr;
-        gap: 0.75rem;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.6rem;
     }
 
     .variantSize {
@@ -787,17 +787,26 @@
 
 @media (max-width: 600px) {
     .colorInputRow {
-        flex-direction: column;
-        align-items: stretch;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.4rem;
     }
 
     .colorInputRow input[type="text"] {
-        min-width: 100%;
+        flex: 1 1 100%;
+        min-width: 0;
     }
 
     .colorPicker {
-        width: 100%;
+        width: 44px;
         height: 44px;
+        flex-shrink: 0;
+    }
+
+    .colorInputRow .addColorBtn {
+        flex: 1;
+        width: auto;
+        padding: 0.5rem 0.85rem;
     }
 }
 
@@ -1530,32 +1539,96 @@
     }
 
     .variantRow {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
         gap: 0.5rem;
         padding: 0.75rem;
     }
 
-    /* Color Section */
-    .colorInputRow {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 0.5rem;
+    /* In 4-field rows (Name/Price/MRP/Stock) arrange as two neat pairs:
+       Row 1 = Name | Stock, Row 2 = Price | MRP. Scoped to 4-field rows only. */
+    .variantRow > .variantField:first-child:nth-last-child(4) {
+        order: 1;
     }
 
-    .colorPicker {
-        width: 100%;
-        height: 44px;
+    .variantRow > .variantField:nth-child(4):nth-last-child(1) {
+        order: 2;
+    }
+
+    .variantRow > .variantField:nth-child(2):nth-last-child(3) {
+        order: 3;
+    }
+
+    .variantRow > .variantField:nth-child(3):nth-last-child(2) {
+        order: 4;
+    }
+
+    /* Neatly aligned quick-add preset planters */
+    .presetPlanters {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.4rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .presetChip {
+        justify-content: space-between;
+        padding: 0.5rem 0.7rem;
+    }
+
+    /* Compact planter icon picker on mobile */
+    .planterDisplaySection {
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+    }
+
+    .planterIconGrid {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        gap: 0.4rem;
+        margin-top: 0.5rem;
+        padding-bottom: 0.35rem;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x proximity;
+    }
+
+    .planterIconChoice {
+        flex: 0 0 auto;
+        width: 72px;
+        padding: 0.45rem 0.25rem;
+        font-size: 0.65rem;
+        border-radius: 8px;
+        scroll-snap-align: start;
+    }
+
+    /* Color Section — color name on its own row so it's clear what to type */
+    .colorInputRow {
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.4rem;
     }
 
     .colorInputRow input[type="text"] {
-        min-width: 100%;
+        flex: 1 1 100%;
+        min-width: 0;
         min-height: 44px;
+    }
+
+    .colorPicker {
+        width: 44px;
+        height: 44px;
+        flex-shrink: 0;
     }
 
     .addColorBtn {
         width: 100%;
         min-height: 44px;
         justify-content: center;
+    }
+
+    .colorInputRow .addColorBtn {
+        flex: 1;
+        width: auto;
     }
 
     /* Color Dots */
