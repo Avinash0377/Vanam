@@ -86,6 +86,7 @@ export async function PUT(
                 price: string | number;
                 comparePrice?: string | number | null;
                 stock: string | number;
+                icon?: string;
                 colors?: VariantColor[];
             }
             interface SizeVariantInput {
@@ -125,6 +126,7 @@ export async function PUT(
                         price: pPrice,
                         comparePrice: pCp,
                         stock: typeof p.stock === 'number' ? p.stock : (parseInt(p.stock as string) || 0),
+                        icon: p.icon || null,
                         colors: mapColors(p.colors),
                     };
                 });

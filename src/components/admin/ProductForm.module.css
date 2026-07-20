@@ -545,6 +545,82 @@
     margin-bottom: 0.5rem;
 }
 
+/* Planter display mode (image vs preset icon) */
+.planterDisplaySection {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px dashed var(--neutral-200);
+}
+
+.planterDisplaySection>label {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--neutral-600);
+    margin-bottom: 0.5rem;
+}
+
+.planterDisplayToggle {
+    display: inline-flex;
+    border: 2px solid var(--neutral-200);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.planterDisplayOption {
+    padding: 0.5rem 1rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--neutral-600);
+    background: #fff;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.planterDisplayOption:first-child {
+    border-right: 2px solid var(--neutral-200);
+}
+
+.planterDisplayActive {
+    background: #14532d;
+    color: #fff;
+}
+
+.planterIconGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.planterIconChoice {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.6rem 0.4rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--neutral-600);
+    background: #fff;
+    border: 2px solid var(--neutral-200);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.planterIconChoice:hover {
+    border-color: #16a34a;
+    color: #14532d;
+}
+
+.planterIconSelected {
+    border-color: #14532d;
+    color: #14532d;
+    background: #f0f7f2;
+}
+
 .colorInputRow {
     display: flex;
     gap: 0.5rem;

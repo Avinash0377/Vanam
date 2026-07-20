@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
+import { PlanterIcon } from '@/components/PlanterIcons';
 import styles from './ProductDetails.module.css';
 
 interface VariantColor {
@@ -18,6 +19,7 @@ interface PlanterVariant {
     price: number;
     comparePrice?: number;
     stock: number;
+    icon?: string;
     colors: VariantColor[];
 }
 
@@ -392,12 +394,18 @@ export default function ProductDetails({ type, initialData }: ProductDetailsProp
                                             disabled={planter.stock === 0}
                                             title={planter.stock === 0 ? 'Out of stock' : `₹${planter.price}`}
                                         >
-                                            {planter.colors?.[0]?.images?.[0] ? (
+                                            {planter.icon ? (
+                                                <span className={styles.planterThumbPlaceholder}>
+                                                    <PlanterIcon name={planter.icon} size={44} />
+                                                </span>
+                                            ) : planter.colors?.[0]?.images?.[0] ? (
                                                 <span className={styles.planterThumb}>
                                                     <Image src={planter.colors[0].images[0]} alt={planter.name} fill sizes="64px" unoptimized />
                                                 </span>
                                             ) : (
-                                                <span className={styles.planterThumbPlaceholder}>🪴</span>
+                                                <span className={styles.planterThumbPlaceholder}>
+                                                    <PlanterIcon name={undefined} size={44} />
+                                                </span>
                                             )}
                                             <span className={styles.planterName}>{planter.name}</span>
                                             <span className={styles.planterPrice}>₹{planter.price.toLocaleString('en-IN')}</span>

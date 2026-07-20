@@ -175,6 +175,7 @@ type PlanterVariant {
   price        Float           // Final price for this planter at this size
   comparePrice Float?          // Original MRP strikethrough
   stock        Int
+  icon         String?         // Optional preset planter icon key (used instead of an image)
   colors       VariantColor[]  // Colors available for THIS planter (each has images)
 }
 

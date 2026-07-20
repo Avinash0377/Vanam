@@ -117,6 +117,7 @@ async function createProduct(request: NextRequest, user: JWTPayload) {
             price: string;
             comparePrice?: string;
             stock: string;
+            icon?: string;
             colors?: VariantColor[];
         }
         interface SizeVariantInput {
@@ -152,6 +153,7 @@ async function createProduct(request: NextRequest, user: JWTPayload) {
                     price: pPrice,
                     comparePrice: pCp,
                     stock: parseInt(p.stock) || 0,
+                    icon: p.icon || null,
                     colors: mapColors(p.colors),
                 };
             });

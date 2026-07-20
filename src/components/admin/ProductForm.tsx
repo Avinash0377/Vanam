@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import styles from './ProductForm.module.css';
+import { PLANTER_ICON_OPTIONS, PlanterIcon, planterNameToIconKey } from '@/components/PlanterIcons';
 
 interface Category {
     id: string;
@@ -37,6 +38,7 @@ interface PlanterVariant {
     price: string;
     comparePrice?: string;
     stock: string;
+    icon?: string;             // Preset planter icon key (used instead of an image)
     colors: VariantColor[];  // Colors available for THIS planter
 }
 
@@ -389,6 +391,7 @@ export default function ProductForm({ initialData, categories, onSubmit, loading
                     price: preset.price,
                     comparePrice: preset.comparePrice,
                     stock: '10',
+                    icon: planterNameToIconKey(preset.name),
                     colors: preset.colors.map(c => ({ ...c, images: [] })),
                 };
                 return { ...v, planters: [...existing, newPlanter] };
@@ -396,7 +399,7 @@ export default function ProductForm({ initialData, categories, onSubmit, loading
         }));
     };
 
-    const handlePlanterChange = (size: string, planterIdx: number, field: 'name' | 'price' | 'comparePrice' | 'stock', value: string) => {
+    const handlePlanterChange = (size: string, planterIdx: number, field: 'name' | 'price' | 'comparePrice' | 'stock' | 'icon', value: string) => {
         setFormData(prev => ({
             ...prev,
             sizeVariants: prev.sizeVariants.map(v =>
@@ -1405,6 +1408,47 @@ export default function ProductForm({ initialData, categories, onSubmit, loading
                                                                             onChange={(e) => handlePlanterChange(variant.size, pIdx, 'stock', e.target.value)}
                                                                         />
                                                                     </div>
+                                                                </div>
+
+                                                                {/* Display mode: uploaded image OR a preset planter icon */}
+                                                                <div className={styles.planterDisplaySection}>
+                                                                    <label>Display in store</label>
+                                                                    <div className={styles.planterDisplayToggle}>
+                                                                        <button
+                                                                            type="button"
+                                                                            className={`${styles.planterDisplayOption} ${!planter.icon ? styles.planterDisplayActive : ''}`}
+                                                                            onClick={() => handlePlanterChange(variant.size, pIdx, 'icon', '')}
+                                                                        >
+                                                                            Product image
+                                                                        </button>
+                                                                        <button
+                                                                            type="button"
+                                                                            className={`${styles.planterDisplayOption} ${planter.icon ? styles.planterDisplayActive : ''}`}
+                                                                            onClick={() => handlePlanterChange(variant.size, pIdx, 'icon', planter.icon || planterNameToIconKey(planter.name) || PLANTER_ICON_OPTIONS[0].key)}
+                                                                        >
+                                                                            Planter icon
+                                                                        </button>
+                                                                    </div>
+
+                                                                    {planter.icon && (
+                                                                        <div className={styles.planterIconGrid}>
+                                                                            {PLANTER_ICON_OPTIONS.map((opt) => (
+                                                                                <button
+                                                                                    key={opt.key}
+                                                                                    type="button"
+                                                                                    className={`${styles.planterIconChoice} ${planter.icon === opt.key ? styles.planterIconSelected : ''}`}
+                                                                                    onClick={() => handlePlanterChange(variant.size, pIdx, 'icon', opt.key)}
+                                                                                    title={opt.label}
+                                                                                >
+                                                                                    <opt.Icon size={32} />
+                                                                                    <span>{opt.label}</span>
+                                                                                </button>
+                                                                            ))}
+                                                                        </div>
+                                                                    )}
+                                                                    <p className={styles.helpText}>
+                                                                        Choose a clean planter icon, or keep &quot;Product image&quot; to show an uploaded photo in the Select Planter option.
+                                                                    </p>
                                                                 </div>
 
                                                                 {/* Colors for this planter */}
