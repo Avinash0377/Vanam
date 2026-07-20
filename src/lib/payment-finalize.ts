@@ -265,6 +265,7 @@ export async function finalizePayment(
                 image: i.image,
                 size: i.size,
                 selectedColor: i.selectedColor,
+                selectedPlanter: i.selectedPlanter,
             })),
         };
 

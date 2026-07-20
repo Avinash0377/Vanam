@@ -120,7 +120,7 @@
 /* Values Section */
 .values {
     padding: 40px 0;
-    background: #f8fafc;
+    background: #f9f4ea;
 }
 
 @media (min-width: 768px) {
@@ -247,7 +247,7 @@
     flex: 1;
     min-width: 200px;
     padding: 24px;
-    background: #f8fafc;
+    background: #ffffff;
     border-radius: 16px;
     border-left: 4px solid #1a4d2e;
     transition: transform 0.3s ease;
@@ -329,7 +329,7 @@
 /* CTA Section */
 .cta {
     padding: 40px 0;
-    background: #f8fafc;
+    background: #f9f4ea;
 }
 
 @media (min-width: 768px) {

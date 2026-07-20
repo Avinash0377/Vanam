@@ -1,7 +1,7 @@
 .page {
     padding: 120px 0 80px;
     min-height: 100vh;
-    background: #ffffff;
+    background: #f9f4ea;
 }
 
 @media (max-width: 767px) {

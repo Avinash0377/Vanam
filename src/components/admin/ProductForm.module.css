@@ -786,6 +786,171 @@
     object-fit: cover;
 }
 
+/* Inbuilt preset planter chips */
+.presetPlanters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.presetChip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.75rem;
+    background: white;
+    border: 1px solid var(--primary-300);
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--primary-700);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.presetChip:hover:not(:disabled) {
+    background: var(--primary-50);
+    border-color: var(--primary-500);
+}
+
+.presetChip:disabled {
+    opacity: 0.55;
+    cursor: default;
+    color: var(--neutral-500);
+    border-color: var(--neutral-200);
+}
+
+.presetPrice {
+    font-size: 0.72rem;
+    color: var(--neutral-500);
+    font-weight: 500;
+}
+
+/* Quick-add / custom planter layout */
+.planterQuickAdd {
+    margin-bottom: 0.25rem;
+}
+
+.planterSectionHead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.planterSectionTitle {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--neutral-800);
+}
+
+.planterSectionHint {
+    font-size: 0.72rem;
+    color: var(--neutral-500);
+}
+
+.planterOr {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 0.9rem 0;
+    color: var(--neutral-400);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.planterOr::before,
+.planterOr::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--neutral-200);
+}
+
+.planterOr span {
+    padding: 0 0.75rem;
+}
+
+.customPlanterToggle {
+    width: 100%;
+    padding: 0.65rem 1rem;
+    background: white;
+    border: 1px dashed var(--neutral-300);
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--neutral-600);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.customPlanterToggle:hover {
+    border-color: var(--primary-400);
+    color: var(--primary-600);
+    background: rgba(26, 77, 46, 0.04);
+}
+
+.customPlanterForm {
+    background: var(--neutral-50);
+    border: 1px solid var(--neutral-200);
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+.customPlanterCancel {
+    background: transparent;
+    border: none;
+    color: var(--neutral-500);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.customPlanterCancel:hover {
+    color: #dc2626;
+}
+
+/* Compact image gallery for planter colors */
+.planterImageGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.planterImageGrid .imageCard {
+    border-radius: 8px;
+}
+
+.planterImageAdd {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1;
+    background: var(--neutral-50);
+    border: 1px dashed var(--neutral-300);
+    border-radius: 8px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--neutral-500);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    padding: 0.25rem;
+}
+
+.planterImageAdd:hover {
+    border-color: var(--primary-400);
+    background: rgba(26, 77, 46, 0.05);
+    color: var(--primary-600);
+}
+
 /* Product Type Selector - TOP OF FORM */
 .typeSelector {
     margin-bottom: 1.5rem;

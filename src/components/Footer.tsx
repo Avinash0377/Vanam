@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { LeafIcon, PhoneIcon, MailIcon, WhatsAppIcon, ArrowRightIcon } from '@/components/Icons';
 import styles from './Footer.module.css';
 
 export default function Footer() {
@@ -11,7 +12,7 @@ export default function Footer() {
                     {/* Brand */}
                     <div className={styles.brand}>
                         <Link href="/" className={styles.logo}>
-                            <span className={styles.logoIcon}>🌿</span>
+                            <span className={styles.logoIcon}><LeafIcon size={22} /></span>
                             <span className={styles.logoText}>
                                 Vanam<span className={styles.logoAccent}>Store</span>
                             </span>
@@ -52,21 +53,34 @@ export default function Footer() {
                         <h4 className={styles.columnTitle}>Contact Us</h4>
                         <ul className={styles.contactList}>
                             <li className={styles.contactItem}>
-                                <span className={styles.contactIcon} style={{ color: '#16a34a' }}>☏</span>
-                                <a href="tel:+918897249374">+91 88972 49374</a>
+                                <a href="tel:+918897249374" className={styles.contactLink}>
+                                    <span className={styles.contactIcon}><PhoneIcon size={18} /></span>
+                                    <span className={styles.contactText}>
+                                        <span className={styles.contactLabel}>Call us</span>
+                                        <span className={styles.contactValue}>+91 88972 49374</span>
+                                    </span>
+                                    <ArrowRightIcon size={15} className={styles.contactChevron} />
+                                </a>
                             </li>
                             <li className={styles.contactItem}>
-                                <span className={styles.contactIcon} style={{ color: '#16a34a' }}>✉</span>
-                                <a href="mailto:vanamstore@gmail.com">vanamstore@gmail.com</a>
+                                <a href="mailto:vanamstore@gmail.com" className={styles.contactLink}>
+                                    <span className={styles.contactIcon}><MailIcon size={18} /></span>
+                                    <span className={styles.contactText}>
+                                        <span className={styles.contactLabel}>Email</span>
+                                        <span className={styles.contactValue}>vanamstore@gmail.com</span>
+                                    </span>
+                                    <ArrowRightIcon size={15} className={styles.contactChevron} />
+                                </a>
                             </li>
-                            <li className={styles.contactItem}>
-                                <span className={styles.contactIcon} style={{ color: '#25d366' }}>💬</span>
+                            <li className={`${styles.contactItem} ${styles.whatsappItem}`}>
                                 <a
                                     href="https://wa.me/918897249374"
                                     target="_blank"
                                     rel="noopener noreferrer"
+                                    className={styles.whatsappBtn}
                                 >
-                                    WhatsApp Us
+                                    <WhatsAppIcon size={18} />
+                                    <span>Chat on WhatsApp</span>
                                 </a>
                             </li>
                         </ul>

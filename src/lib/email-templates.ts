@@ -118,6 +118,7 @@ interface OrderConfirmationData {
         price: number;
         size?: string | null;
         selectedColor?: string | null;
+        selectedPlanter?: string | null;
     }[];
 }
 
@@ -127,6 +128,7 @@ export function orderConfirmationTemplate(data: OrderConfirmationData): string {
             <td class="order-table" style="padding:14px 0;border-bottom:1px solid ${BORDER_COLOR};vertical-align:top;">
                 <p class="item-name" style="margin:0 0 3px;color:${TEXT_PRIMARY};font-size:14px;font-family:Arial,Helvetica,sans-serif;font-weight:600;">${item.name}</p>
                 ${item.size ? `<p style="margin:0;color:${TEXT_MUTED};font-size:12px;font-family:Arial,Helvetica,sans-serif;">Size: ${item.size}</p>` : ''}
+                ${item.selectedPlanter ? `<p style="margin:0;color:${TEXT_MUTED};font-size:12px;font-family:Arial,Helvetica,sans-serif;">Planter: ${item.selectedPlanter}</p>` : ''}
                 ${item.selectedColor ? `<p style="margin:0;color:${TEXT_MUTED};font-size:12px;font-family:Arial,Helvetica,sans-serif;">Colour: ${item.selectedColor}</p>` : ''}
             </td>
             <td class="order-table" style="padding:14px 8px;border-bottom:1px solid ${BORDER_COLOR};text-align:center;vertical-align:top;color:${TEXT_SECONDARY};font-size:14px;font-family:Arial,Helvetica,sans-serif;white-space:nowrap;">${item.quantity}</td>

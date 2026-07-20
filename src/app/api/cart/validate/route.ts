@@ -87,7 +87,7 @@ async function validateCart(request: NextRequest, user: JWTPayload) {
                     continue;
                 }
 
-                const availableStock = getVariantStock(item.product, item.size);
+                const availableStock = getVariantStock(item.product, item.size, item.selectedPlanter);
 
                 if (availableStock <= 0) {
                     issues.push({

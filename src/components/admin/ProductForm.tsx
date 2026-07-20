@@ -15,12 +15,38 @@ interface VariantColor {
     images: string[];  // Array of images for this color
 }
 
+// Inbuilt planter presets — admins can add these in one click, then tweak price / upload images.
+// Colors come pre-filled (matching common Ugaoo-style planters); images are added per color afterwards.
+const PRESET_PLANTER_COLORS: VariantColor[] = [
+    { name: 'Ivory', hex: '#F5F0DC', images: [] },
+    { name: 'Yellow', hex: '#F2E14C', images: [] },
+    { name: 'Green', hex: '#7CC242', images: [] },
+    { name: 'Brown', hex: '#4A3728', images: [] },
+    { name: 'Red', hex: '#E23A2E', images: [] },
+];
+
+const PRESET_PLANTERS: { name: string; price: string; comparePrice: string; colors: VariantColor[] }[] = [
+    { name: 'GroPot', price: '399', comparePrice: '499', colors: PRESET_PLANTER_COLORS.slice(0, 5) },
+    { name: 'Krish', price: '499', comparePrice: '600', colors: PRESET_PLANTER_COLORS.slice(0, 3) },
+    { name: 'Prism', price: '899', comparePrice: '1099', colors: PRESET_PLANTER_COLORS.slice(0, 4) },
+    { name: 'Aurelius', price: '899', comparePrice: '1099', colors: PRESET_PLANTER_COLORS.slice(0, 4) },
+];
+
+interface PlanterVariant {
+    name: string;
+    price: string;
+    comparePrice?: string;
+    stock: string;
+    colors: VariantColor[];  // Colors available for THIS planter
+}
+
 interface SizeVariant {
     size: string;
     price: string;
     comparePrice?: string;
     stock: string;
     colors: VariantColor[];
+    planters?: PlanterVariant[];  // Planters for THIS size (planter-mode plants only)
 }
 
 export interface ProductFormData {
@@ -92,6 +118,15 @@ export default function ProductForm({ initialData, categories, onSubmit, loading
     const [isSingleSize, setIsSingleSize] = useState(false);
     // Multi-color mode: auto-detect from initialData (replaces hardcoded POT check)
     const [isMultiColor, setIsMultiColor] = useState(false);
+    // Planter mode: plants can offer selectable planters (each with own price + colors)
+    const [hasPlanters, setHasPlanters] = useState(false);
+    // Planter input drafts, keyed by size
+    const [planterInputs, setPlanterInputs] = useState<{ [size: string]: { name: string; price: string; comparePrice: string; stock: string } }>({});
+    // Planter color input drafts, keyed by `${size}::${planterIndex}`
+    const [planterColorInputs, setPlanterColorInputs] = useState<{ [key: string]: { name: string; hex: string; file?: File | null } }>({});
+    const [planterColorUploading, setPlanterColorUploading] = useState<{ [key: string]: boolean }>({});
+    // Toggle for showing the "create custom planter" form, keyed by size
+    const [showCustomPlanter, setShowCustomPlanter] = useState<{ [size: string]: boolean }>({});
 
     useEffect(() => {
         if (initialData) {
@@ -102,6 +137,9 @@ export default function ProductForm({ initialData, categories, onSubmit, loading
             // Auto-detect multi-color mode: if any variant has colors
             const hasColors = variants.some(v => v.colors && v.colors.length > 0);
             setIsMultiColor(hasColors);
+            // Auto-detect planter mode: if any variant has planters
+            const withPlanters = variants.some(v => v.planters && v.planters.length > 0);
+            setHasPlanters(withPlanters);
             setFormData({
                 ...defaultFormData,
                 ...initialData,
@@ -296,6 +334,214 @@ export default function ProductForm({ initialData, categories, onSubmit, loading
 
 
 
+    // PLANTER HANDLERS (plants only)
+    const handlePlanterInputChange = (size: string, field: 'name' | 'price' | 'comparePrice' | 'stock', value: string) => {
+        setPlanterInputs(prev => {
+            const current = prev[size] || { name: '', price: '', comparePrice: '', stock: '' };
+            return { ...prev, [size]: { ...current, [field]: value } };
+        });
+    };
+
+    const handleAddPlanter = (size: string) => {
+        const draft = planterInputs[size];
+        if (!draft?.name?.trim()) {
+            setUploadError(`Please enter a planter name for size ${size}`);
+            return;
+        }
+        if (!draft?.price?.trim() || parseFloat(draft.price) <= 0) {
+            setUploadError(`Please enter a valid price for the planter (size ${size})`);
+            return;
+        }
+        setUploadError(null);
+        const newPlanter: PlanterVariant = {
+            name: draft.name.trim(),
+            price: draft.price,
+            comparePrice: draft.comparePrice || '',
+            stock: draft.stock || '0',
+            colors: [],
+        };
+        setFormData(prev => ({
+            ...prev,
+            sizeVariants: prev.sizeVariants.map(v =>
+                v.size === size
+                    ? { ...v, planters: [...(v.planters || []), newPlanter] }
+                    : v
+            )
+        }));
+        setPlanterInputs(prev => ({ ...prev, [size]: { name: '', price: '', comparePrice: '', stock: '' } }));
+        setShowCustomPlanter(prev => ({ ...prev, [size]: false }));
+    };
+
+    // Quick-add an inbuilt preset planter (name, price, MRP and default colors pre-filled).
+    const handleAddPresetPlanter = (size: string, preset: typeof PRESET_PLANTERS[number]) => {
+        setUploadError(null);
+        setFormData(prev => ({
+            ...prev,
+            sizeVariants: prev.sizeVariants.map(v => {
+                if (v.size !== size) return v;
+                const existing = v.planters || [];
+                // Skip if a planter with the same name already exists for this size
+                if (existing.some(p => p.name.toLowerCase() === preset.name.toLowerCase())) {
+                    return v;
+                }
+                const newPlanter: PlanterVariant = {
+                    name: preset.name,
+                    price: preset.price,
+                    comparePrice: preset.comparePrice,
+                    stock: '10',
+                    colors: preset.colors.map(c => ({ ...c, images: [] })),
+                };
+                return { ...v, planters: [...existing, newPlanter] };
+            })
+        }));
+    };
+
+    const handlePlanterChange = (size: string, planterIdx: number, field: 'name' | 'price' | 'comparePrice' | 'stock', value: string) => {
+        setFormData(prev => ({
+            ...prev,
+            sizeVariants: prev.sizeVariants.map(v =>
+                v.size === size
+                    ? { ...v, planters: (v.planters || []).map((p, i) => i === planterIdx ? { ...p, [field]: value } : p) }
+                    : v
+            )
+        }));
+    };
+
+    const handleRemovePlanter = (size: string, planterIdx: number) => {
+        setFormData(prev => ({
+            ...prev,
+            sizeVariants: prev.sizeVariants.map(v =>
+                v.size === size
+                    ? { ...v, planters: (v.planters || []).filter((_, i) => i !== planterIdx) }
+                    : v
+            )
+        }));
+    };
+
+    const handlePlanterColorInputChange = (key: string, field: 'name' | 'hex', value: string) => {
+        setPlanterColorInputs(prev => {
+            const current = prev[key] || { name: '', hex: '#4CAF50', file: null };
+            return { ...prev, [key]: { ...current, [field]: value } };
+        });
+    };
+
+    const handleAddColorToPlanter = (size: string, planterIdx: number) => {
+        const key = `${size}::${planterIdx}`;
+        const draft = planterColorInputs[key];
+        if (!draft?.name?.trim()) {
+            setUploadError('Please enter a color name');
+            return;
+        }
+        setUploadError(null);
+
+        const newColor: VariantColor = {
+            name: draft.name.trim(),
+            hex: draft.hex.startsWith('#') ? draft.hex : `#${draft.hex}`,
+            images: [],
+        };
+        setFormData(prev => ({
+            ...prev,
+            sizeVariants: prev.sizeVariants.map(v =>
+                v.size === size
+                    ? {
+                        ...v,
+                        planters: (v.planters || []).map((p, i) =>
+                            i === planterIdx ? { ...p, colors: [...p.colors, newColor] } : p
+                        )
+                    }
+                    : v
+            )
+        }));
+        setPlanterColorInputs(prev => ({ ...prev, [key]: { name: '', hex: '#4CAF50', file: null } }));
+    };
+
+    const handleRemoveColorFromPlanter = (size: string, planterIdx: number, colorIdx: number) => {
+        setFormData(prev => ({
+            ...prev,
+            sizeVariants: prev.sizeVariants.map(v =>
+                v.size === size
+                    ? {
+                        ...v,
+                        planters: (v.planters || []).map((p, i) =>
+                            i === planterIdx ? { ...p, colors: p.colors.filter((_, ci) => ci !== colorIdx) } : p
+                        )
+                    }
+                    : v
+            )
+        }));
+    };
+
+    // Add another image to an EXISTING planter color (gallery support)
+    const handleAddImageToPlanterColor = async (size: string, planterIdx: number, colorIdx: number, file: File) => {
+        const key = `${size}::${planterIdx}::${colorIdx}`;
+        setPlanterColorUploading(prev => ({ ...prev, [key]: true }));
+        setUploadError(null);
+        try {
+            const formDataUpload = new FormData();
+            formDataUpload.append('file', file);
+            formDataUpload.append('folder', 'vanam-store/products/planters');
+            const res = await fetch('/api/upload', {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` },
+                body: formDataUpload,
+            });
+            const data = await res.json();
+            if (res.ok && data.url) {
+                setFormData(prev => ({
+                    ...prev,
+                    sizeVariants: prev.sizeVariants.map(v =>
+                        v.size === size
+                            ? {
+                                ...v,
+                                planters: (v.planters || []).map((p, i) =>
+                                    i === planterIdx
+                                        ? {
+                                            ...p,
+                                            colors: p.colors.map((c, ci) =>
+                                                ci === colorIdx ? { ...c, images: [...(c.images || []), data.url] } : c
+                                            )
+                                        }
+                                        : p
+                                )
+                            }
+                            : v
+                    )
+                }));
+            } else {
+                setUploadError(data.error || 'Failed to upload image');
+            }
+        } catch (error) {
+            console.error('Planter color image upload error:', error);
+            setUploadError('Failed to upload image.');
+        }
+        setPlanterColorUploading(prev => ({ ...prev, [key]: false }));
+    };
+
+    const handleRemoveImageFromPlanterColor = (size: string, planterIdx: number, colorIdx: number, imageIdx: number) => {
+        setFormData(prev => ({
+            ...prev,
+            sizeVariants: prev.sizeVariants.map(v =>
+                v.size === size
+                    ? {
+                        ...v,
+                        planters: (v.planters || []).map((p, i) =>
+                            i === planterIdx
+                                ? {
+                                    ...p,
+                                    colors: p.colors.map((c, ci) =>
+                                        ci === colorIdx ? { ...c, images: (c.images || []).filter((_, imgI) => imgI !== imageIdx) } : c
+                                    )
+                                }
+                                : p
+                        )
+                    }
+                    : v
+            )
+        }));
+    };
+
+
+
     // FILE UPLOAD
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
@@ -358,12 +604,26 @@ export default function ProductForm({ initialData, categories, onSubmit, loading
             warnings.push('• No price set');
         }
         if (formData.sizeVariants.length > 0) {
-            const emptyPrices = formData.sizeVariants.filter(v => !v.price || parseFloat(v.price) <= 0);
-            if (emptyPrices.length > 0) {
-                warnings.push(`• ${emptyPrices.length} size variant(s) have no price`);
+            if (hasPlanters) {
+                const noPlanters = formData.sizeVariants.filter(v => !v.planters || v.planters.length === 0);
+                if (noPlanters.length > 0) {
+                    warnings.push(`• ${noPlanters.length} size(s) have no planters added`);
+                }
+                const emptyPlanterPrices = formData.sizeVariants
+                    .flatMap(v => v.planters || [])
+                    .filter(p => !p.price || parseFloat(p.price) <= 0);
+                if (emptyPlanterPrices.length > 0) {
+                    warnings.push(`• ${emptyPlanterPrices.length} planter(s) have no price`);
+                }
+            } else {
+                const emptyPrices = formData.sizeVariants.filter(v => !v.price || parseFloat(v.price) <= 0);
+                if (emptyPrices.length > 0) {
+                    warnings.push(`• ${emptyPrices.length} size variant(s) have no price`);
+                }
             }
         }
-        if (formData.images.length === 0 && !formData.sizeVariants.some(v => v.colors?.some(c => c.images?.length > 0))) {
+        const hasPlanterImages = formData.sizeVariants.some(v => (v.planters || []).some(p => p.colors?.some(c => c.images?.length > 0)));
+        if (formData.images.length === 0 && !formData.sizeVariants.some(v => v.colors?.some(c => c.images?.length > 0)) && !hasPlanterImages) {
             warnings.push('• No images uploaded');
         }
 
@@ -377,10 +637,32 @@ export default function ProductForm({ initialData, categories, onSubmit, loading
         // Calculate base price and stock from variants if they exist
         const dataToSubmit = { ...formData };
         if (formData.sizeVariants.length > 0) {
-            const prices = formData.sizeVariants.map(v => parseFloat(v.price) || 0);
-            const stocks = formData.sizeVariants.map(v => parseInt(v.stock) || 0);
-            dataToSubmit.price = Math.min(...prices).toString();
-            dataToSubmit.stock = stocks.reduce((a, b) => a + b, 0).toString();
+            if (hasPlanters) {
+                // In planter mode, each size's price/stock derive from its planters.
+                // Sync those onto the size variant, then compute the base product price/stock.
+                dataToSubmit.sizeVariants = formData.sizeVariants.map(v => {
+                    const planters = v.planters || [];
+                    if (planters.length === 0) return v;
+                    const planterPrices = planters.map(p => parseFloat(p.price) || 0);
+                    const planterStock = planters.reduce((a, p) => a + (parseInt(p.stock) || 0), 0);
+                    return {
+                        ...v,
+                        price: Math.min(...planterPrices).toString(),
+                        stock: planterStock.toString(),
+                    };
+                });
+                const allPlanterPrices = dataToSubmit.sizeVariants.flatMap(v => (v.planters || []).map(p => parseFloat(p.price) || 0));
+                const allPlanterStock = dataToSubmit.sizeVariants.reduce((sum, v) => sum + (v.planters || []).reduce((a, p) => a + (parseInt(p.stock) || 0), 0), 0);
+                if (allPlanterPrices.length > 0) {
+                    dataToSubmit.price = Math.min(...allPlanterPrices).toString();
+                }
+                dataToSubmit.stock = allPlanterStock.toString();
+            } else {
+                const prices = formData.sizeVariants.map(v => parseFloat(v.price) || 0);
+                const stocks = formData.sizeVariants.map(v => parseInt(v.stock) || 0);
+                dataToSubmit.price = Math.min(...prices).toString();
+                dataToSubmit.stock = stocks.reduce((a, b) => a + b, 0).toString();
+            }
         }
 
         // Auto-derive suitableFor from category name
@@ -613,8 +895,62 @@ export default function ProductForm({ initialData, categories, onSubmit, loading
                         </div>
                     </div>
 
+                    {/* Planter Mode Toggle — plants only */}
+                    {formData.productType === 'PLANT' && (
+                        <div className={styles.card}>
+                            <h2 className={styles.cardTitle}>Planter Options</h2>
+                            <div className={styles.colorModeToggle}>
+                                <div className={styles.colorModeButtons}>
+                                    <button
+                                        type="button"
+                                        className={`${styles.colorModeBtn} ${!hasPlanters ? styles.colorModeBtnActive : ''}`}
+                                        onClick={() => {
+                                            setHasPlanters(false);
+                                            // Clear planters from all variants when disabling
+                                            setFormData(prev => ({
+                                                ...prev,
+                                                sizeVariants: prev.sizeVariants.map(v => ({ ...v, planters: [] }))
+                                            }));
+                                        }}
+                                    >
+                                        <span className={styles.colorModeIcon}>
+                                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                <path d="M7 20l4-16m2 16l4-16" strokeLinecap="round" />
+                                                <path d="M12 4c-2 0-6 2-6 8s4 8 6 8c2 0 6-2 6-8s-4-8-6-8z" />
+                                            </svg>
+                                        </span>
+                                        <span className={styles.colorModeLabel}>No Planters</span>
+                                        <span className={styles.colorModeDesc}>Just the plant — sizes and colors only</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className={`${styles.colorModeBtn} ${hasPlanters ? styles.colorModeBtnActive : ''}`}
+                                        onClick={() => {
+                                            setHasPlanters(true);
+                                            // Colors move under planters, so clear size-level colors
+                                            setIsMultiColor(false);
+                                            setFormData(prev => ({
+                                                ...prev,
+                                                sizeVariants: prev.sizeVariants.map(v => ({ ...v, colors: [] }))
+                                            }));
+                                        }}
+                                    >
+                                        <span className={styles.colorModeIcon}>
+                                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                <path d="M4 10h16l-2 10H6L4 10z" strokeLinecap="round" strokeLinejoin="round" />
+                                                <path d="M6 10V8a2 2 0 012-2h8a2 2 0 012 2v2" />
+                                            </svg>
+                                        </span>
+                                        <span className={styles.colorModeLabel}>Include Planters</span>
+                                        <span className={styles.colorModeDesc}>Each size offers planters with their own prices & colors</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Color Mode Toggle — shown for all types except SEED */}
-                    {formData.productType !== 'SEED' && (
+                    {formData.productType !== 'SEED' && !hasPlanters && (
                         <div className={styles.card}>
                             <h2 className={styles.cardTitle}>Product Color Type</h2>
                             <div className={styles.colorModeToggle}>
@@ -870,6 +1206,7 @@ export default function ProductForm({ initialData, categories, onSubmit, loading
                                                 </div>
                                             )}
 
+                                            {!hasPlanters && (
                                             <div className={styles.variantRow}>
                                                 <div className={styles.variantField}>
                                                     <label>Price (₹)</label>
@@ -904,9 +1241,268 @@ export default function ProductForm({ initialData, categories, onSubmit, loading
                                                     />
                                                 </div>
                                             </div>
+                                            )}
+
+                                            {/* Planters for this size — planter mode only */}
+                                            {hasPlanters && (
+                                                <div className={styles.colorSection}>
+                                                    <label>Planters{!isSingleSize ? ` for ${variant.size}` : ''}</label>
+                                                    <div className={styles.colorInputCard}>
+                                                        {/* Option 1: Quick add an inbuilt planter */}
+                                                        <div className={styles.planterQuickAdd}>
+                                                            <div className={styles.planterSectionHead}>
+                                                                <span className={styles.planterSectionTitle}>⚡ Quick add</span>
+                                                                <span className={styles.planterSectionHint}>Price &amp; colors pre-filled — just click, then upload images</span>
+                                                            </div>
+                                                            <div className={styles.presetPlanters}>
+                                                                {PRESET_PLANTERS.map((preset) => {
+                                                                    const alreadyAdded = (variant.planters || []).some(
+                                                                        p => p.name.toLowerCase() === preset.name.toLowerCase()
+                                                                    );
+                                                                    return (
+                                                                        <button
+                                                                            key={preset.name}
+                                                                            type="button"
+                                                                            onClick={() => handleAddPresetPlanter(variant.size, preset)}
+                                                                            className={styles.presetChip}
+                                                                            disabled={alreadyAdded}
+                                                                            title={alreadyAdded ? 'Already added' : `Add ${preset.name} (₹${preset.price})`}
+                                                                        >
+                                                                            {alreadyAdded ? '✓ ' : '+ '}{preset.name}
+                                                                            <span className={styles.presetPrice}>₹{preset.price}</span>
+                                                                        </button>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Divider */}
+                                                        <div className={styles.planterOr}><span>or</span></div>
+
+                                                        {/* Option 2: Create a custom planter (collapsed by default) */}
+                                                        {!showCustomPlanter[variant.size] ? (
+                                                            <button
+                                                                type="button"
+                                                                className={styles.customPlanterToggle}
+                                                                onClick={() => setShowCustomPlanter(prev => ({ ...prev, [variant.size]: true }))}
+                                                            >
+                                                                + Create a custom planter
+                                                            </button>
+                                                        ) : (
+                                                            <div className={styles.customPlanterForm}>
+                                                                <div className={styles.planterSectionHead}>
+                                                                    <span className={styles.planterSectionTitle}>✏️ New custom planter</span>
+                                                                    <button
+                                                                        type="button"
+                                                                        className={styles.customPlanterCancel}
+                                                                        onClick={() => setShowCustomPlanter(prev => ({ ...prev, [variant.size]: false }))}
+                                                                    >
+                                                                        Cancel
+                                                                    </button>
+                                                                </div>
+                                                                <div className={styles.variantRow}>
+                                                                    <div className={styles.variantField}>
+                                                                        <label>Planter Name</label>
+                                                                        <input
+                                                                            type="text"
+                                                                            placeholder="e.g., GroPot"
+                                                                            value={planterInputs[variant.size]?.name || ''}
+                                                                            onChange={(e) => handlePlanterInputChange(variant.size, 'name', e.target.value)}
+                                                                        />
+                                                                    </div>
+                                                                    <div className={styles.variantField}>
+                                                                        <label>Price (₹)</label>
+                                                                        <input
+                                                                            type="number"
+                                                                            placeholder="299"
+                                                                            min="0"
+                                                                            value={planterInputs[variant.size]?.price || ''}
+                                                                            onChange={(e) => handlePlanterInputChange(variant.size, 'price', e.target.value)}
+                                                                        />
+                                                                    </div>
+                                                                    <div className={styles.variantField}>
+                                                                        <label>MRP (₹)</label>
+                                                                        <input
+                                                                            type="number"
+                                                                            placeholder="499"
+                                                                            min="0"
+                                                                            value={planterInputs[variant.size]?.comparePrice || ''}
+                                                                            onChange={(e) => handlePlanterInputChange(variant.size, 'comparePrice', e.target.value)}
+                                                                        />
+                                                                    </div>
+                                                                    <div className={styles.variantField}>
+                                                                        <label>Stock</label>
+                                                                        <input
+                                                                            type="number"
+                                                                            placeholder="10"
+                                                                            min="0"
+                                                                            value={planterInputs[variant.size]?.stock || ''}
+                                                                            onChange={(e) => handlePlanterInputChange(variant.size, 'stock', e.target.value)}
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleAddPlanter(variant.size)}
+                                                                    className={styles.addColorBtn}
+                                                                >
+                                                                    + Add Planter
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Existing planters for this size */}
+                                                    <div className={styles.variantBlocks}>
+                                                        {(variant.planters || []).map((planter, pIdx) => (
+                                                            <div key={pIdx} className={styles.variantBlock}>
+                                                                <div className={styles.variantHeader}>
+                                                                    <span className={styles.variantSize}>
+                                                                        🪴 {planter.name} — ₹{planter.price || 0}
+                                                                        {planter.comparePrice ? ` (MRP ₹${planter.comparePrice})` : ''} · Stock: {planter.stock || 0}
+                                                                    </span>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleRemovePlanter(variant.size, pIdx)}
+                                                                        className={styles.removeColorBtn}
+                                                                    >×</button>
+                                                                </div>
+
+                                                                {/* Editable planter fields */}
+                                                                <div className={styles.variantRow}>
+                                                                    <div className={styles.variantField}>
+                                                                        <label>Name</label>
+                                                                        <input
+                                                                            type="text"
+                                                                            value={planter.name}
+                                                                            onChange={(e) => handlePlanterChange(variant.size, pIdx, 'name', e.target.value)}
+                                                                        />
+                                                                    </div>
+                                                                    <div className={styles.variantField}>
+                                                                        <label>Price (₹)</label>
+                                                                        <input
+                                                                            type="number"
+                                                                            min="0"
+                                                                            value={planter.price}
+                                                                            onChange={(e) => handlePlanterChange(variant.size, pIdx, 'price', e.target.value)}
+                                                                        />
+                                                                    </div>
+                                                                    <div className={styles.variantField}>
+                                                                        <label>MRP (₹)</label>
+                                                                        <input
+                                                                            type="number"
+                                                                            min="0"
+                                                                            value={planter.comparePrice || ''}
+                                                                            onChange={(e) => handlePlanterChange(variant.size, pIdx, 'comparePrice', e.target.value)}
+                                                                        />
+                                                                    </div>
+                                                                    <div className={styles.variantField}>
+                                                                        <label>Stock</label>
+                                                                        <input
+                                                                            type="number"
+                                                                            min="0"
+                                                                            value={planter.stock}
+                                                                            onChange={(e) => handlePlanterChange(variant.size, pIdx, 'stock', e.target.value)}
+                                                                        />
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Colors for this planter */}
+                                                                <div className={styles.colorSection}>
+                                                                    <label>Colors for {planter.name}</label>
+                                                                    <div className={styles.colorInputCard}>
+                                                                        <div className={styles.colorInputRow}>
+                                                                            <input
+                                                                                type="text"
+                                                                                placeholder="Color name (e.g., Ivory)"
+                                                                                value={planterColorInputs[`${variant.size}::${pIdx}`]?.name || ''}
+                                                                                onChange={(e) => handlePlanterColorInputChange(`${variant.size}::${pIdx}`, 'name', e.target.value)}
+                                                                            />
+                                                                            <input
+                                                                                type="color"
+                                                                                value={planterColorInputs[`${variant.size}::${pIdx}`]?.hex || '#4CAF50'}
+                                                                                onChange={(e) => handlePlanterColorInputChange(`${variant.size}::${pIdx}`, 'hex', e.target.value)}
+                                                                                className={styles.colorPicker}
+                                                                            />
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => handleAddColorToPlanter(variant.size, pIdx)}
+                                                                                className={styles.addColorBtn}
+                                                                            >
+                                                                                Add Color
+                                                                            </button>
+                                                                        </div>
+                                                                        <p className={styles.helpText}>
+                                                                            Add the color, then upload its images below.
+                                                                        </p>
+                                                                    </div>
+
+                                                                    <div className={styles.colorDots}>
+                                                                        {planter.colors.map((color, cIdx) => (
+                                                                            <div key={cIdx} className={styles.colorDotCard}>
+                                                                                <div className={styles.colorDotHeader}>
+                                                                                    <span
+                                                                                        className={styles.dotPreview}
+                                                                                        style={{ backgroundColor: color.hex }}
+                                                                                        title={color.name}
+                                                                                    ></span>
+                                                                                    <span className={styles.colorName}>{color.name}</span>
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        onClick={() => handleRemoveColorFromPlanter(variant.size, pIdx, cIdx)}
+                                                                                        className={styles.removeColorBtn}
+                                                                                    >×</button>
+                                                                                </div>
+
+                                                                                {/* Image gallery for this color */}
+                                                                                <div className={styles.planterImageGrid}>
+                                                                                    {(color.images || []).map((img, imgIdx) => (
+                                                                                        <div key={imgIdx} className={styles.imageCard}>
+                                                                                            <img src={img} alt={`${color.name} ${imgIdx + 1}`} className={styles.previewImage} />
+                                                                                            <button
+                                                                                                type="button"
+                                                                                                onClick={() => handleRemoveImageFromPlanterColor(variant.size, pIdx, cIdx, imgIdx)}
+                                                                                                className={styles.removeImageBtn}
+                                                                                            >×</button>
+                                                                                        </div>
+                                                                                    ))}
+                                                                                    <label className={styles.planterImageAdd}>
+                                                                                        <input
+                                                                                            type="file"
+                                                                                            accept="image/*"
+                                                                                            className={styles.colorImageInput}
+                                                                                            onChange={(e) => {
+                                                                                                const file = e.target.files?.[0];
+                                                                                                if (file) handleAddImageToPlanterColor(variant.size, pIdx, cIdx, file);
+                                                                                                e.target.value = '';
+                                                                                            }}
+                                                                                            disabled={planterColorUploading[`${variant.size}::${pIdx}::${cIdx}`]}
+                                                                                        />
+                                                                                        {planterColorUploading[`${variant.size}::${pIdx}::${cIdx}`] ? (
+                                                                                            <span>Uploading...</span>
+                                                                                        ) : (
+                                                                                            <span>＋ Image</span>
+                                                                                        )}
+                                                                                    </label>
+                                                                                </div>
+                                                                            </div>
+                                                                        ))}
+                                                                        {planter.colors.length === 0 && (
+                                                                            <span className={styles.noColors}>No colors added</span>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                        {(variant.planters || []).length === 0 && (
+                                                            <span className={styles.noColors}>No planters added for this size</span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
 
                                             {/* Colors for this size - shown when multi-color mode is enabled */}
-                                            {isMultiColor && (
+                                            {isMultiColor && !hasPlanters && (
                                                 <div className={styles.colorSection}>
                                                     <label>Colors{!isSingleSize ? ` for ${variant.size}` : ''}</label>
                                                     <div className={styles.colorInputCard}>

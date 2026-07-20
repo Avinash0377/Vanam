@@ -8,7 +8,7 @@ import {
 import styles from './page.module.css';
 
 const contactInfo = [
-    { icon: 'location', label: 'Address', value: 'Hyderabad, Telangana, India' },
+    { icon: 'location', label: 'Address', value: 'Vijayawada, Andhra Pradesh, India' },
     { icon: 'phone', label: 'Phone', value: '+91 88972 49374', href: 'tel:+918897249374' },
     { icon: 'mail', label: 'Email', value: 'vanamstore@gmail.com', href: 'mailto:vanamstore@gmail.com' },
     { icon: 'clock', label: 'Hours', value: 'Mon - Sat: 9am - 7pm' },
@@ -182,7 +182,7 @@ export default function ContactPage() {
                         {/* Map placeholder */}
                         <div className={styles.mapPlaceholder}>
                             <MapPinIcon size={48} color="#16a34a" />
-                            <span>Hyderabad, Telangana</span>
+                            <span>Vijayawada, Andhra Pradesh</span>
                         </div>
                     </div>
                 </div>

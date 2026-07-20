@@ -167,13 +167,25 @@ type VariantColor {
   images String[]  // Array of images for this color
 }
 
+// Embedded type for a planter option available for a specific plant size.
+// Used only for PLANT products in "planter mode". Selecting a planter sets
+// the final price. Each size has its own planter list with its own prices.
+type PlanterVariant {
+  name         String          // "GroPot", "Kyoto", "Diamond"
+  price        Float           // Final price for this planter at this size
+  comparePrice Float?          // Original MRP strikethrough
+  stock        Int
+  colors       VariantColor[]  // Colors available for THIS planter (each has images)
+}
+
 // Embedded type for size variants with per-size pricing, stock, and colors
 type SizeVariant {
-  size         String          // S, M, L, XL
+  size         String            // S, M, L, XL
   price        Float
-  comparePrice Float?          // Original MRP for this size
+  comparePrice Float?            // Original MRP for this size
   stock        Int
-  colors       VariantColor[]  // Colors available for THIS size only
+  colors       VariantColor[]    // Colors available for THIS size only
+  planters     PlanterVariant[]  // Planters for THIS size (planter-mode plants only)
 }
 
 model Product {
@@ -234,6 +246,7 @@ model Cart {
   size          String?
   selectedColor String?   // Hex or name of selected color
   colorImage    String?   // Image URL for the selected color
+  selectedPlanter String? // Planter name selected (planter-mode plants only)
   customMessage String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -342,6 +355,7 @@ model OrderItem {
   selectedSize  String?
   selectedColor String?
   colorImage    String?
+  selectedPlanter String?
 
   @@index([orderId])
   // Indexes for sales analytics and product performance queries

@@ -95,7 +95,7 @@ export default function TermsPage() {
                 <section className={styles.section}>
                     <h2 className={styles.sectionTitle}>Governing Law</h2>
                     <div className={styles.text}>
-                        <p>These terms are governed by the laws of India. Any disputes shall be subject to the exclusive jurisdiction of courts in Hyderabad, Telangana.</p>
+                        <p>These terms are governed by the laws of India. Any disputes shall be subject to the exclusive jurisdiction of courts in Vijayawada, Andhra Pradesh.</p>
                     </div>
                 </section>
 

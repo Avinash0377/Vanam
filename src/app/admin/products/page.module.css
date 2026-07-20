@@ -734,6 +734,16 @@
     font-family: var(--font-display);
 }
 
+/* Planter name cell */
+.planterNameCell {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--primary-700);
+}
+
 /* Stock Display */
 .stockDisplay {
     display: inline-flex;

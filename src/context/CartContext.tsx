@@ -18,6 +18,7 @@ interface CartItem {
     size?: string;
     color?: string;
     colorHex?: string;
+    planter?: string;
     customMessage?: string;
     category?: string;
     productType?: string;
@@ -97,7 +98,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             if (data.cart) {
                 const cartItems: CartItem[] = [];
 
-                data.cart.items?.forEach((item: { id: string; quantity: number; size?: string; selectedColor?: string; colorImage?: string; product: { id: string; name: string; slug: string; price: number; comparePrice?: number; images: string[]; size?: string; category?: { name: string }; productType?: string } }) => {
+                data.cart.items?.forEach((item: { id: string; quantity: number; size?: string; selectedColor?: string; colorImage?: string; selectedPlanter?: string; product: { id: string; name: string; slug: string; price: number; comparePrice?: number; images: string[]; size?: string; category?: { name: string }; productType?: string } }) => {
                     cartItems.push({
                         id: item.id,
                         productId: item.product.id,
@@ -110,6 +111,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
                         type: 'product',
                         size: item.size || item.product.size,
                         color: item.selectedColor,
+                        planter: item.selectedPlanter,
                         category: item.product.category?.name || 'Plant',
                         productType: item.product.productType,
                     });
@@ -176,6 +178,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
                 size: i.size,
                 color: i.color,
                 colorHex: i.colorHex,
+                planter: i.planter,
                 category: i.category,
                 productType: i.productType,
             })),
@@ -214,6 +217,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
                     body.size = item.size;
                     body.selectedColor = item.color;
                     body.colorImage = item.image;
+                    body.selectedPlanter = item.planter;
                 }
                 if (item.type === 'combo') body.comboId = item.comboId;
                 if (item.type === 'hamper') {
@@ -237,7 +241,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         } else {
             // Add to guest cart
             const existingIndex = items.findIndex(i => {
-                if (item.type === 'product') return i.productId === item.productId && i.size === item.size && i.color === item.color;
+                if (item.type === 'product') return i.productId === item.productId && i.size === item.size && i.color === item.color && i.planter === item.planter;
                 if (item.type === 'combo') return i.comboId === item.comboId;
                 if (item.type === 'hamper') return i.hamperId === item.hamperId;
                 return false;

@@ -28,28 +28,6 @@ async function getSalesAnalytics(request: NextRequest, _user: { userId: string; 
         });
 
         // 1. Daily Sales Trend (Line/Bar Chart data)
-        const salesByDate: Record<string, number> = {};
-        const ordersByDate: Record<string, number> = {};
-
-        // Initialize last 30 days with 0
-        for (let i = 0; i < 30; i++) {
-            const date = new Date();
-            date.setDate(date.getDate() - i);
-            const dateString = date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
-            salesByDate[dateString] = 0;
-            ordersByDate[dateString] = 0;
-        }
-
-        orders.forEach(order => {
-            if (order.orderStatus !== 'CANCELLED') {
-                const dateString = new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
-                // Note: If the initialized dates don't exactly match (e.g., varying formats), this simple key matching might miss.
-                // Better approach: use YYYY-MM-DD for keys and map to display format later.
-                // Re-doing date logic below for safety.
-            }
-        });
-
-        // Robust Date Logic
         const dailyStats = new Map<string, { date: string; sales: number; orders: number }>();
         const now = new Date();
         for (let i = 29; i >= 0; i--) {

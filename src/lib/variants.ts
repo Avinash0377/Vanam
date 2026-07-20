@@ -11,12 +11,21 @@ export function isDefaultSize(size?: string | null): boolean {
     return size === DEFAULT_SIZE;
 }
 
+export interface PlanterVariant {
+    name: string;
+    price: number;
+    comparePrice?: number | null;
+    stock: number;
+    colors?: VariantColor[];
+}
+
 export interface SizeVariant {
     size: string;
     price: number;
     comparePrice?: number | null;
     stock: number;
     colors?: VariantColor[];
+    planters?: PlanterVariant[];
 }
 
 export interface VariantColor {
@@ -36,48 +45,72 @@ export interface ProductWithVariants {
     sizeVariants: SizeVariant[];
 }
 
-/** Get price from size variant or fall back to base price */
+/** Resolve the size variant for a given size selection */
+function resolveVariant(
+    sizeVariants: SizeVariant[] | undefined,
+    size?: string | null
+): SizeVariant | undefined {
+    if (!sizeVariants || sizeVariants.length === 0) return undefined;
+    const resolvedSize = size || (sizeVariants.length === 1 ? sizeVariants[0].size : null);
+    if (!resolvedSize) return undefined;
+    return sizeVariants.find(v => v.size === resolvedSize);
+}
+
+/** Resolve the planter within a variant for a given planter name */
+function resolvePlanter(
+    variant: SizeVariant | undefined,
+    planter?: string | null
+): PlanterVariant | undefined {
+    if (!variant?.planters || variant.planters.length === 0) return undefined;
+    if (planter) {
+        const match = variant.planters.find(p => p.name === planter);
+        if (match) return match;
+    }
+    // Fall back to first planter when none specified
+    return variant.planters[0];
+}
+
+/** Get price from planter/size variant or fall back to base price */
 export function getVariantPrice(
     product: { price: number; sizeVariants?: SizeVariant[] },
-    size?: string | null
+    size?: string | null,
+    planter?: string | null
 ): number {
-    if (product.sizeVariants && product.sizeVariants.length > 0) {
-        // If size is provided, look it up; otherwise auto-resolve if there's only one variant
-        const resolvedSize = size || (product.sizeVariants.length === 1 ? product.sizeVariants[0].size : null);
-        if (resolvedSize) {
-            const variant = product.sizeVariants.find(v => v.size === resolvedSize);
-            if (variant) return variant.price;
-        }
+    const variant = resolveVariant(product.sizeVariants, size);
+    if (variant) {
+        const planterVariant = resolvePlanter(variant, planter);
+        if (planterVariant) return planterVariant.price;
+        return variant.price;
     }
     return product.price;
 }
 
-/** Get compare price from size variant or fall back to base compare price */
+/** Get compare price from planter/size variant or fall back to base compare price */
 export function getVariantComparePrice(
     product: { comparePrice?: number | null; sizeVariants?: SizeVariant[] },
-    size?: string | null
+    size?: string | null,
+    planter?: string | null
 ): number | undefined {
-    if (product.sizeVariants && product.sizeVariants.length > 0) {
-        const resolvedSize = size || (product.sizeVariants.length === 1 ? product.sizeVariants[0].size : null);
-        if (resolvedSize) {
-            const variant = product.sizeVariants.find(v => v.size === resolvedSize);
-            if (variant && variant.comparePrice) return variant.comparePrice;
-        }
+    const variant = resolveVariant(product.sizeVariants, size);
+    if (variant) {
+        const planterVariant = resolvePlanter(variant, planter);
+        if (planterVariant && planterVariant.comparePrice) return planterVariant.comparePrice;
+        if (variant.comparePrice) return variant.comparePrice;
     }
     return product.comparePrice || undefined;
 }
 
-/** Get stock from size variant or fall back to base stock */
+/** Get stock from planter/size variant or fall back to base stock */
 export function getVariantStock(
     product: { stock: number; sizeVariants?: SizeVariant[] },
-    size?: string | null
+    size?: string | null,
+    planter?: string | null
 ): number {
-    if (product.sizeVariants && product.sizeVariants.length > 0) {
-        const resolvedSize = size || (product.sizeVariants.length === 1 ? product.sizeVariants[0].size : null);
-        if (resolvedSize) {
-            const variant = product.sizeVariants.find(v => v.size === resolvedSize);
-            if (variant) return variant.stock;
-        }
+    const variant = resolveVariant(product.sizeVariants, size);
+    if (variant) {
+        const planterVariant = resolvePlanter(variant, planter);
+        if (planterVariant) return planterVariant.stock;
+        return variant.stock;
     }
     return product.stock;
 }

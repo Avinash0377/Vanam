@@ -118,7 +118,10 @@
 }
 
 html {
-  scroll-behavior: smooth;
+  /* NOTE: Do NOT set scroll-behavior: smooth here. In the Next.js App Router
+     it makes every page navigation animate the scroll-to-top, which appears as
+     the page "jumping" to a wrong position on open. Scope smooth scrolling to
+     the specific containers that need it (e.g. horizontal category strips). */
   -webkit-text-size-adjust: 100%;
   /* Enable momentum scrolling globally */
   -webkit-overflow-scrolling: touch;
@@ -144,7 +147,7 @@ body {
   font-size: 16px;
   line-height: 1.6;
   color: var(--neutral-800);
-  background-color: #ffffff;
+  background-color: #f9f4ea;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-optical-sizing: auto;
@@ -1869,8 +1872,8 @@ html,
 body {
   overflow-x: hidden;
   max-width: 100vw;
-  /* Smooth scrolling with GPU acceleration */
-  scroll-behavior: smooth;
+  /* scroll-behavior intentionally left as default (auto) — see note on the html
+     rule above: global smooth scrolling breaks Next.js navigation scroll reset. */
   -webkit-overflow-scrolling: touch;
 }
 
@@ -1887,10 +1890,12 @@ body {
     transition-duration: 0.1s !important;
   }
 
-  /* Reduce box-shadows on mobile */
-  .card,
-  [class*="Card"],
-  [class*="card"] {
+  /* Reduce box-shadows on mobile.
+     NOTE: Do NOT use [class*="card"] / [class*="Card"] here — CSS Module class
+     names like "ProductCard_name__x" contain "Card", so those selectors match
+     every descendant and draw a shadow "box" around each row. Target only the
+     literal global .card class. Module cards manage their own mobile shadow. */
+  .card {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
   }
 

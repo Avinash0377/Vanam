@@ -7,7 +7,7 @@ import styles from '@/app/page.module.css';
 const testimonials = [
     {
         name: 'Priya Sharma',
-        location: 'Hyderabad',
+        location: 'Vijayawada',
         text: 'The plants arrived in perfect condition! The packaging was exceptional and the money plant I ordered is thriving. Will definitely order again.',
         rating: 5,
         product: 'Money Plant Golden'

@@ -33,8 +33,8 @@ export async function middleware(request: NextRequest) {
             request.headers.get('authorization')?.replace('Bearer ', '');
 
         if (!token) {
-            const loginUrl = new URL('/admin/login', request.url);
-            loginUrl.searchParams.set('from', pathname);
+            const loginUrl = new URL('/login', request.url);
+            loginUrl.searchParams.set('redirect', '/admin');
             return NextResponse.redirect(loginUrl);
         }
 
@@ -43,8 +43,8 @@ export async function middleware(request: NextRequest) {
 
             // Check admin role
             if (payload.role !== 'ADMIN') {
-                const loginUrl = new URL('/admin/login', request.url);
-                loginUrl.searchParams.set('error', 'unauthorized');
+                const loginUrl = new URL('/login', request.url);
+                loginUrl.searchParams.set('redirect', '/admin');
                 return NextResponse.redirect(loginUrl);
             }
 
@@ -53,8 +53,8 @@ export async function middleware(request: NextRequest) {
 
         } catch {
             // Token invalid or expired
-            const loginUrl = new URL('/admin/login', request.url);
-            loginUrl.searchParams.set('from', pathname);
+            const loginUrl = new URL('/login', request.url);
+            loginUrl.searchParams.set('redirect', '/admin');
             return NextResponse.redirect(loginUrl);
         }
     }

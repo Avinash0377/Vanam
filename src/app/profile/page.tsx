@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { PackageIcon, MapPinIcon, UsersIcon } from '@/components/Icons';
+import { PackageIcon, WhatsAppIcon, LeafIcon, MailIcon, LogoutIcon, ArrowRightIcon, CheckIcon } from '@/components/Icons';
 import styles from './page.module.css';
 
 interface OrderItem {
@@ -13,6 +13,9 @@ interface OrderItem {
     quantity: number;
     price: number;
     image: string | null;
+    selectedSize?: string | null;
+    selectedColor?: string | null;
+    selectedPlanter?: string | null;
 }
 
 interface Order {
@@ -129,6 +132,15 @@ function ProfileContent() {
                                                 </div>
                                                 <div className={styles.itemInfo}>
                                                     <p className={styles.itemName}>{item.name}</p>
+                                                    {((item.selectedSize && item.selectedSize.toUpperCase() !== 'DEFAULT') || item.selectedPlanter || item.selectedColor) && (
+                                                        <p className={styles.itemVariant}>
+                                                            {[
+                                                                item.selectedSize && item.selectedSize.toUpperCase() !== 'DEFAULT' ? item.selectedSize : null,
+                                                                item.selectedPlanter,
+                                                                item.selectedColor,
+                                                            ].filter(Boolean).join(' · ')}
+                                                        </p>
+                                                    )}
                                                     <p className={styles.itemMeta}>Qty: {item.quantity}</p>
                                                 </div>
                                                 <p className={styles.itemPrice}>₹{item.price}</p>
@@ -162,7 +174,7 @@ function ProfileContent() {
                                                             className={`${styles.trackingStep} ${state === 'completed' ? styles.completed : ''} ${state === 'active' ? styles.active : ''}`}
                                                         >
                                                             <div className={styles.stepDot}>
-                                                                {state === 'completed' ? '✓' : state === 'active' ? '●' : '○'}
+                                                                {state === 'completed' ? <CheckIcon size={13} color="#fff" /> : <span className={styles.dotInner} />}
                                                             </div>
                                                             <div className={styles.stepInfo}>
                                                                 <span className={styles.stepLabel}>{step.label}</span>
@@ -223,9 +235,9 @@ function ProfileContent() {
                 {/* Quick Actions */}
                 <div className={styles.actionsGrid}>
                     <Link href="/profile?tab=orders" className={styles.actionCard}>
-                        <span className={styles.actionIcon}>📦</span>
+                        <span className={styles.actionIcon}><PackageIcon size={20} color="#1a4d2e" /></span>
                         <span className={styles.actionLabel}>My Orders</span>
-                        <span className={styles.actionArrow}>›</span>
+                        <ArrowRightIcon size={16} color="#cbd5e1" className={styles.actionArrow} />
                     </Link>
 
                     <a
@@ -234,21 +246,21 @@ function ProfileContent() {
                         rel="noopener noreferrer"
                         className={styles.actionCard}
                     >
-                        <span className={styles.actionIcon}>💬</span>
+                        <span className={styles.actionIcon}><WhatsAppIcon size={20} color="#1a4d2e" /></span>
                         <span className={styles.actionLabel}>WhatsApp Support</span>
-                        <span className={styles.actionArrow}>›</span>
+                        <ArrowRightIcon size={16} color="#cbd5e1" className={styles.actionArrow} />
                     </a>
 
                     <Link href="/about" className={styles.actionCard}>
-                        <span className={styles.actionIcon}>🌿</span>
+                        <span className={styles.actionIcon}><LeafIcon size={20} color="#1a4d2e" /></span>
                         <span className={styles.actionLabel}>About Vanam</span>
-                        <span className={styles.actionArrow}>›</span>
+                        <ArrowRightIcon size={16} color="#cbd5e1" className={styles.actionArrow} />
                     </Link>
 
                     <Link href="/contact" className={styles.actionCard}>
-                        <span className={styles.actionIcon}>📧</span>
+                        <span className={styles.actionIcon}><MailIcon size={20} color="#1a4d2e" /></span>
                         <span className={styles.actionLabel}>Contact Us</span>
-                        <span className={styles.actionArrow}>›</span>
+                        <ArrowRightIcon size={16} color="#cbd5e1" className={styles.actionArrow} />
                     </Link>
                 </div>
 
@@ -273,6 +285,7 @@ function ProfileContent() {
 
                 {/* Logout */}
                 <button onClick={logout} className={styles.logoutBtn}>
+                    <LogoutIcon size={18} color="#ef4444" />
                     Logout
                 </button>
             </div>

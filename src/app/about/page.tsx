@@ -15,7 +15,7 @@ const values = [
 ];
 
 const milestones = [
-    { year: '2020', event: 'Started as a small nursery in Hyderabad' },
+    { year: '2020', event: 'Started as a small nursery in Vijayawada' },
     { year: '2021', event: 'Launched online store and began shipping pan-India' },
     { year: '2022', event: 'Reached 5,000+ happy customers' },
     { year: '2023', event: 'Expanded to gift hampers and corporate orders' },

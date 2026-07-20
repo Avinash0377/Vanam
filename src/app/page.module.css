@@ -1233,7 +1233,7 @@
 /* Categories */
 .categories {
     padding: 50px 0;
-    background: white;
+    background: #f9f4ea;
 }
 
 /* Hide on mobile - we use CategoryStrip instead */
@@ -1322,7 +1322,7 @@
 /* Featured Products */
 .featured {
     padding: 50px 0;
-    background: #f8fafc;
+    background: #f9f4ea;
 }
 
 .featuredHeader {
@@ -1494,7 +1494,7 @@
 /* Testimonials */
 .testimonials {
     padding: 50px 0;
-    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+    background: linear-gradient(135deg, #f9f4ea, #f3ecdd);
 }
 
 @media (min-width: 768px) {
@@ -1668,7 +1668,7 @@
 /* CTA Section */
 .cta {
     padding: 80px 0;
-    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+    background: linear-gradient(135deg, #f9f4ea, #f3ecdd);
 }
 
 .ctaCard {

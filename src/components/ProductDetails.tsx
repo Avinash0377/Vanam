@@ -13,12 +13,21 @@ interface VariantColor {
     images?: string[];
 }
 
+interface PlanterVariant {
+    name: string;
+    price: number;
+    comparePrice?: number;
+    stock: number;
+    colors: VariantColor[];
+}
+
 interface SizeVariant {
     size: string;
     price: number;
     comparePrice?: number;
     stock: number;
     colors: VariantColor[];
+    planters?: PlanterVariant[];
 }
 
 export interface ProductDetailsData {
@@ -55,6 +64,7 @@ export default function ProductDetails({ type, initialData }: ProductDetailsProp
 
     // Variant selection state
     const [selectedSize, setSelectedSize] = useState<string | null>(null);
+    const [selectedPlanter, setSelectedPlanter] = useState<PlanterVariant | null>(null);
     const [selectedColor, setSelectedColor] = useState<VariantColor | null>(null);
 
     // Auto-select first variant when initialData is provided (SSR)
@@ -62,7 +72,13 @@ export default function ProductDetails({ type, initialData }: ProductDetailsProp
         if (initialData?.sizeVariants?.length) {
             const firstVariant = initialData.sizeVariants[0];
             setSelectedSize(firstVariant.size);
-            if (firstVariant.colors?.length > 0) {
+            if (firstVariant.planters?.length) {
+                const firstPlanter = firstVariant.planters[0];
+                setSelectedPlanter(firstPlanter);
+                if (firstPlanter.colors?.length > 0) {
+                    setSelectedColor(firstPlanter.colors[0]);
+                }
+            } else if (firstVariant.colors?.length > 0) {
                 setSelectedColor(firstVariant.colors[0]);
             }
         }
@@ -92,7 +108,13 @@ export default function ProductDetails({ type, initialData }: ProductDetailsProp
                 if (item?.sizeVariants?.length > 0) {
                     const firstVariant = item.sizeVariants[0];
                     setSelectedSize(firstVariant.size);
-                    if (firstVariant.colors?.length > 0) {
+                    if (firstVariant.planters?.length) {
+                        const firstPlanter = firstVariant.planters[0];
+                        setSelectedPlanter(firstPlanter);
+                        if (firstPlanter.colors?.length > 0) {
+                            setSelectedColor(firstPlanter.colors[0]);
+                        }
+                    } else if (firstVariant.colors?.length > 0) {
                         setSelectedColor(firstVariant.colors[0]);
                     }
                 }
@@ -112,37 +134,56 @@ export default function ProductDetails({ type, initialData }: ProductDetailsProp
         return product.sizeVariants.find(v => v.size === selectedSize);
     }, [product, selectedSize]);
 
-    // Get current price based on variant selection
+    // Whether the current size offers selectable planters
+    const availablePlanters = useMemo(() => {
+        return currentVariant?.planters || [];
+    }, [currentVariant]);
+
+    const isPlanterMode = availablePlanters.length > 0;
+
+    // Get current price based on variant/planter selection
     const currentPrice = useMemo(() => {
+        if (isPlanterMode && selectedPlanter) {
+            return selectedPlanter.price;
+        }
         if (currentVariant) {
             return currentVariant.price;
         }
         return product?.price || 0;
-    }, [currentVariant, product]);
+    }, [isPlanterMode, selectedPlanter, currentVariant, product]);
 
-    // Get current compare price based on variant selection (fallback to global)
+    // Get current compare price based on selection (fallback to global)
     const currentComparePrice = useMemo(() => {
-        if (currentVariant?.comparePrice) {
+        if (isPlanterMode && selectedPlanter?.comparePrice) {
+            return selectedPlanter.comparePrice;
+        }
+        if (!isPlanterMode && currentVariant?.comparePrice) {
             return currentVariant.comparePrice;
         }
         return product?.comparePrice || 0;
-    }, [currentVariant, product]);
+    }, [isPlanterMode, selectedPlanter, currentVariant, product]);
 
-    // Get current stock based on variant selection
+    // Get current stock based on selection
     const currentStock = useMemo(() => {
+        if (isPlanterMode && selectedPlanter) {
+            return selectedPlanter.stock;
+        }
         if (currentVariant) {
             return currentVariant.stock;
         }
         return product?.stock || 0;
-    }, [currentVariant, product]);
+    }, [isPlanterMode, selectedPlanter, currentVariant, product]);
 
-    // Get available colors for selected size
+    // Get available colors for selected planter (planter mode) or size
     const availableColors = useMemo(() => {
+        if (isPlanterMode) {
+            return selectedPlanter?.colors || [];
+        }
         if (currentVariant) {
             return currentVariant.colors || [];
         }
         return [];
-    }, [currentVariant]);
+    }, [isPlanterMode, selectedPlanter, currentVariant]);
 
     // Get images to display (color-specific or default product images)
     const displayImages = useMemo(() => {
@@ -156,11 +197,27 @@ export default function ProductDetails({ type, initialData }: ProductDetailsProp
     const handleSizeSelect = (size: string) => {
         setSelectedSize(size);
         const variant = product?.sizeVariants?.find(v => v.size === size);
-        if (variant?.colors?.length) {
-            setSelectedColor(variant.colors[0]);
+        if (variant?.planters?.length) {
+            // Planter mode: pick first planter, then its first color
+            const firstPlanter = variant.planters[0];
+            setSelectedPlanter(firstPlanter);
+            setSelectedColor(firstPlanter.colors?.length ? firstPlanter.colors[0] : null);
         } else {
-            setSelectedColor(null);
+            setSelectedPlanter(null);
+            if (variant?.colors?.length) {
+                setSelectedColor(variant.colors[0]);
+            } else {
+                setSelectedColor(null);
+            }
         }
+        setActiveImage(0);
+        setQuantity(1);
+    };
+
+    // Handle planter selection
+    const handlePlanterSelect = (planter: PlanterVariant) => {
+        setSelectedPlanter(planter);
+        setSelectedColor(planter.colors?.length ? planter.colors[0] : null);
         setActiveImage(0);
         setQuantity(1);
     };
@@ -183,6 +240,7 @@ export default function ProductDetails({ type, initialData }: ProductDetailsProp
             size: selectedSize || product.size,
             color: selectedColor?.name,
             colorHex: selectedColor?.hex,
+            planter: selectedPlanter?.name,
         } as any;
 
         // IDs
@@ -312,6 +370,38 @@ export default function ProductDetails({ type, initialData }: ProductDetailsProp
                                         >
                                             {variant.size}
                                             {variant.stock === 0 && <span className={styles.soldOut}>Sold Out</span>}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Planter Selector — shown when the selected size offers planters */}
+                        {isPlanterMode && (
+                            <div className={styles.variantSection}>
+                                <h3 className={styles.variantLabel}>
+                                    Select Planter
+                                    {selectedPlanter && <span className={styles.selectedValue}>{selectedPlanter.name}</span>}
+                                </h3>
+                                <div className={styles.planterOptions}>
+                                    {availablePlanters.map((planter) => (
+                                        <button
+                                            key={planter.name}
+                                            className={`${styles.planterCard} ${selectedPlanter?.name === planter.name ? styles.selected : ''} ${planter.stock === 0 ? styles.outOfStockBtn : ''}`}
+                                            onClick={() => handlePlanterSelect(planter)}
+                                            disabled={planter.stock === 0}
+                                            title={planter.stock === 0 ? 'Out of stock' : `₹${planter.price}`}
+                                        >
+                                            {planter.colors?.[0]?.images?.[0] ? (
+                                                <span className={styles.planterThumb}>
+                                                    <Image src={planter.colors[0].images[0]} alt={planter.name} fill sizes="64px" unoptimized />
+                                                </span>
+                                            ) : (
+                                                <span className={styles.planterThumbPlaceholder}>🪴</span>
+                                            )}
+                                            <span className={styles.planterName}>{planter.name}</span>
+                                            <span className={styles.planterPrice}>₹{planter.price.toLocaleString('en-IN')}</span>
+                                            {planter.stock === 0 && <span className={styles.soldOut}>Sold Out</span>}
                                         </button>
                                     ))}
                                 </div>

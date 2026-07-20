@@ -239,11 +239,16 @@ export default function CartPage() {
                                     </span>
 
                                     {/* Variant Details */}
-                                    {((item.size && item.size.toUpperCase() !== 'DEFAULT') || item.color) && (
+                                    {((item.size && item.size.toUpperCase() !== 'DEFAULT') || item.color || item.planter) && (
                                         <div className={styles.variantInfo}>
                                             {item.size && item.size.toUpperCase() !== 'DEFAULT' && (
                                                 <span className={styles.variantTag}>
                                                     📏 Size: <strong>{item.size.toUpperCase()}</strong>
+                                                </span>
+                                            )}
+                                            {item.planter && (
+                                                <span className={styles.variantTag}>
+                                                    🪴 Planter: <strong>{item.planter}</strong>
                                                 </span>
                                             )}
                                             {item.color && (

@@ -59,8 +59,8 @@ async function getCart(request: NextRequest, user: JWTPayload) {
 
         // Separate items by type for frontend consumption
         const items = cartItems.filter(item => item.productId).map(item => {
-            const variantPrice = getVariantPrice(item.product!, item.size);
-            const variantComparePrice = getVariantComparePrice(item.product!, item.size);
+            const variantPrice = getVariantPrice(item.product!, item.size, item.selectedPlanter);
+            const variantComparePrice = getVariantComparePrice(item.product!, item.size, item.selectedPlanter);
             return {
                 id: item.id,
                 quantity: item.quantity,
@@ -72,6 +72,7 @@ async function getCart(request: NextRequest, user: JWTPayload) {
                 size: item.size,
                 selectedColor: item.selectedColor,
                 colorImage: item.colorImage,
+                selectedPlanter: item.selectedPlanter,
             };
         });
 
@@ -95,7 +96,7 @@ async function getCart(request: NextRequest, user: JWTPayload) {
         cartItems.forEach((item) => {
             itemCount += item.quantity;
             if (item.product) {
-                const variantPrice = getVariantPrice(item.product, item.size);
+                const variantPrice = getVariantPrice(item.product, item.size, item.selectedPlanter);
                 subtotal += variantPrice * item.quantity;
             } else if (item.combo) {
                 subtotal += item.combo.price * item.quantity;
@@ -141,7 +142,7 @@ export async function GET(request: NextRequest) {
 async function addToCart(request: NextRequest, user: JWTPayload) {
     try {
         const body = await request.json();
-        const { productId, comboId, hamperId, quantity = 1, customMessage, size, selectedColor, colorImage } = body;
+        const { productId, comboId, hamperId, quantity = 1, customMessage, size, selectedColor, colorImage, selectedPlanter } = body;
 
         // Validate quantity bounds
         const safeQuantity = Math.max(1, Math.min(10, Number(quantity) || 1));
@@ -168,14 +169,14 @@ async function addToCart(request: NextRequest, user: JWTPayload) {
             }
 
             existingItem = await prisma.cart.findFirst({
-                where: { userId: user.userId, productId, size, selectedColor },
+                where: { userId: user.userId, productId, size, selectedColor, selectedPlanter },
             });
 
             const currentQty = existingItem?.quantity || 0;
             const targetQty = Math.min(10, currentQty + safeQuantity);
 
             // Fix 3: Check variant-level stock if size provided against TARGET quantity
-            const availableStock = getVariantStock(product as { stock: number; sizeVariants?: SizeVariant[] }, size);
+            const availableStock = getVariantStock(product as { stock: number; sizeVariants?: SizeVariant[] }, size, selectedPlanter);
             if (availableStock < targetQty) {
                 return NextResponse.json({ error: `Insufficient stock. Only ${availableStock} available.` }, { status: 400 });
             }
@@ -228,6 +229,7 @@ async function addToCart(request: NextRequest, user: JWTPayload) {
                     ...(size && { size }),
                     ...(selectedColor && { selectedColor }),
                     ...(colorImage && { colorImage }),
+                    ...(selectedPlanter && { selectedPlanter }),
                 },
             });
         } else {
@@ -251,6 +253,7 @@ async function addToCart(request: NextRequest, user: JWTPayload) {
                     size,
                     selectedColor,
                     colorImage,
+                    selectedPlanter,
                 },
             });
         }
@@ -294,7 +297,7 @@ async function mergeGuestCart(request: NextRequest, user: JWTPayload) {
             const safeQty = sanitizeQty(item.quantity);
 
             const existingItem = await prisma.cart.findFirst({
-                where: { userId: user.userId, productId: item.productId, size: item.size, selectedColor: item.color },
+                where: { userId: user.userId, productId: item.productId, size: item.size, selectedColor: item.color, selectedPlanter: item.planter },
             });
 
             if (existingItem) {
@@ -312,6 +315,7 @@ async function mergeGuestCart(request: NextRequest, user: JWTPayload) {
                         size: item.size,
                         selectedColor: item.color,
                         colorImage: item.image,
+                        selectedPlanter: item.planter,
                     },
                 });
             }

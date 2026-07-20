@@ -106,6 +106,7 @@ interface OrderEmailData {
         image?: string | null;
         size?: string | null;
         selectedColor?: string | null;
+        selectedPlanter?: string | null;
     }[];
 }
 

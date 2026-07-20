@@ -99,6 +99,7 @@ async function createPaymentOrder(request: NextRequest, user: JWTPayload) {
             size?: string;
             selectedColor?: string;
             colorImage?: string;
+            selectedPlanter?: string;
             customMessage?: string;
         }> = [];
 
@@ -119,8 +120,8 @@ async function createPaymentOrder(request: NextRequest, user: JWTPayload) {
                     );
                 }
 
-                stock = getVariantStock(productWithVariants, item.size);
-                price = getVariantPrice(productWithVariants, item.size);
+                stock = getVariantStock(productWithVariants, item.size, item.selectedPlanter);
+                price = getVariantPrice(productWithVariants, item.size, item.selectedPlanter);
                 name = item.product.name;
                 image = item.colorImage || item.product.images[0] || null;
             } else if (item.combo) {
@@ -169,6 +170,7 @@ async function createPaymentOrder(request: NextRequest, user: JWTPayload) {
                 size: item.size || undefined,
                 selectedColor: item.selectedColor || undefined,
                 colorImage: item.colorImage || undefined,
+                selectedPlanter: item.selectedPlanter || undefined,
                 customMessage: item.customMessage || undefined,
             });
         }

@@ -380,6 +380,88 @@
     text-transform: uppercase;
 }
 
+/* Planter Options — Card grid */
+.planterOptions {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    gap: 0.625rem;
+}
+
+.planterCard {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.75rem 0.5rem;
+    background: #fff;
+    border: 2px solid #e8e8e0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.planterCard:hover:not(:disabled) {
+    border-color: #1a4d2e;
+    background: #f0fdf4;
+}
+
+.planterCard.selected {
+    border-color: #1a4d2e;
+    background: #1a4d2e;
+    color: white;
+    box-shadow: 0 3px 10px rgba(26, 77, 46, 0.2);
+}
+
+.planterCard.outOfStockBtn {
+    opacity: 0.45;
+    cursor: not-allowed;
+    background: #f5f5f0;
+}
+
+.planterThumb {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.planterThumbPlaceholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    font-size: 1.5rem;
+}
+
+.planterName {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.1;
+}
+
+.planterPrice {
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.planterCard .soldOut {
+    position: absolute;
+    top: -7px;
+    right: -7px;
+    font-size: 0.5rem;
+    font-weight: 700;
+    color: white;
+    background: #dc2626;
+    padding: 2px 5px;
+    border-radius: 50px;
+    text-transform: uppercase;
+}
+
 /* Color Options — Pill Style */
 .colorOptions {
     display: flex;
@@ -703,6 +785,31 @@
 
     .colorOptions {
         gap: 0.375rem;
+    }
+
+    /* Planter cards — 3 per row, compact on mobile */
+    .planterOptions {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+    }
+
+    .planterCard {
+        padding: 0.625rem 0.375rem;
+        border-radius: 10px;
+    }
+
+    .planterThumb,
+    .planterThumbPlaceholder {
+        width: 40px;
+        height: 40px;
+    }
+
+    .planterName {
+        font-size: 0.75rem;
+    }
+
+    .planterPrice {
+        font-size: 0.7rem;
     }
 
     /* Content sections */

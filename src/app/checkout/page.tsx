@@ -776,6 +776,15 @@ export default function CheckoutPage() {
                                         <div key={`${item.type}-${item.id}`} className={styles.summaryItem}>
                                             <span className={styles.summaryItemName}>
                                                 {item.name} × {item.quantity}
+                                                {((item.size && item.size.toUpperCase() !== 'DEFAULT') || item.planter || item.color) && (
+                                                    <span className={styles.summaryItemVariant}>
+                                                        {[
+                                                            item.size && item.size.toUpperCase() !== 'DEFAULT' ? item.size : null,
+                                                            item.planter ? `🪴 ${item.planter}` : null,
+                                                            item.color || null,
+                                                        ].filter(Boolean).join(' · ')}
+                                                    </span>
+                                                )}
                                             </span>
                                             <div className={styles.summaryItemPriceContainer}>
                                                 <span>₹{(item.price * item.quantity).toLocaleString('en-IN')}</span>

@@ -2,10 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getUserFromRequest } from '@/lib/middleware';
 import { normalizeCouponCode, validateCoupon } from '@/lib/coupon-utils';
 import { getDeliverySettings, getDeliveryCharge } from '@/lib/order-utils';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 // POST validate coupon (user-facing — works for both guests and logged-in users)
 export async function POST(request: NextRequest) {
     try {
+        // Rate limit to prevent coupon-code enumeration/brute-forcing
+        const ip = getClientIp(request);
+        const rateLimit = checkRateLimit(`coupon-validate:${ip}`, { maxRequests: 20, windowSeconds: 60 });
+        if (!rateLimit.allowed) {
+            return NextResponse.json(
+                { valid: false, discountAmount: 0, message: 'Too many attempts. Please slow down.' },
+                { status: 429, headers: { 'Retry-After': String(Math.ceil((rateLimit.resetAt - Date.now()) / 1000)) } }
+            );
+        }
+
         const body = await request.json();
         const { couponCode, cartSubtotal } = body;
 

@@ -168,7 +168,7 @@ export default async function HomePage() {
         images: p.images as string[],
         featured: p.featured as boolean,
         productType: p.productType as string,
-        sizeVariants: (p.sizeVariants || []) as { size: string; price: number; stock: number; colors: { name: string; hex: string; images: string[] }[] }[],
+        sizeVariants: (p.sizeVariants || []) as { size: string; price: number; stock: number; colors: { name: string; hex: string; images: string[] }[]; planters?: { name: string; colors: { name: string; hex: string; images: string[] }[] }[] }[],
         tags: (p.tags || []) as string[],
 
     });

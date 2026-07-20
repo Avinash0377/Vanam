@@ -21,11 +21,20 @@ interface VariantColor {
     images: string[];
 }
 
+interface PlanterVariant {
+    name: string;
+    price: string;
+    comparePrice?: string;
+    stock: string;
+    colors: VariantColor[];
+}
+
 interface SizeVariant {
     size: string;
     price: string;
     stock: string;
     colors: VariantColor[];
+    planters?: PlanterVariant[];
 }
 
 interface Product {
@@ -433,12 +442,86 @@ export default function AdminProductsPage() {
                                                             <div className={styles.variantContainer}>
                                                                 <div className={styles.variantHeader}>
                                                                     <span className={styles.variantTitle}>
-                                                                        📦 Size Variants
+                                                                        {product.sizeVariants!.some(v => v.planters && v.planters.length > 0) ? '🪴 Planters' : '📦 Size Variants'}
                                                                     </span>
                                                                     <span className={styles.variantCount}>
                                                                         {product.sizeVariants!.length} {product.sizeVariants!.length === 1 ? 'variant' : 'variants'}
                                                                     </span>
                                                                 </div>
+                                                                {product.sizeVariants!.some(v => v.planters && v.planters.length > 0) ? (
+                                                                    <table className={styles.variantTable}>
+                                                                        <thead>
+                                                                            <tr>
+                                                                                <th>Size</th>
+                                                                                <th>Planter</th>
+                                                                                <th>Price</th>
+                                                                                <th>MRP</th>
+                                                                                <th>Stock</th>
+                                                                                <th>Colors</th>
+                                                                                <th>Images</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                            {product.sizeVariants!.flatMap((variant) => {
+                                                                                const planters = variant.planters || [];
+                                                                                if (planters.length === 0) {
+                                                                                    return [(
+                                                                                        <tr key={variant.size}>
+                                                                                            <td><span className={styles.sizeLabel}>{variant.size}</span></td>
+                                                                                            <td colSpan={6}><span className={styles.muted}>No planters</span></td>
+                                                                                        </tr>
+                                                                                    )];
+                                                                                }
+                                                                                return planters.map((planter, pIdx) => {
+                                                                                    const pStock = parseInt(planter.stock) || 0;
+                                                                                    const pImageCount = (planter.colors || []).reduce((sum, c) => sum + (c.images?.length || 0), 0);
+                                                                                    return (
+                                                                                        <tr key={`${variant.size}-${planter.name}-${pIdx}`}>
+                                                                                            <td>{pIdx === 0 ? <span className={styles.sizeLabel}>{variant.size}</span> : ''}</td>
+                                                                                            <td><span className={styles.planterNameCell}>{planter.name}</span></td>
+                                                                                            <td>
+                                                                                                {planter.price ? (
+                                                                                                    <span className={styles.variantPrice}>₹{planter.price}</span>
+                                                                                                ) : (
+                                                                                                    <span className={styles.warning}>⚠️ Missing</span>
+                                                                                                )}
+                                                                                            </td>
+                                                                                            <td>
+                                                                                                {planter.comparePrice ? (
+                                                                                                    <span className={styles.muted}>₹{planter.comparePrice}</span>
+                                                                                                ) : (
+                                                                                                    <span className={styles.muted}>—</span>
+                                                                                                )}
+                                                                                            </td>
+                                                                                            <td>
+                                                                                                <span className={pStock === 0 ? styles.stockZero : ''}>{planter.stock}</span>
+                                                                                            </td>
+                                                                                            <td>
+                                                                                                {planter.colors && planter.colors.length > 0 ? (
+                                                                                                    <div className={styles.colorDots}>
+                                                                                                        {planter.colors.map((color, idx) => (
+                                                                                                            <span
+                                                                                                                key={idx}
+                                                                                                                className={styles.colorDot}
+                                                                                                                style={{ backgroundColor: color.hex }}
+                                                                                                                title={`${color.name} (${color.hex})`}
+                                                                                                            />
+                                                                                                        ))}
+                                                                                                    </div>
+                                                                                                ) : (
+                                                                                                    <span className={styles.muted}>—</span>
+                                                                                                )}
+                                                                                            </td>
+                                                                                            <td>
+                                                                                                <span className={styles.imageCount}>{pImageCount > 0 ? pImageCount : '—'}</span>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    );
+                                                                                });
+                                                                            })}
+                                                                        </tbody>
+                                                                    </table>
+                                                                ) : (
                                                                 <table className={styles.variantTable}>
                                                                     <thead>
                                                                         <tr>
@@ -497,6 +580,7 @@ export default function AdminProductsPage() {
                                                                         })}
                                                                     </tbody>
                                                                 </table>
+                                                                )}
                                                             </div>
                                                         </div>
                                                     </td>

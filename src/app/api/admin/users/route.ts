@@ -43,6 +43,7 @@ async function getUsers(request: NextRequest) {
                         select: {
                             totalAmount: true,
                             createdAt: true,
+                            orderStatus: true,
                         },
                     },
                 },
@@ -58,10 +59,16 @@ async function getUsers(request: NextRequest) {
             }),
         ]);
 
+        // Statuses that represent actual (paid) revenue — keep in sync with the summary aggregate
+        const PAID_STATUSES = ['PAID', 'PACKING', 'SHIPPED', 'DELIVERED'];
+
         // Transform users to include computed stats
         const usersWithStats = users.map(user => {
             const orderCount = user.orders.length;
-            const totalSpent = user.orders.reduce((sum, order) => sum + order.totalAmount, 0);
+            const totalSpent = user.orders.reduce(
+                (sum, order) => sum + (PAID_STATUSES.includes(order.orderStatus) ? order.totalAmount : 0),
+                0
+            );
             const lastOrderDate = user.orders.length > 0
                 ? [...user.orders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0].createdAt
                 : null;

@@ -206,7 +206,7 @@ async function createOrder(request: NextRequest, user: JWTPayload) {
             if (item.product) {
                 const productWithVariants = item.product as unknown as ProductWithVariants;
                 name = item.product.name;
-                price = getVariantPrice(productWithVariants, item.size);
+                price = getVariantPrice(productWithVariants, item.size, item.selectedPlanter);
                 image = item.colorImage || item.product.images[0] || null;
             } else if (item.combo) {
                 name = item.combo.name;
@@ -229,6 +229,7 @@ async function createOrder(request: NextRequest, user: JWTPayload) {
                 size: item.size || undefined,
                 selectedColor: item.selectedColor || undefined,
                 colorImage: item.colorImage || undefined,
+                selectedPlanter: item.selectedPlanter || undefined,
                 customMessage: item.customMessage || undefined,
             };
         });

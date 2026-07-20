@@ -16,6 +16,7 @@ interface OrderItem {
     image?: string;
     selectedSize?: string;
     selectedColor?: string;
+    selectedPlanter?: string;
     colorImage?: string;
     productId?: string;
     comboId?: string;
@@ -403,6 +404,9 @@ export default function OrderDetailsPage() {
                                             <span className={styles.itemQuantity}>Qty: {item.quantity}</span>
                                             {item.selectedSize && item.selectedSize.toUpperCase() !== 'DEFAULT' && (
                                                 <span className={styles.itemVariant}>Size: {item.selectedSize}</span>
+                                            )}
+                                            {item.selectedPlanter && (
+                                                <span className={styles.itemVariant}>Planter: {item.selectedPlanter}</span>
                                             )}
                                             {item.selectedColor && (
                                                 <span className={styles.itemVariant}>

@@ -26,6 +26,7 @@ export interface CartSnapshotItem {
     size?: string;
     selectedColor?: string;
     colorImage?: string;
+    selectedPlanter?: string;
     customMessage?: string;
 }
 
@@ -182,6 +183,18 @@ export async function validateStockAvailability(
                     throw new OrderError(`Size ${item.size} is no longer available for ${item.name}`);
                 }
                 availableStock = variant.stock;
+                // Planter-level stock takes precedence when the variant offers planters
+                if (variant.planters && variant.planters.length > 0) {
+                    // Resolve consistently with pricing: exact match if a planter was chosen,
+                    // otherwise fall back to the first planter.
+                    const planter = item.selectedPlanter
+                        ? variant.planters.find(p => p.name === item.selectedPlanter)
+                        : variant.planters[0];
+                    if (!planter) {
+                        throw new OrderError(`Planter ${item.selectedPlanter || ''} is no longer available for ${item.name}`);
+                    }
+                    availableStock = planter.stock;
+                }
             }
 
             if (availableStock < item.quantity) {
@@ -218,6 +231,28 @@ export async function decrementStock(tx: Prisma.TransactionClient, items: CartSn
                 // Handle variant stock decrement — throw if insufficient
                 const updatedVariants = product.sizeVariants.map(v => {
                     if (v.size === item.size) {
+                        // Planter-mode: decrement the selected planter's nested stock
+                        if (v.planters && v.planters.length > 0) {
+                            // Resolve consistently with pricing: exact match if chosen, else first planter
+                            const targetName = item.selectedPlanter || v.planters[0].name;
+                            let planterFound = false;
+                            const updatedPlanters = v.planters.map(p => {
+                                if (p.name === targetName) {
+                                    planterFound = true;
+                                    const newStock = p.stock - item.quantity;
+                                    if (newStock < 0) {
+                                        throw new OrderError(`Insufficient stock for ${item.name} (${item.size} / ${p.name}): available ${p.stock}, requested ${item.quantity}`);
+                                    }
+                                    return { ...p, stock: newStock };
+                                }
+                                return p;
+                            });
+                            if (!planterFound) {
+                                throw new OrderError(`Planter ${item.selectedPlanter || ''} is no longer available for ${item.name}`);
+                            }
+                            const planterTotal = updatedPlanters.reduce((sum, p) => sum + p.stock, 0);
+                            return { ...v, planters: updatedPlanters, stock: planterTotal };
+                        }
                         const newStock = v.stock - item.quantity;
                         if (newStock < 0) {
                             throw new OrderError(`Insufficient stock for ${item.name} (${item.size}): available ${v.stock}, requested ${item.quantity}`);
@@ -284,6 +319,7 @@ export async function createOrderItems(tx: Prisma.TransactionClient, orderId: st
                 selectedSize: item.size,
                 selectedColor: item.selectedColor,
                 colorImage: item.colorImage,
+                selectedPlanter: item.selectedPlanter,
             },
         });
     }
@@ -295,7 +331,7 @@ export async function createOrderItems(tx: Prisma.TransactionClient, orderId: st
  */
 export async function restoreStock(
     tx: Prisma.TransactionClient,
-    items: { productId: string | null; comboId: string | null; hamperId: string | null; quantity: number; selectedSize: string | null }[]
+    items: { productId: string | null; comboId: string | null; hamperId: string | null; quantity: number; selectedSize: string | null; selectedPlanter?: string | null }[]
 ): Promise<void> {
     for (const item of items) {
         if (item.productId) {
@@ -310,9 +346,18 @@ export async function restoreStock(
             }
 
             if (item.selectedSize && product.sizeVariants && product.sizeVariants.length > 0) {
-                // Restore variant-level stock
+                // Restore variant-level stock (planter-aware)
                 const updatedVariants = product.sizeVariants.map(v => {
                     if (v.size === item.selectedSize) {
+                        if (v.planters && v.planters.length > 0) {
+                            // Resolve consistently with pricing: exact match if chosen, else first planter
+                            const targetName = item.selectedPlanter || v.planters[0].name;
+                            const updatedPlanters = v.planters.map(p =>
+                                p.name === targetName ? { ...p, stock: p.stock + item.quantity } : p
+                            );
+                            const planterTotal = updatedPlanters.reduce((sum, p) => sum + p.stock, 0);
+                            return { ...v, planters: updatedPlanters, stock: planterTotal };
+                        }
                         return { ...v, stock: v.stock + item.quantity };
                     }
                     return v;
