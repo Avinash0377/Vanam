@@ -212,6 +212,73 @@ export default function AdminOrdersPage() {
                             <p>No orders found</p>
                         </div>
                     ) : (
+                        <>
+                        {/* Mobile Card View */}
+                        <div className={styles.mobileCards}>
+                            {orders.map((order) => (
+                                <div key={order.id} className={styles.mCard}>
+                                    <div className={styles.mCardHeader}>
+                                        <Link href={`/admin/orders/${order.id}`} className={styles.mCardOrderNo}>
+                                            {order.orderNumber}
+                                        </Link>
+                                        <span className={styles.mCardDate}>{formatDate(order.createdAt)}</span>
+                                    </div>
+
+                                    <div className={styles.mCardCustomer}>
+                                        <span className={styles.mCardCustName}>{order.customerName}</span>
+                                        <a href={`tel:${order.mobile}`} className={styles.mCardCustMobile}>{order.mobile}</a>
+                                    </div>
+
+                                    <div className={styles.mCardMeta}>
+                                        <div className={styles.mCardMetaItem}>
+                                            <span className={styles.mCardMetaLabel}>Items</span>
+                                            <span className={styles.mCardMetaValue}>
+                                                {order.items?.length || 0} {(order.items?.length || 0) === 1 ? 'item' : 'items'}
+                                            </span>
+                                        </div>
+                                        <div className={styles.mCardMetaItem}>
+                                            <span className={styles.mCardMetaLabel}>Total</span>
+                                            <span className={`${styles.mCardMetaValue} ${styles.mCardAmount}`}>
+                                                ₹{order.totalAmount.toLocaleString('en-IN')}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className={styles.mCardStatusRow}>
+                                        <label className={styles.mCardMetaLabel}>Status</label>
+                                        <select
+                                            value={order.orderStatus}
+                                            onChange={(e) => updateOrderStatus(order.id, e.target.value)}
+                                            className={`${styles.statusSelect} ${getStatusStyle(order.orderStatus)}`}
+                                            disabled={updatingOrderId === order.id}
+                                            style={updatingOrderId === order.id ? { opacity: 0.5 } : {}}
+                                        >
+                                            {statusOptions.map(status => (
+                                                <option key={status} value={status}>{status}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div className={styles.mCardActions}>
+                                        <Link href={`/admin/orders/${order.id}`} className={styles.mCardActionBtn}>
+                                            View Details
+                                        </Link>
+                                        <a
+                                            href={`https://wa.me/91${order.mobile}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className={`${styles.mCardActionBtn} ${styles.mCardWhatsApp}`}
+                                            aria-label="Message on WhatsApp"
+                                        >
+                                            <MessageIcon size={16} />
+                                            <span>WhatsApp</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Desktop Table View */}
                         <table className={styles.table}>
                             <thead>
                                 <tr>
@@ -279,6 +346,7 @@ export default function AdminOrdersPage() {
                                 ))}
                             </tbody>
                         </table>
+                        </>
                     )}
                 </div>
 

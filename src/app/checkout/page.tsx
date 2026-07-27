@@ -774,8 +774,31 @@ export default function CheckoutPage() {
                                 <div className={styles.summaryItems}>
                                     {items.map((item) => (
                                         <div key={`${item.type}-${item.id}`} className={styles.summaryItem}>
-                                            <span className={styles.summaryItemName}>
-                                                {item.name} × {item.quantity}
+                                            {item.image && (
+                                                <div className={styles.summaryItemThumb}>
+                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                    <img
+                                                        src={item.image}
+                                                        alt=""
+                                                        loading="lazy"
+                                                        decoding="async"
+                                                        onError={(e) => {
+                                                            const parent = e.currentTarget.parentElement as HTMLElement | null;
+                                                            if (parent) parent.style.display = 'none';
+                                                        }}
+                                                    />
+                                                    {item.quantity > 1 && (
+                                                        <span className={styles.summaryItemThumbQty}>×{item.quantity}</span>
+                                                    )}
+                                                </div>
+                                            )}
+                                            <div className={styles.summaryItemBody}>
+                                                <div className={styles.summaryItemHeader}>
+                                                    <span className={styles.summaryItemName}>{item.name}</span>
+                                                    {!item.image && (
+                                                        <span className={styles.summaryItemQty}>×{item.quantity}</span>
+                                                    )}
+                                                </div>
                                                 {((item.size && item.size.toUpperCase() !== 'DEFAULT') || item.planter || item.color) && (
                                                     <span className={styles.summaryItemVariant}>
                                                         {[
@@ -785,9 +808,9 @@ export default function CheckoutPage() {
                                                         ].filter(Boolean).join(' · ')}
                                                     </span>
                                                 )}
-                                            </span>
+                                            </div>
                                             <div className={styles.summaryItemPriceContainer}>
-                                                <span>₹{(item.price * item.quantity).toLocaleString('en-IN')}</span>
+                                                <span className={styles.summaryItemPrice}>₹{(item.price * item.quantity).toLocaleString('en-IN')}</span>
                                                 {item.comparePrice && item.comparePrice > item.price && (
                                                     <span className={styles.summaryOriginalPrice}>
                                                         ₹{(item.comparePrice * item.quantity).toLocaleString('en-IN')}
@@ -805,7 +828,7 @@ export default function CheckoutPage() {
 
                                 <div className={styles.summaryRow}>
                                     <span>Shipping</span>
-                                    <span>{effectiveShipping === 0 ? 'FREE' : `₹${effectiveShipping}`}</span>
+                                    <span>{effectiveShipping === 0 ? <span className={styles.freeBadge}>FREE</span> : `₹${effectiveShipping}`}</span>
                                 </div>
 
                                 {/* Coupon discount display */}

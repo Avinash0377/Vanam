@@ -156,6 +156,17 @@ body {
   /* Offset for fixed navbar: topRow only on tablet (768–1023px) */
 }
 
+/* ── Brand-tinted text selection (#21) ─────────────────────────── */
+::selection {
+  background: var(--primary-100);
+  color: var(--primary-800);
+}
+
+::-moz-selection {
+  background: var(--primary-100);
+  color: var(--primary-800);
+}
+
 /* Desktop: topRow + bottomRow nav links */
 @media (min-width: 1024px) {
   body {
@@ -170,7 +181,8 @@ body {
     font-family: var(--font-sans);
     /* Force font application on mobile */
     /* navbar (~64px) + category strip (~66px) */
-    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+    /* Floating bottom nav (#22): 8px gap + 58px bar + 8px lift + safe area */
+    padding-bottom: calc(82px + env(safe-area-inset-bottom, 0px));
     /* Tell browser scroll direction immediately — eliminates 300ms delay */
     touch-action: pan-y;
     /* Prevent overscroll bounce from causing repaint jank */

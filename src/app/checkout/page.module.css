@@ -51,9 +51,16 @@
 
 /* CK-L1: class for the (est.) label so mobile CSS can control it */
 .estLabel {
-    font-size: 0.7rem;
-    opacity: 0.6;
-    margin-left: 4px;
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 6px;
+    border-radius: 6px;
+    background: var(--neutral-100);
+    color: var(--neutral-500);
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    vertical-align: middle;
 }
 
 /* CK-L2: override Chrome autofill blue/yellow background to match theme */
@@ -210,27 +217,116 @@
 
 .summaryItem {
     display: flex;
-    justify-content: space-between;
-    padding: 0.5rem 0;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.625rem 0;
     font-size: 0.9375rem;
 }
 
+.summaryItem + .summaryItem {
+    border-top: 1px dashed rgba(0, 0, 0, 0.06);
+}
+
+.summaryItemThumb {
+    position: relative;
+    flex: 0 0 52px;
+    width: 52px;
+    height: 52px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--neutral-100);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.summaryItemThumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.summaryItemThumbQty {
+    position: absolute;
+    right: -4px;
+    top: -4px;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 11px;
+    background: var(--primary-600, #16a34a);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 800;
+    line-height: 22px;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(22, 163, 74, 0.35);
+    letter-spacing: 0.02em;
+}
+
+.summaryItemBody {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.summaryItemHeader {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
 .summaryItemName {
-    color: var(--neutral-600);
+    flex: 1 1 auto;
+    min-width: 0;
+    color: var(--neutral-800);
+    font-weight: 500;
+    line-height: 1.35;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+.summaryItemQty {
+    flex: 0 0 auto;
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: var(--primary-50, #f0fdf4);
+    color: var(--primary-700, #15803d);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
 }
 
 .summaryItemVariant {
-    display: block;
-    margin-top: 0.15rem;
-    font-size: 0.75rem;
-    color: var(--neutral-400);
+    display: inline-block;
+    align-self: flex-start;
+    max-width: 100%;
+    padding: 2px 9px;
+    border-radius: 999px;
+    background: var(--neutral-100);
+    color: var(--neutral-600);
+    font-size: 0.72rem;
+    font-weight: 500;
+    line-height: 1.4;
+    word-break: break-word;
 }
 
 .summaryItemPriceContainer {
+    flex: 0 0 auto;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
     gap: 0.125rem;
+    font-weight: 600;
+    color: var(--neutral-800);
+    white-space: nowrap;
+}
+
+.summaryItemPrice {
+    font-variant-numeric: tabular-nums;
 }
 
 .summaryOriginalPrice {
@@ -243,14 +339,28 @@
 .summaryRow {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     padding: 0.625rem 0;
     font-size: 0.9375rem;
     color: var(--neutral-600);
 }
 
+.freeBadge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+    color: #166534;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
 .summaryTotal {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     padding: 1rem 0;
     margin: 0.5rem 0 1.5rem;
     border-top: 2px solid var(--neutral-100);
@@ -258,6 +368,11 @@
     font-size: 1.25rem;
     font-weight: 700;
     color: var(--neutral-800);
+}
+
+.summaryTotal > span:last-child {
+    font-variant-numeric: tabular-nums;
+    color: var(--primary-700, #15803d);
 }
 
 .paymentNote {
@@ -800,85 +915,209 @@
 
     /* ---- Order Summary ---- */
     .summary {
-        padding: 1.25rem;
-        border-radius: 14px;
+        padding: 1rem 1rem 1.125rem;
+        border-radius: 18px;
         position: static;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-        border: 1px solid #e2e8f0;
+        background:
+            radial-gradient(circle at top right, rgba(74, 171, 120, 0.05), transparent 55%),
+            #ffffff;
+        box-shadow:
+            0 1px 0 rgba(255, 255, 255, 0.9) inset,
+            0 4px 14px rgba(20, 83, 45, 0.06),
+            0 1px 2px rgba(0, 0, 0, 0.04);
+        border: 1px solid rgba(74, 171, 120, 0.14);
+    }
+
+    .summary > .sectionTitle {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+        margin-bottom: 0.875rem;
+        padding-bottom: 0.625rem;
+        font-weight: 700;
+        color: var(--neutral-800);
+        border-bottom: 1px solid var(--neutral-100);
+    }
+
+    .summary > .sectionTitle::before {
+        content: '';
+        width: 4px;
+        height: 18px;
+        border-radius: 3px;
+        background: linear-gradient(180deg, var(--primary-500, #22c55e), var(--primary-700, #15803d));
     }
 
     .summaryItems {
-        margin-bottom: 0.75rem;
+        margin-bottom: 0.5rem;
         padding-bottom: 0.75rem;
     }
 
     .summaryItem {
-        padding: 6px 0;
+        gap: 0.625rem;
+        padding: 0.625rem 0;
         font-size: 0.85rem;
+        align-items: flex-start;
+    }
+
+    .summaryItemThumb {
+        flex: 0 0 46px;
+        width: 46px;
+        height: 46px;
+        border-radius: 10px;
+    }
+
+    .summaryItemThumbQty {
+        min-width: 20px;
+        height: 20px;
+        line-height: 20px;
+        font-size: 0.66rem;
+        padding: 0 5px;
+        border-radius: 10px;
+        right: -5px;
+        top: -5px;
+    }
+
+    .summaryItemBody {
+        gap: 3px;
+    }
+
+    .summaryItemHeader {
+        gap: 6px;
     }
 
     .summaryItemName {
-        font-size: 0.82rem;
-        max-width: 60%;
-        /* CK-H4: prevent long product names from wrapping awkwardly */
+        font-size: 0.85rem;
+        line-height: 1.35;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
         overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        color: var(--neutral-800);
     }
 
-    .summaryRow {
-        padding: 5px 0;
+    .summaryItemQty {
+        font-size: 0.68rem;
+        padding: 1px 7px;
+    }
+
+    .summaryItemVariant {
+        font-size: 0.68rem;
+        padding: 2px 8px;
+    }
+
+    .summaryItemPriceContainer {
+        gap: 2px;
         font-size: 0.85rem;
     }
 
+    .summaryItemPrice {
+        font-size: 0.9rem;
+        font-weight: 700;
+    }
+
+    .summaryOriginalPrice {
+        font-size: 0.7rem;
+    }
+
+    .summaryRow {
+        padding: 6px 0;
+        font-size: 0.875rem;
+    }
+
     .summaryTotal {
-        padding: 0.75rem 0;
-        margin: 0.5rem 0 1rem;
-        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 14px;
+        margin: 0.625rem 0 0.875rem;
+        border-top: none;
+        border-radius: 14px;
+        background: linear-gradient(135deg, rgba(74, 171, 120, 0.10), rgba(74, 171, 120, 0.04));
+        border: 1px solid rgba(74, 171, 120, 0.22);
+        font-size: 1.05rem;
+    }
+
+    .summaryTotal > span:first-child {
+        color: var(--neutral-700);
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+
+    .summaryTotal > span:last-child {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: var(--primary-700, #15803d);
+    }
+
+    .estLabel {
+        font-size: 0.6rem;
+        padding: 1px 5px;
     }
 
     .paymentNote {
-        margin-top: 0.75rem;
-        /* CK-M2: was 0.72rem — nearly invisible. Now 12.5px */
-        font-size: 0.78rem;
+        margin-top: 0.625rem;
+        font-size: 0.75rem;
+    }
+
+    .freeBadge {
+        font-size: 0.68rem;
+        padding: 3px 9px;
     }
 
     /* ---- Coupon Row ---- */
     .couponRow {
-        padding: 5px 0;
+        padding: 8px 12px;
+        margin: 4px 0;
         font-size: 0.82rem;
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.08), rgba(34, 197, 94, 0.02));
+        border-radius: 10px;
+        border: 1px dashed rgba(34, 197, 94, 0.35);
     }
 
     .couponRowLabel {
-        gap: 4px;
+        gap: 6px;
+        flex-wrap: wrap;
     }
 
     .couponRowCode {
-        font-size: 0.72rem;
-        padding: 2px 5px;
+        font-size: 0.68rem;
+        padding: 2px 6px;
     }
 
     .couponRemoveBtn {
-        /* CK-M1: was 0.68rem (10.9px) — below WCAG tap target minimum. Now 12px */
-        font-size: 0.75rem;
+        font-size: 0.72rem;
     }
 
     .couponRowAmount {
-        font-size: 0.82rem;
+        font-size: 0.88rem;
+        font-weight: 800;
     }
 
     /* ---- Pay Button ---- */
     .payBtn {
-        min-height: 46px;
-        font-size: 0.9rem;
-        border-radius: 12px;
+        min-height: 52px;
+        font-size: 1rem;
+        font-weight: 700;
+        border-radius: 14px;
+        letter-spacing: 0.01em;
+        box-shadow:
+            0 6px 16px rgba(22, 163, 74, 0.28),
+            0 2px 4px rgba(22, 163, 74, 0.14);
     }
 
-    /* ---- Snackbar on mobile: above BottomNavBar ---- */
+    .payBtn:active {
+        transform: translateY(1px);
+        box-shadow:
+            0 3px 10px rgba(22, 163, 74, 0.24),
+            0 1px 2px rgba(22, 163, 74, 0.12);
+    }
+
+    /* ---- Snackbar on mobile: BottomNavBar is hidden on /checkout ---- */
     .snackbar {
-        bottom: calc(56px + 12px + env(safe-area-inset-bottom, 0px));
+        bottom: calc(20px + env(safe-area-inset-bottom, 0px));
         padding: 12px 14px;
-        border-radius: 10px;
+        border-radius: 12px;
         gap: 8px;
     }
 
@@ -1035,15 +1274,16 @@
     }
 
     .summaryPreview .summaryItemName {
-        max-width: 60%;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
         overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        word-break: break-all;
+        word-break: break-word;
     }
 
-    .summaryTotal {
-        word-break: break-word;
+    .summaryPreview .summaryTotal {
+        padding: 10px 12px;
+        font-size: 1rem;
     }
 
     /* ---- Empty State ---- */

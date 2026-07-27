@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { PlanterIcon } from '@/components/PlanterIcons';
+import ProductOffers from '@/components/ProductOffers';
 import styles from './ProductDetails.module.css';
 
 interface VariantColor {
@@ -63,6 +64,30 @@ export default function ProductDetails({ type, initialData }: ProductDetailsProp
     const [loading, setLoading] = useState(!initialData);
     const [quantity, setQuantity] = useState(1);
     const [activeImage, setActiveImage] = useState(0);
+
+    // Touch swipe for mobile gallery
+    const touchStartX = useRef<number | null>(null);
+    const touchStartY = useRef<number | null>(null);
+
+    const handleGalleryTouchStart = (e: React.TouchEvent) => {
+        touchStartX.current = e.touches[0].clientX;
+        touchStartY.current = e.touches[0].clientY;
+    };
+
+    const handleGalleryTouchEnd = (e: React.TouchEvent) => {
+        if (touchStartX.current === null || touchStartY.current === null) return;
+        const dx = e.changedTouches[0].clientX - touchStartX.current;
+        const dy = e.changedTouches[0].clientY - touchStartY.current;
+        touchStartX.current = null;
+        touchStartY.current = null;
+        // Only trigger if predominantly horizontal and >50px
+        if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy)) return;
+        setActiveImage(prev => {
+            const len = displayImages.length;
+            if (len <= 1) return prev;
+            return dx < 0 ? (prev + 1) % len : (prev - 1 + len) % len;
+        });
+    };
 
     // Variant selection state
     const [selectedSize, setSelectedSize] = useState<string | null>(null);
@@ -295,7 +320,11 @@ export default function ProductDetails({ type, initialData }: ProductDetailsProp
                 <div className={styles.layout}>
                     {/* Images */}
                     <div className={styles.gallery}>
-                        <div className={styles.mainImage}>
+                        <div
+                            className={styles.mainImage}
+                            onTouchStart={handleGalleryTouchStart}
+                            onTouchEnd={handleGalleryTouchEnd}
+                        >
                             {displayImages[activeImage] ? (
                                 <Image
                                     src={displayImages[activeImage]}
@@ -540,6 +569,9 @@ export default function ProductDetails({ type, initialData }: ProductDetailsProp
                             </button>
 
                         </div>
+
+                        {/* Offers for you */}
+                        {product && <ProductOffers productId={product.id} />}
                     </div>
                 </div>
             </div>

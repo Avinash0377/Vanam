@@ -22,7 +22,8 @@
 }
 
 .input::placeholder {
-    color: var(--neutral-500);
+    color: var(--neutral-400);
+    opacity: 1;
 }
 
 .input:focus {

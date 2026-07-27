@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, memo } from 'react';
+import { useState, useRef, memo } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -8,6 +8,130 @@ import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { TagIcon, getTagColors } from './TagIcons';
 import styles from './ProductCard.module.css';
+
+// ── Motion utilities (#2 Cart FLIP, #3 Wishlist heart burst) ─────────────────
+// Both respect prefers-reduced-motion and no-op in SSR.
+function prefersReducedMotion(): boolean {
+    if (typeof window === 'undefined') return true;
+    return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+}
+
+function flyToCart(sourceEl: HTMLImageElement | null) {
+    if (!sourceEl || typeof document === 'undefined') return;
+    if (prefersReducedMotion()) return;
+    // Pick the first VISIBLE flip target so mobile flies to the bottom-nav
+    // cart (not the hidden/tiny top-right cart) and desktop flies to the top.
+    const candidates = document.querySelectorAll<HTMLElement>('[data-flip-target="cart"]');
+    let target: HTMLElement | null = null;
+    for (const el of Array.from(candidates)) {
+        const r = el.getBoundingClientRect();
+        if (r.width > 0 && r.height > 0) {
+            // Prefer targets in the lower half of the viewport on mobile
+            // (bottom nav) — falls through to whichever is visible otherwise.
+            if (!target || r.top > target.getBoundingClientRect().top) {
+                target = el;
+            }
+        }
+    }
+    if (!target) return;
+
+    const src = sourceEl.getBoundingClientRect();
+    const dst = target.getBoundingClientRect();
+    if (src.width === 0 || dst.width === 0) return;
+
+    const clone = document.createElement('div');
+    clone.style.cssText = [
+        'position:fixed',
+        `top:${src.top}px`,
+        `left:${src.left}px`,
+        `width:${src.width}px`,
+        `height:${src.height}px`,
+        `background-image:url("${sourceEl.currentSrc || sourceEl.src}")`,
+        'background-size:cover',
+        'background-position:center',
+        'border-radius:12px',
+        'box-shadow:0 12px 40px rgba(0,0,0,0.28)',
+        'pointer-events:none',
+        'z-index:9999',
+        'will-change:transform,opacity,border-radius',
+        'transition:none',
+        'margin:0',
+        'padding:0',
+    ].join(';');
+    document.body.appendChild(clone);
+
+    const tx = dst.left + dst.width / 2 - (src.left + src.width / 2);
+    const ty = dst.top + dst.height / 2 - (src.top + src.height / 2);
+
+    requestAnimationFrame(() => {
+        clone.style.transition = 'transform 0.75s cubic-bezier(0.5, -0.15, 0.7, 1.2), opacity 0.75s ease-in, border-radius 0.75s ease-in';
+        clone.style.transform = `translate(${tx}px, ${ty}px) scale(0.15) rotate(20deg)`;
+        clone.style.opacity = '0.35';
+        clone.style.borderRadius = '50%';
+    });
+
+    // Safety margin: 750ms transition + rAF (~16ms) + jitter buffer
+    window.setTimeout(() => {
+        clone.remove();
+        // Bounce the cart icon on arrival
+        target!.animate(
+            [
+                { transform: 'scale(1)' },
+                { transform: 'scale(1.35)' },
+                { transform: 'scale(1)' },
+            ],
+            { duration: 420, easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }
+        );
+    }, 820);
+}
+
+function heartBurst(sourceEl: HTMLElement) {
+    if (typeof document === 'undefined') return;
+    if (prefersReducedMotion()) return;
+    const rect = sourceEl.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const emojis = ['❤️', '🌿', '💚', '🌱', '✨', '❤️'];
+    emojis.forEach((emoji, i) => {
+        const el = document.createElement('span');
+        el.textContent = emoji;
+        el.style.cssText = [
+            'position:fixed',
+            `left:${cx}px`,
+            `top:${cy}px`,
+            'font-size:18px',
+            'pointer-events:none',
+            'z-index:9999',
+            'will-change:transform,opacity',
+            'transform:translate(-50%,-50%) scale(0.5)',
+            'line-height:1',
+            'user-select:none',
+        ].join(';');
+        document.body.appendChild(el);
+
+        const angle = (i / emojis.length) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
+        const distance = 42 + Math.random() * 28;
+        const dx = Math.cos(angle) * distance;
+        const dy = Math.sin(angle) * distance - 18; // slight upward bias
+
+        el.animate(
+            [
+                { transform: 'translate(-50%,-50%) scale(0.5) rotate(0deg)', opacity: 1 },
+                {
+                    transform: `translate(calc(-50% + ${dx * 0.55}px), calc(-50% + ${dy * 0.55}px)) scale(1.35) rotate(${angle * 25}deg)`,
+                    opacity: 1,
+                    offset: 0.4,
+                },
+                {
+                    transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0.55) rotate(${angle * 55}deg)`,
+                    opacity: 0,
+                },
+            ],
+            { duration: 720, easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)', fill: 'forwards' }
+        );
+        window.setTimeout(() => el.remove(), 750);
+    });
+}
 
 interface VariantColor {
     name: string;
@@ -68,6 +192,7 @@ function ProductCard({
     const { addItem } = useCart();
     const { isInWishlist, toggleWishlist } = useWishlist();
     const [showToast, setShowToast] = useState(false);
+    const imgRef = useRef<HTMLImageElement | null>(null);
 
     // Determine the correct ID key for wishlist checks
     const wishlistProductId = type === 'product' || type === 'pot' ? id : undefined;
@@ -78,6 +203,10 @@ function ProductCard({
     const handleWishlistToggle = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
+        // Only burst when ADDING to wishlist (not removing)
+        if (!wishlisted) {
+            heartBurst(e.currentTarget as HTMLElement);
+        }
         toggleWishlist({
             productId: wishlistProductId,
             comboId: wishlistComboId,
@@ -239,6 +368,9 @@ function ProductCard({
             cartItem.productId = id;
         }
 
+        // Fly the product image toward the cart icon
+        flyToCart(imgRef.current);
+
         addItem(cartItem);
 
         setShowToast(true);
@@ -279,10 +411,12 @@ function ProductCard({
                 <div className={styles.imageWrapper}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
+                        ref={imgRef}
                         src={selectedColor?.images?.[0] || (image && image !== '' ? image : '/placeholder-plant.jpg')}
                         alt={name}
                         className={styles.image}
                         loading="lazy"
+                        decoding="async"
                         onError={(e) => {
                             const target = e.target as HTMLImageElement;
                             target.src = '/placeholder-plant.jpg';

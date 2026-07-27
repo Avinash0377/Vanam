@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import styles from './page.module.css';
+
+// ── Types ──────────────────────────────────────────────
 
 interface Coupon {
     id: string;
@@ -21,6 +23,20 @@ interface Coupon {
     startDate: string;
     expiryDate: string;
     createdAt: string;
+    // PDP Offer fields
+    offerType?: string;
+    showOnProductPage?: boolean;
+    autoApply?: boolean;
+    displayTitle?: string | null;
+    displaySubtext?: string | null;
+    sortOrder?: number;
+    applicabilityScope?: string;
+    includedProductIds?: string[];
+    excludedProductIds?: string[];
+    includedCategoryIds?: string[];
+    includedTags?: string[];
+    stackable?: boolean;
+    perUserLimit?: number | null;
 }
 
 interface CouponForm {
@@ -36,6 +52,35 @@ interface CouponForm {
     isActive: boolean;
     startDate: string;
     expiryDate: string;
+    // PDP Offer fields
+    offerType: string;
+    showOnProductPage: boolean;
+    autoApply: boolean;
+    displayTitle: string;
+    displaySubtext: string;
+    sortOrder: number;
+    applicabilityScope: string;
+    includedProductIds: string[];
+    excludedProductIds: string[];
+    includedCategoryIds: string[];
+    includedTags: string[];
+    stackable: boolean;
+    perUserLimit: string;
+}
+
+interface ProductSearchResult {
+    id: string;
+    name: string;
+    thumbnail: string | null;
+    price: number;
+    productType: string;
+    category: string | null;
+}
+
+interface CategoryItem {
+    id: string;
+    name: string;
+    _count?: { products: number };
 }
 
 const emptyCoupon: CouponForm = {
@@ -51,6 +96,20 @@ const emptyCoupon: CouponForm = {
     isActive: true,
     startDate: new Date().toISOString().slice(0, 16),
     expiryDate: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 16),
+    // PDP Offer defaults
+    offerType: 'PERCENTAGE',
+    showOnProductPage: false,
+    autoApply: false,
+    displayTitle: '',
+    displaySubtext: '',
+    sortOrder: 0,
+    applicabilityScope: 'ALL_PRODUCTS',
+    includedProductIds: [],
+    excludedProductIds: [],
+    includedCategoryIds: [],
+    includedTags: [],
+    stackable: false,
+    perUserLimit: '',
 };
 
 export default function CouponsPage() {
@@ -67,6 +126,28 @@ export default function CouponsPage() {
     const [success, setSuccess] = useState('');
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const [showPdpSection, setShowPdpSection] = useState(false);
+
+    // Product search state — separate for include vs exclude
+    const [productSearch, setProductSearch] = useState('');
+    const [productResults, setProductResults] = useState<ProductSearchResult[]>([]);
+    const [searchingProducts, setSearchingProducts] = useState(false);
+    const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    const [excludeProductSearch, setExcludeProductSearch] = useState('');
+    const [excludeProductResults, setExcludeProductResults] = useState<ProductSearchResult[]>([]);
+    const [searchingExcludeProducts, setSearchingExcludeProducts] = useState(false);
+    const excludeSearchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Product name map for display
+    const [productNameMap, setProductNameMap] = useState<Record<string, string>>({});
+
+    // Tag input state
+    const [tagInput, setTagInput] = useState('');
+
+    // Category state
+    const [categories, setCategories] = useState<CategoryItem[]>([]);
+    const [loadingCategories, setLoadingCategories] = useState(false);
 
     const fetchCoupons = useCallback(async () => {
         setLoading(true);
@@ -92,10 +173,103 @@ export default function CouponsPage() {
         fetchCoupons();
     }, [fetchCoupons]);
 
+    // Fetch categories on mount
+    useEffect(() => {
+        const fetchCategories = async () => {
+            setLoadingCategories(true);
+            try {
+                const res = await fetch('/api/admin/categories', {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    setCategories(Array.isArray(data) ? data : []);
+                }
+            } catch {
+                console.error('Failed to load categories');
+            } finally {
+                setLoadingCategories(false);
+            }
+        };
+        if (token) fetchCategories();
+    }, [token]);
+
+    // Debounced product search
+    useEffect(() => {
+        if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+
+        if (productSearch.length < 2) {
+            setProductResults([]);
+            return;
+        }
+
+        searchTimeoutRef.current = setTimeout(async () => {
+            setSearchingProducts(true);
+            try {
+                const res = await fetch(`/api/admin/products/search?q=${encodeURIComponent(productSearch)}`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                const data = await res.json();
+                setProductResults(data.products || []);
+            } catch {
+                setProductResults([]);
+            } finally {
+                setSearchingProducts(false);
+            }
+        }, 300);
+
+        return () => {
+            if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+        };
+    }, [productSearch, token]);
+
+    // Debounced exclude product search
+    useEffect(() => {
+        if (excludeSearchTimeoutRef.current) clearTimeout(excludeSearchTimeoutRef.current);
+
+        if (excludeProductSearch.length < 2) {
+            setExcludeProductResults([]);
+            return;
+        }
+
+        excludeSearchTimeoutRef.current = setTimeout(async () => {
+            setSearchingExcludeProducts(true);
+            try {
+                const res = await fetch(`/api/admin/products/search?q=${encodeURIComponent(excludeProductSearch)}`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                const data = await res.json();
+                setExcludeProductResults(data.products || []);
+            } catch {
+                setExcludeProductResults([]);
+            } finally {
+                setSearchingExcludeProducts(false);
+            }
+        }, 300);
+
+        return () => {
+            if (excludeSearchTimeoutRef.current) clearTimeout(excludeSearchTimeoutRef.current);
+        };
+    }, [excludeProductSearch, token]);
+
+    // Auto-clear success message
+    useEffect(() => {
+        if (success) {
+            const timer = setTimeout(() => setSuccess(''), 4000);
+            return () => clearTimeout(timer);
+        }
+    }, [success]);
+
     const openCreate = () => {
         setEditingId(null);
         setForm(emptyCoupon);
         setError('');
+        setShowPdpSection(false);
+        setProductSearch('');
+        setProductResults([]);
+        setExcludeProductSearch('');
+        setExcludeProductResults([]);
+        setTagInput('');
         setShowModal(true);
     };
 
@@ -114,9 +288,29 @@ export default function CouponsPage() {
             isActive: c.isActive,
             startDate: new Date(c.startDate).toISOString().slice(0, 16),
             expiryDate: new Date(c.expiryDate).toISOString().slice(0, 16),
+            // PDP Offer fields
+            offerType: c.offerType || 'PERCENTAGE',
+            showOnProductPage: c.showOnProductPage || false,
+            autoApply: c.autoApply || false,
+            displayTitle: c.displayTitle || '',
+            displaySubtext: c.displaySubtext || '',
+            sortOrder: c.sortOrder || 0,
+            applicabilityScope: c.applicabilityScope || 'ALL_PRODUCTS',
+            includedProductIds: c.includedProductIds || [],
+            excludedProductIds: c.excludedProductIds || [],
+            includedCategoryIds: c.includedCategoryIds || [],
+            includedTags: c.includedTags || [],
+            stackable: c.stackable || false,
+            perUserLimit: c.perUserLimit ? String(c.perUserLimit) : '',
         };
         setForm(formData);
         setError('');
+        setShowPdpSection(formData.showOnProductPage);
+        setProductSearch('');
+        setProductResults([]);
+        setExcludeProductSearch('');
+        setExcludeProductResults([]);
+        setTagInput('');
         setShowModal(true);
     };
 
@@ -136,6 +330,8 @@ export default function CouponsPage() {
                 maxDiscountAmount: form.maxDiscountAmount ? Number(form.maxDiscountAmount) : null,
                 usageLimit: form.usageLimit ? Number(form.usageLimit) : null,
                 usagePerUser: Number(form.usagePerUser),
+                sortOrder: Number(form.sortOrder) || 0,
+                perUserLimit: form.perUserLimit ? Number(form.perUserLimit) : null,
             };
 
             const res = await fetch(url, {
@@ -180,6 +376,35 @@ export default function CouponsPage() {
         }
     };
 
+    const togglePdpVisibility = async (c: Coupon) => {
+        const newValue = !c.showOnProductPage;
+        // Optimistic update
+        setCoupons(prev => prev.map(item =>
+            item.id === c.id ? { ...item, showOnProductPage: newValue } : item
+        ));
+
+        try {
+            const res = await fetch(`/api/admin/coupons/${c.id}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ showOnProductPage: newValue }),
+            });
+
+            if (!res.ok) throw new Error('Failed');
+            setSuccess(`Coupon ${newValue ? 'shown' : 'hidden'} on product pages`);
+            setTimeout(() => setSuccess(''), 3000);
+        } catch {
+            // Revert on failure
+            setCoupons(prev => prev.map(item =>
+                item.id === c.id ? { ...item, showOnProductPage: !newValue } : item
+            ));
+            setError('Failed to toggle PDP visibility');
+        }
+    };
+
     const handleDelete = async (c: Coupon) => {
         if (!confirm(`Delete coupon "${c.code}"?`)) return;
         try {
@@ -193,6 +418,36 @@ export default function CouponsPage() {
         }
     };
 
+    const addProductToList = (product: ProductSearchResult, field: 'includedProductIds' | 'excludedProductIds') => {
+        if (!form[field].includes(product.id)) {
+            setForm({ ...form, [field]: [...form[field], product.id] });
+            setProductNameMap(prev => ({ ...prev, [product.id]: product.name }));
+        }
+        if (field === 'excludedProductIds') {
+            setExcludeProductSearch('');
+            setExcludeProductResults([]);
+        } else {
+            setProductSearch('');
+            setProductResults([]);
+        }
+    };
+
+    const removeProductFromList = (productId: string, field: 'includedProductIds' | 'excludedProductIds') => {
+        setForm({ ...form, [field]: form[field].filter(id => id !== productId) });
+    };
+
+    const addTag = () => {
+        const tag = tagInput.trim();
+        if (tag && !form.includedTags.includes(tag)) {
+            setForm({ ...form, includedTags: [...form.includedTags, tag] });
+        }
+        setTagInput('');
+    };
+
+    const removeTag = (tag: string) => {
+        setForm({ ...form, includedTags: form.includedTags.filter(t => t !== tag) });
+    };
+
     const formatDate = (d: string) => {
         return new Date(d).toLocaleDateString('en-IN', {
             day: 'numeric',
@@ -202,6 +457,26 @@ export default function CouponsPage() {
     };
 
     const isExpired = (d: string) => new Date(d) < new Date();
+
+    const getScopeLabel = (c: Coupon) => {
+        const scope = c.applicabilityScope || 'ALL_PRODUCTS';
+        switch (scope) {
+            case 'PRODUCT': {
+                const count = c.includedProductIds?.length || 0;
+                return count > 0 ? `${count} Product${count > 1 ? 's' : ''}` : 'All Products';
+            }
+            case 'CATEGORY': {
+                const count = c.includedCategoryIds?.length || 0;
+                return count > 0 ? `${count} Categor${count > 1 ? 'ies' : 'y'}` : 'All Products';
+            }
+            case 'COLLECTION_TAG': {
+                const count = c.includedTags?.length || 0;
+                return count > 0 ? `${count} Tag${count > 1 ? 's' : ''}` : 'All Products';
+            }
+            default:
+                return 'All Products';
+        }
+    };
 
     return (
         <div className={styles.container}>
@@ -246,6 +521,7 @@ export default function CouponsPage() {
                 </div>
             ) : (
                 <>
+                    {/* Desktop table view */}
                     <div className={styles.tableWrap}>
                         <table className={styles.table}>
                             <thead>
@@ -253,9 +529,11 @@ export default function CouponsPage() {
                                     <th>Code</th>
                                     <th>Discount</th>
                                     <th>Min Order</th>
+                                    <th>Applies To</th>
                                     <th>Usage</th>
                                     <th>Validity</th>
                                     <th>Status</th>
+                                    <th>On PDP</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -278,6 +556,9 @@ export default function CouponsPage() {
                                         </td>
                                         <td>₹{c.minOrderValue}</td>
                                         <td>
+                                            <span className={styles.scopeChip}>{getScopeLabel(c)}</span>
+                                        </td>
+                                        <td>
                                             {c.usedCount}
                                             {c.usageLimit ? `/${c.usageLimit}` : ' / ∞'}
                                         </td>
@@ -295,6 +576,18 @@ export default function CouponsPage() {
                                             </button>
                                         </td>
                                         <td>
+                                            <button
+                                                className={`${styles.pdpToggle} ${c.showOnProductPage ? styles.pdpOn : styles.pdpOff}`}
+                                                onClick={() => togglePdpVisibility(c)}
+                                                title={c.showOnProductPage ? 'Shown on product pages — click to hide' : 'Hidden from product pages — click to show'}
+                                                aria-label={`Toggle PDP visibility for ${c.code}`}
+                                            >
+                                                <span className={styles.pdpToggleTrack}>
+                                                    <span className={styles.pdpToggleThumb} />
+                                                </span>
+                                            </button>
+                                        </td>
+                                        <td>
                                             <div className={styles.actions}>
                                                 <button className={styles.editBtn} onClick={() => openEdit(c)}>Edit</button>
                                                 <button className={styles.deleteBtn} onClick={() => handleDelete(c)}>Delete</button>
@@ -304,6 +597,67 @@ export default function CouponsPage() {
                                 ))}
                             </tbody>
                         </table>
+                    </div>
+
+                    {/* Mobile card view */}
+                    <div className={styles.cardList}>
+                        {coupons.map((c) => (
+                            <div key={c.id} className={`${styles.card} ${isExpired(c.expiryDate) ? styles.cardExpired : ''}`}>
+                                <div className={styles.cardHeader}>
+                                    <div className={styles.cardCodeRow}>
+                                        <span className={styles.code}>{c.code}</span>
+                                        <button
+                                            className={`${styles.statusBadge} ${c.isActive ? styles.active : styles.inactive}`}
+                                            onClick={() => toggleActive(c)}
+                                        >
+                                            {c.isActive ? 'Active' : 'Inactive'}
+                                        </button>
+                                    </div>
+                                    {c.description && <span className={styles.cardDesc}>{c.description}</span>}
+                                </div>
+                                <div className={styles.cardBody}>
+                                    <div className={styles.cardRow}>
+                                        <span className={styles.cardLabel}>Discount</span>
+                                        <span className={styles.cardValue}>
+                                            {c.discountType === 'PERCENTAGE' ? `${c.discountValue}%` : `₹${c.discountValue}`}
+                                            {c.maxDiscountAmount ? ` (max ₹${c.maxDiscountAmount})` : ''}
+                                        </span>
+                                    </div>
+                                    <div className={styles.cardRow}>
+                                        <span className={styles.cardLabel}>Min Order</span>
+                                        <span className={styles.cardValue}>₹{c.minOrderValue}</span>
+                                    </div>
+                                    <div className={styles.cardRow}>
+                                        <span className={styles.cardLabel}>Applies To</span>
+                                        <span className={styles.scopeChip}>{getScopeLabel(c)}</span>
+                                    </div>
+                                    <div className={styles.cardRow}>
+                                        <span className={styles.cardLabel}>Usage</span>
+                                        <span className={styles.cardValue}>{c.usedCount}{c.usageLimit ? `/${c.usageLimit}` : ' / ∞'}</span>
+                                    </div>
+                                    <div className={styles.cardRow}>
+                                        <span className={styles.cardLabel}>Validity</span>
+                                        <span className={styles.cardValue}>{formatDate(c.startDate)} → {formatDate(c.expiryDate)}</span>
+                                    </div>
+                                    <div className={styles.cardRow}>
+                                        <span className={styles.cardLabel}>On PDP</span>
+                                        <button
+                                            className={`${styles.pdpToggle} ${c.showOnProductPage ? styles.pdpOn : styles.pdpOff}`}
+                                            onClick={() => togglePdpVisibility(c)}
+                                            aria-label={`Toggle PDP visibility for ${c.code}`}
+                                        >
+                                            <span className={styles.pdpToggleTrack}>
+                                                <span className={styles.pdpToggleThumb} />
+                                            </span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className={styles.cardFooter}>
+                                    <button className={styles.editBtn} onClick={() => openEdit(c)}>Edit</button>
+                                    <button className={styles.deleteBtn} onClick={() => handleDelete(c)}>Delete</button>
+                                </div>
+                            </div>
+                        ))}
                     </div>
 
                     {totalPages > 1 && (
@@ -325,16 +679,19 @@ export default function CouponsPage() {
                         {error && <div className={styles.modalError}>{error}</div>}
 
                         <div className={styles.formGrid}>
-                            <div className={styles.formGroup}>
-                                <label>Coupon Code *</label>
-                                <input
-                                    type="text"
-                                    value={form.code}
-                                    onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
-                                    placeholder="e.g. WELCOME20"
-                                    className={styles.input}
-                                />
-                            </div>
+                            {/* Code field — hidden when autoApply */}
+                            {!form.autoApply && (
+                                <div className={styles.formGroup}>
+                                    <label>Coupon Code *</label>
+                                    <input
+                                        type="text"
+                                        value={form.code}
+                                        onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
+                                        placeholder="e.g. WELCOME20"
+                                        className={styles.input}
+                                    />
+                                </div>
+                            )}
 
                             <div className={styles.formGroup}>
                                 <label>Description</label>
@@ -452,6 +809,306 @@ export default function CouponsPage() {
                                 </label>
                             </div>
                         </div>
+
+                        {/* ---- Product Page Display & Targeting ---- */}
+                        <div className={styles.pdpSectionHeader}>
+                            <button
+                                type="button"
+                                className={styles.collapsibleBtn}
+                                onClick={() => setShowPdpSection(!showPdpSection)}
+                            >
+                                <span className={`${styles.collapsibleArrow} ${showPdpSection ? styles.open : ''}`}>▶</span>
+                                Product Page Display & Targeting
+                            </button>
+                        </div>
+
+                        {showPdpSection && (
+                            <div className={styles.pdpSection}>
+                                <div className={styles.formGrid}>
+                                    <div className={styles.formGroup}>
+                                        <label className={styles.checkboxLabel}>
+                                            <input
+                                                type="checkbox"
+                                                checked={form.showOnProductPage}
+                                                onChange={(e) => setForm({ ...form, showOnProductPage: e.target.checked })}
+                                            />
+                                            Show this offer on product pages
+                                        </label>
+                                    </div>
+
+                                    <div className={styles.formGroup}>
+                                        <label className={styles.checkboxLabel}>
+                                            <input
+                                                type="checkbox"
+                                                checked={form.autoApply}
+                                                onChange={(e) => setForm({ ...form, autoApply: e.target.checked })}
+                                            />
+                                            Auto-apply (no code needed)
+                                        </label>
+                                        {form.autoApply && (
+                                            <span className={styles.autoApplyBadge}>Offer applied at checkout</span>
+                                        )}
+                                    </div>
+
+                                    <div className={styles.formGroup}>
+                                        <label>Offer Type</label>
+                                        <select
+                                            value={form.offerType}
+                                            onChange={(e) => setForm({ ...form, offerType: e.target.value })}
+                                            className={styles.input}
+                                        >
+                                            <option value="PERCENTAGE">Percentage (%)</option>
+                                            <option value="FLAT">Flat Amount (₹)</option>
+                                            <option value="FREE_SHIPPING">Free Shipping</option>
+                                            <option value="BOGO">Buy 1 Get 1</option>
+                                        </select>
+                                    </div>
+
+                                    <div className={styles.formGroup}>
+                                        <label>
+                                            Display Title
+                                            <span className={styles.charCount}>{form.displayTitle.length}/90</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={form.displayTitle}
+                                            onChange={(e) => setForm({ ...form, displayTitle: e.target.value.slice(0, 90) })}
+                                            placeholder="Auto-generated if empty"
+                                            className={styles.input}
+                                            maxLength={90}
+                                        />
+                                    </div>
+
+                                    <div className={styles.formGroup}>
+                                        <label>
+                                            Display Subtext
+                                            <span className={styles.charCount}>{form.displaySubtext.length}/120</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={form.displaySubtext}
+                                            onChange={(e) => setForm({ ...form, displaySubtext: e.target.value.slice(0, 120) })}
+                                            placeholder="Optional secondary line"
+                                            className={styles.input}
+                                            maxLength={120}
+                                        />
+                                    </div>
+
+                                    <div className={styles.formGroup}>
+                                        <label>Priority / Sort Order</label>
+                                        <input
+                                            type="number"
+                                            value={form.sortOrder}
+                                            onChange={(e) => setForm({ ...form, sortOrder: Number(e.target.value) || 0 })}
+                                            placeholder="0 (higher = shown first)"
+                                            className={styles.input}
+                                            min="0"
+                                        />
+                                    </div>
+
+                                    <div className={styles.formGroup}>
+                                        <label>Per-User Limit</label>
+                                        <input
+                                            type="number"
+                                            value={form.perUserLimit}
+                                            onChange={(e) => setForm({ ...form, perUserLimit: e.target.value })}
+                                            placeholder="Unlimited"
+                                            className={styles.input}
+                                            min="1"
+                                        />
+                                    </div>
+
+                                    <div className={styles.formGroup}>
+                                        <label className={styles.checkboxLabel}>
+                                            <input
+                                                type="checkbox"
+                                                checked={form.stackable}
+                                                onChange={(e) => setForm({ ...form, stackable: e.target.checked })}
+                                            />
+                                            Stackable (can combine with other offers)
+                                        </label>
+                                    </div>
+                                </div>
+
+                                {/* Applicability Scope */}
+                                <div className={styles.scopeSection}>
+                                    <label className={styles.scopeLabel}>Applies to:</label>
+                                    <div className={styles.scopeRadios}>
+                                        {[
+                                            { value: 'ALL_PRODUCTS', label: 'All products' },
+                                            { value: 'CATEGORY', label: 'Specific categories' },
+                                            { value: 'PRODUCT', label: 'Specific products' },
+                                            { value: 'COLLECTION_TAG', label: 'Tags' },
+                                        ].map(opt => (
+                                            <label key={opt.value} className={styles.radioLabel}>
+                                                <input
+                                                    type="radio"
+                                                    name="applicabilityScope"
+                                                    value={opt.value}
+                                                    checked={form.applicabilityScope === opt.value}
+                                                    onChange={(e) => setForm({ ...form, applicabilityScope: e.target.value })}
+                                                />
+                                                {opt.label}
+                                            </label>
+                                        ))}
+                                    </div>
+
+                                    {/* Product multi-select */}
+                                    {form.applicabilityScope === 'PRODUCT' && (
+                                        <div className={styles.multiSelect}>
+                                            <input
+                                                type="text"
+                                                value={productSearch}
+                                                onChange={(e) => setProductSearch(e.target.value)}
+                                                placeholder="Search products..."
+                                                className={styles.input}
+                                            />
+                                            {searchingProducts && <span className={styles.searchHint}>Searching...</span>}
+                                            {productResults.length > 0 && (
+                                                <div className={styles.searchDropdown}>
+                                                    {productResults.map(p => (
+                                                        <button
+                                                            key={p.id}
+                                                            className={styles.searchItem}
+                                                            onClick={() => addProductToList(p, 'includedProductIds')}
+                                                            type="button"
+                                                        >
+                                                            <span className={styles.searchItemName}>{p.name}</span>
+                                                            <span className={styles.searchItemMeta}>₹{p.price} · {p.category || p.productType}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            {form.includedProductIds.length > 0 && (
+                                                <div className={styles.chipList}>
+                                                    {form.includedProductIds.map(id => (
+                                                        <span key={id} className={styles.chip}>
+                                                            {productNameMap[id] || id.slice(-6)}
+                                                            <button type="button" onClick={() => removeProductFromList(id, 'includedProductIds')}>×</button>
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Category multi-select */}
+                                    {form.applicabilityScope === 'CATEGORY' && (
+                                        <div className={styles.multiSelect}>
+                                            {loadingCategories ? (
+                                                <span className={styles.searchHint}>Loading categories...</span>
+                                            ) : categories.length === 0 ? (
+                                                <span className={styles.searchHint}>No categories found</span>
+                                            ) : (
+                                                <div className={styles.categoryCheckboxes}>
+                                                    {categories.map(cat => (
+                                                        <label key={cat.id} className={styles.categoryCheckbox}>
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={form.includedCategoryIds.includes(cat.id)}
+                                                                onChange={(e) => {
+                                                                    if (e.target.checked) {
+                                                                        setForm({ ...form, includedCategoryIds: [...form.includedCategoryIds, cat.id] });
+                                                                    } else {
+                                                                        setForm({ ...form, includedCategoryIds: form.includedCategoryIds.filter(id => id !== cat.id) });
+                                                                    }
+                                                                }}
+                                                            />
+                                                            <span className={styles.categoryName}>{cat.name}</span>
+                                                            {cat._count?.products !== undefined && (
+                                                                <span className={styles.categoryCount}>({cat._count.products})</span>
+                                                            )}
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            {form.includedCategoryIds.length > 0 && (
+                                                <div className={styles.chipList}>
+                                                    {form.includedCategoryIds.map(id => {
+                                                        const cat = categories.find(c => c.id === id);
+                                                        return (
+                                                            <span key={id} className={styles.chip}>
+                                                                {cat?.name || id.slice(-6)}
+                                                                <button type="button" onClick={() => setForm({ ...form, includedCategoryIds: form.includedCategoryIds.filter(cid => cid !== id) })}>×</button>
+                                                            </span>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Tag input */}
+                                    {form.applicabilityScope === 'COLLECTION_TAG' && (
+                                        <div className={styles.multiSelect}>
+                                            <div className={styles.tagInputRow}>
+                                                <input
+                                                    type="text"
+                                                    value={tagInput}
+                                                    onChange={(e) => setTagInput(e.target.value)}
+                                                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }}
+                                                    placeholder="e.g. air-purifying"
+                                                    className={styles.input}
+                                                />
+                                                <button type="button" className={styles.addTagBtn} onClick={addTag}>Add</button>
+                                            </div>
+                                            {form.includedTags.length > 0 && (
+                                                <div className={styles.chipList}>
+                                                    {form.includedTags.map(tag => (
+                                                        <span key={tag} className={styles.chip}>
+                                                            {tag}
+                                                            <button type="button" onClick={() => removeTag(tag)}>×</button>
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Exclude products */}
+                                    {form.applicabilityScope !== 'ALL_PRODUCTS' && (
+                                        <div className={styles.excludeSection}>
+                                            <label className={styles.excludeLabel}>Exclude products (optional):</label>
+                                            <div className={styles.multiSelect}>
+                                                <input
+                                                    type="text"
+                                                    value={excludeProductSearch}
+                                                    onChange={(e) => setExcludeProductSearch(e.target.value)}
+                                                    placeholder="Search to exclude..."
+                                                    className={styles.input}
+                                                />
+                                                {searchingExcludeProducts && <span className={styles.searchHint}>Searching...</span>}
+                                                {excludeProductResults.length > 0 && (
+                                                    <div className={styles.searchDropdown}>
+                                                        {excludeProductResults.map(p => (
+                                                            <button
+                                                                key={p.id}
+                                                                className={styles.searchItem}
+                                                                onClick={() => addProductToList(p, 'excludedProductIds')}
+                                                                type="button"
+                                                            >
+                                                                <span className={styles.searchItemName}>{p.name}</span>
+                                                                <span className={styles.searchItemMeta}>₹{p.price}</span>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            {form.excludedProductIds.length > 0 && (
+                                                <div className={styles.chipList}>
+                                                    {form.excludedProductIds.map(id => (
+                                                        <span key={id} className={`${styles.chip} ${styles.chipExclude}`}>
+                                                            {productNameMap[id] || id.slice(-6)}
+                                                            <button type="button" onClick={() => removeProductFromList(id, 'excludedProductIds')}>×</button>
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
 
                         <div className={styles.modalActions}>
                             <button className={styles.cancelBtn} onClick={() => setShowModal(false)}>Cancel</button>

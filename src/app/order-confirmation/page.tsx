@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { CheckIcon, PackageIcon, WhatsAppIcon, XIcon, TruckIcon, ActivityIcon as MailIcon } from '@/components/Icons';
@@ -31,9 +31,34 @@ function OrderConfirmationContent() {
     const { token } = useAuth();
 
     useEffect(() => {
-        // Hide confetti after animation
-        const timer = setTimeout(() => setShowConfetti(false), 3000);
+        // Hide confetti after animation completes (longest piece + delay)
+        const timer = setTimeout(() => setShowConfetti(false), 5500);
         return () => clearTimeout(timer);
+    }, []);
+
+    // Precompute confetti pieces once so re-renders (e.g. token loading)
+    // don't reshuffle positions or restart animations mid-fall.
+    const confettiPieces = useMemo(() => {
+        const emojiSet = ['🌿', '🍃', '✨', '🌱'];
+        const colorPalette = ['#1a4d2e', '#4aab78', '#86efac', '#f59e0b', '#ec4899', '#ffffff'];
+        return Array.from({ length: 70 }, (_, i) => {
+            const isEmoji = i % 7 === 0;
+            const isCircle = !isEmoji && i % 3 === 0;
+            const size = 8 + Math.random() * 10;
+            return {
+                key: i,
+                isEmoji,
+                isCircle,
+                emoji: emojiSet[i % emojiSet.length],
+                left: `${Math.random() * 100}%`,
+                size,
+                delay: `${Math.random() * 1.8}s`,
+                duration: `${3 + Math.random() * 2}s`,
+                bg: isEmoji ? 'transparent' : colorPalette[i % colorPalette.length],
+                wind: `${(Math.random() - 0.5) * 240}px`,
+                spin: `${360 + Math.random() * 720}deg`,
+            };
+        });
     }, []);
 
     // Fire purchase event ONCE — sessionStorage guard prevents duplicate on refresh
@@ -90,14 +115,29 @@ function OrderConfirmationContent() {
     return (
         <div className={styles.page}>
             {showConfetti && (
-                <div className={styles.confetti}>
-                    {[...Array(50)].map((_, i) => (
-                        <div key={i} className={styles.confettiPiece} style={{
-                            left: `${Math.random() * 100}%`,
-                            animationDelay: `${Math.random() * 2}s`,
-                            backgroundColor: ['#1a4d2e', '#4aab78', '#f59e0b', '#ec4899', '#8b5cf6'][Math.floor(Math.random() * 5)]
-                        }} />
-                    ))}
+                <div className={styles.confetti} aria-hidden="true">
+                    {confettiPieces.map((p) => {
+                        const pieceStyle = {
+                            left: p.left,
+                            width: `${p.size}px`,
+                            height: `${p.size}px`,
+                            animationDelay: p.delay,
+                            animationDuration: p.duration,
+                            backgroundColor: p.bg,
+                            fontSize: p.isEmoji ? `${p.size + 8}px` : undefined,
+                            ['--wind' as string]: p.wind,
+                            ['--spin' as string]: p.spin,
+                        } as React.CSSProperties;
+                        return (
+                            <div
+                                key={p.key}
+                                className={`${styles.confettiPiece} ${p.isCircle ? styles.pieceCircle : ''} ${p.isEmoji ? styles.pieceEmoji : ''}`}
+                                style={pieceStyle}
+                            >
+                                {p.isEmoji ? p.emoji : ''}
+                            </div>
+                        );
+                    })}
                 </div>
             )}
 

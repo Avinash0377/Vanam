@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { withAdmin } from '@/lib/middleware';
 import { JWTPayload } from '@/lib/auth';
 import { normalizeCouponCode } from '@/lib/coupon-utils';
+import { invalidateOffersCache } from '@/lib/coupon-eligibility';
 
 // GET all coupons (with filtering, search, pagination)
 async function getCoupons(request: NextRequest, _user: JWTPayload) {
@@ -52,9 +53,24 @@ async function createCoupon(request: NextRequest, _user: JWTPayload) {
     try {
         const body = await request.json();
 
-        const code = normalizeCouponCode(body.code);
+        // PDP offer fields
+        const autoApply = Boolean(body.autoApply);
+        const showOnProductPage = Boolean(body.showOnProductPage);
+
+        // Code validation: required unless autoApply
+        let code: string | null = null;
+        if (autoApply) {
+            // Auto-apply coupons still need a unique internal code for tracking
+            code = body.code ? normalizeCouponCode(body.code) : `AUTO_${Date.now()}`;
+        } else {
+            code = normalizeCouponCode(body.code);
+            if (!code) {
+                return NextResponse.json({ error: 'Invalid coupon code. Use only letters, numbers, dashes, underscores.' }, { status: 400 });
+            }
+        }
+
         if (!code) {
-            return NextResponse.json({ error: 'Invalid coupon code. Use only letters, numbers, dashes, underscores.' }, { status: 400 });
+            return NextResponse.json({ error: 'Coupon code is required' }, { status: 400 });
         }
 
         // Validation
@@ -87,6 +103,41 @@ async function createCoupon(request: NextRequest, _user: JWTPayload) {
             return NextResponse.json({ error: 'Expiry date must be after start date' }, { status: 400 });
         }
 
+        // Validate new PDP offer fields
+        const offerType = body.offerType || 'PERCENTAGE';
+        if (!['PERCENTAGE', 'FLAT', 'FREE_SHIPPING', 'BOGO'].includes(offerType)) {
+            return NextResponse.json({ error: 'Invalid offer type' }, { status: 400 });
+        }
+
+        const applicabilityScope = body.applicabilityScope || 'ALL_PRODUCTS';
+        if (!['ALL_PRODUCTS', 'CATEGORY', 'PRODUCT', 'COLLECTION_TAG'].includes(applicabilityScope)) {
+            return NextResponse.json({ error: 'Invalid applicability scope' }, { status: 400 });
+        }
+
+        // Validate scope-specific arrays
+        const includedProductIds = Array.isArray(body.includedProductIds) ? body.includedProductIds : [];
+        const excludedProductIds = Array.isArray(body.excludedProductIds) ? body.excludedProductIds : [];
+        const includedCategoryIds = Array.isArray(body.includedCategoryIds) ? body.includedCategoryIds : [];
+        const includedTags = Array.isArray(body.includedTags) ? body.includedTags : [];
+
+        if (applicabilityScope === 'PRODUCT' && includedProductIds.length === 0) {
+            return NextResponse.json({ error: 'Select at least one product when targeting specific products' }, { status: 400 });
+        }
+        if (applicabilityScope === 'CATEGORY' && includedCategoryIds.length === 0) {
+            return NextResponse.json({ error: 'Select at least one category when targeting specific categories' }, { status: 400 });
+        }
+        if (applicabilityScope === 'COLLECTION_TAG' && includedTags.length === 0) {
+            return NextResponse.json({ error: 'Enter at least one tag when targeting by tags' }, { status: 400 });
+        }
+
+        // Validate displayTitle length
+        if (body.displayTitle && body.displayTitle.length > 90) {
+            return NextResponse.json({ error: 'Display title must be 90 characters or less' }, { status: 400 });
+        }
+        if (body.displaySubtext && body.displaySubtext.length > 120) {
+            return NextResponse.json({ error: 'Display subtext must be 120 characters or less' }, { status: 400 });
+        }
+
         // Check uniqueness
         const existing = await prisma.coupon.findUnique({ where: { code } });
         if (existing) {
@@ -108,8 +159,25 @@ async function createCoupon(request: NextRequest, _user: JWTPayload) {
                 isActive: Boolean(isActive),
                 startDate: start,
                 expiryDate: expiry,
+                // PDP Offer fields
+                offerType,
+                showOnProductPage,
+                autoApply,
+                displayTitle: body.displayTitle || null,
+                displaySubtext: body.displaySubtext || null,
+                sortOrder: parseInt(body.sortOrder) || 0,
+                applicabilityScope,
+                includedProductIds,
+                excludedProductIds,
+                includedCategoryIds,
+                includedTags,
+                stackable: Boolean(body.stackable),
+                perUserLimit: body.perUserLimit ? parseInt(body.perUserLimit) : null,
             },
         });
+
+        // Invalidate PDP offers cache
+        invalidateOffersCache();
 
         return NextResponse.json({ coupon, message: 'Coupon created successfully' }, { status: 201 });
     } catch (error) {

@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
 import styles from './page.module.css';
 import { trackViewItem, trackAddToCart, trackWhatsAppClick } from '@/lib/analytics';
+import ProductOffers from '@/components/ProductOffers';
 
 // ── Types ──────────────────────────────────────────────
 
@@ -367,6 +368,9 @@ export default function ProductClient({ product }: { product: ProductData }) {
                             💬 Order on WhatsApp
                         </button>
                     </div>
+
+                        {/* Offers for you */}
+                        <ProductOffers productId={product.id} />
                 </div>
             </div>
 

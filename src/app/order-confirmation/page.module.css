@@ -12,7 +12,8 @@
     padding: 0 1rem;
 }
 
-/* Confetti Animation */
+/* Confetti Animation — upgraded (#15): squares, circles, and leaf emoji
+   with horizontal wind drift and per-piece rotation. */
 .confetti {
     position: fixed;
     top: 0;
@@ -26,22 +27,47 @@
 
 .confettiPiece {
     position: absolute;
+    top: -20px;
     width: 10px;
     height: 10px;
-    top: -10px;
     border-radius: 2px;
-    animation: fall 3s ease-out forwards;
+    animation: confettiFall 3.5s cubic-bezier(0.2, 0.7, 0.4, 1) forwards;
+    will-change: transform, opacity;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
-@keyframes fall {
+.pieceCircle {
+    border-radius: 50%;
+}
+
+.pieceEmoji {
+    background: transparent !important;
+    box-shadow: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+@keyframes confettiFall {
     0% {
-        transform: translateY(0) rotate(0deg);
+        transform: translate3d(0, 0, 0) rotate(0deg);
+        opacity: 1;
+    }
+
+    15% {
         opacity: 1;
     }
 
     100% {
-        transform: translateY(100vh) rotate(720deg);
+        transform: translate3d(var(--wind, 0px), 105vh, 0) rotate(var(--spin, 720deg));
         opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .confetti {
+        display: none;
     }
 }
 

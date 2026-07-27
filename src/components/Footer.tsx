@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { LeafIcon, PhoneIcon, MailIcon, WhatsAppIcon, ArrowRightIcon } from '@/components/Icons';
+import { LeafIcon, PhoneIcon, MailIcon, WhatsAppIcon, ArrowRightIcon, SunIcon, PlantIcon, PotIcon, SeedlingIcon } from '@/components/Icons';
 import styles from './Footer.module.css';
 
 export default function Footer() {
@@ -11,6 +11,16 @@ export default function Footer() {
                 <div className={styles.grid}>
                     {/* Brand */}
                     <div className={styles.brand}>
+                        {/* Decorative floating icons (mobile only, hidden on desktop via CSS) */}
+                        <div className={styles.brandDecor} aria-hidden="true">
+                            <span className={`${styles.decorIcon} ${styles.decorSun}`}><SunIcon size={38} /></span>
+                            <span className={`${styles.decorIcon} ${styles.decorPlant}`}><PlantIcon size={44} /></span>
+                            <span className={`${styles.decorIcon} ${styles.decorPot}`}><PotIcon size={40} /></span>
+                            <span className={`${styles.decorIcon} ${styles.decorSeedling}`}><SeedlingIcon size={28} /></span>
+                            <span className={`${styles.decorIcon} ${styles.decorLeaf1}`}><LeafIcon size={20} /></span>
+                            <span className={`${styles.decorIcon} ${styles.decorLeaf2}`}><LeafIcon size={16} /></span>
+                            <span className={`${styles.decorIcon} ${styles.decorLeaf3}`}><LeafIcon size={14} /></span>
+                        </div>
                         <Link href="/" className={styles.logo}>
                             <span className={styles.logoIcon}><LeafIcon size={22} /></span>
                             <span className={styles.logoText}>

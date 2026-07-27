@@ -1,11 +1,15 @@
 'use client';
 
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import styles from './BottomNavBar.module.css';
+
+// useLayoutEffect logs a warning on the server. Fall back to useEffect during SSR.
+const useIsoLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
 export default function BottomNavBar() {
     const pathname = usePathname();
@@ -94,21 +98,72 @@ export default function BottomNavBar() {
         return pathname.startsWith(tab.href);
     };
 
+    // Sliding indicator (#5): measures the active tab's center on the icon
+    // and slides a 32px pill to that position. Uses MutationObserver so it
+    // stays in sync even when active state changes without a pathname change
+    // (e.g. /profile ↔ /profile?tab=orders).
+    const navRef = useRef<HTMLElement | null>(null);
+    const [indicatorX, setIndicatorX] = useState<number | null>(null);
+
+    useIsoLayoutEffect(() => {
+        const nav = navRef.current;
+        if (!nav) return;
+        const update = () => {
+            const activeEl = nav.querySelector<HTMLElement>('[data-active="true"]');
+            if (!activeEl) {
+                setIndicatorX(null);
+                return;
+            }
+            const navRect = nav.getBoundingClientRect();
+            const rect = activeEl.getBoundingClientRect();
+            const center = rect.left - navRect.left + rect.width / 2;
+            setIndicatorX(prev => {
+                const next = center - 16; // 16 = half of 32px pill
+                return prev === next ? prev : next;
+            });
+        };
+        update();
+        window.addEventListener('resize', update);
+        // Catch data-active changes that happen without a pathname update
+        const observer = new MutationObserver(update);
+        observer.observe(nav, {
+            attributes: true,
+            subtree: true,
+            attributeFilter: ['data-active'],
+        });
+        return () => {
+            window.removeEventListener('resize', update);
+            observer.disconnect();
+        };
+    }, [pathname]);
+
     return (
-        <nav className={styles.bottomNav}>
-            {tabs.map((tab) => (
-                <Link
-                    key={tab.href + tab.label}
-                    href={tab.href}
-                    className={`${styles.tab} ${isActive(tab) ? styles.active : ''}`}
-                >
-                    <span className={styles.iconWrapper}>
-                        {tab.icon}
-                        {tab.badge && <span className={styles.badge}>{tab.badge}</span>}
-                    </span>
-                    <span className={styles.label}>{tab.label}</span>
-                </Link>
-            ))}
+        <nav ref={navRef} className={styles.bottomNav}>
+            {indicatorX !== null && (
+                <span
+                    className={styles.activeIndicator}
+                    style={{ transform: `translateX(${indicatorX}px)` }}
+                    aria-hidden="true"
+                />
+            )}
+            {tabs.map((tab) => {
+                const active = isActive(tab);
+                return (
+                    <Link
+                        key={tab.href + tab.label}
+                        href={tab.href}
+                        data-active={active ? 'true' : undefined}
+                        data-flip-target={tab.label === 'Cart' ? 'cart' : undefined}
+                        className={`${styles.tab} ${active ? styles.active : ''}`}
+                    >
+                        <span className={styles.iconWrapper}>
+                            {tab.icon}
+                            {tab.badge && <span className={styles.badge}>{tab.badge}</span>}
+                        </span>
+                        <span className={styles.label}>{tab.label}</span>
+                    </Link>
+                );
+            })}
         </nav>
     );
 }

@@ -94,6 +94,20 @@ enum CouponScope {
   PRODUCT
 }
 
+enum OfferType {
+  PERCENTAGE
+  FLAT
+  FREE_SHIPPING
+  BOGO
+}
+
+enum ApplicabilityScope {
+  ALL_PRODUCTS
+  CATEGORY
+  PRODUCT
+  COLLECTION_TAG
+}
+
 enum DeliveryChargeType {
   FLAT
   CONDITIONAL
@@ -537,11 +551,28 @@ model Coupon {
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
 
+  // ---- PDP Offers feature fields (all defaulted for backward compatibility) ----
+  offerType            OfferType           @default(PERCENTAGE)
+  showOnProductPage    Boolean             @default(false)
+  autoApply            Boolean             @default(false)
+  displayTitle         String?             // Customer-facing line, e.g. "Get 10% off on orders above ₹1,499"
+  displaySubtext       String?             // Optional secondary line / T&C teaser
+  sortOrder            Int                 @default(0) // Higher = shown first in PDP list
+  applicabilityScope   ApplicabilityScope  @default(ALL_PRODUCTS)
+  includedProductIds   String[]            // Specific products this offer applies to
+  excludedProductIds   String[]            // Blacklist (wins over include)
+  includedCategoryIds  String[]            // Category targeting
+  includedTags         String[]            // Tag targeting, e.g. "air-purifying"
+  stackable            Boolean             @default(false)
+  perUserLimit         Int?                // Usage cap per customer (null = unlimited)
+
   @@index([isActive])
   @@index([expiryDate])
   // Compound index for active-coupon validation queries
   @@index([isActive, expiryDate])
   @@index([code, isActive])
+  // Compound index for PDP offer queries
+  @@index([isActive, showOnProductPage, startDate, expiryDate])
 }
 
 // ==================== DELIVERY SETTINGS (Singleton) ====================

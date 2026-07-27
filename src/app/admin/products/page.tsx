@@ -328,6 +328,171 @@ export default function AdminProductsPage() {
                             </Link>
                         </div>
                     ) : (
+                        <>
+                        {/* Mobile Card View */}
+                        <div className={styles.mobileCards}>
+                            {products.map((product) => {
+                                const stockStatus = getStockStatus(getTotalStock(product));
+                                const priceRange = getPriceRange(product);
+                                const isExpanded = expandedProducts.has(product.id);
+                                const hasVariants = product.sizeVariants && product.sizeVariants.length > 0;
+                                const totalStock = getTotalStock(product);
+                                const productUrl = `/${product.productType === 'POT' || product.productType === 'PLANTER' ? 'pots' : product.productType === 'PLANT' ? 'plants' : 'product'}/${product.slug}`;
+
+                                const img = product.images?.[0] ||
+                                    product.sizeVariants?.flatMap(v => v.colors?.flatMap(c => c.images || []) || [])?.[0];
+
+                                return (
+                                    <div key={product.id} className={styles.mCard}>
+                                        <div className={styles.mCardTop}>
+                                            <div className={styles.mCardImage}>
+                                                {img ? (
+                                                    <Image src={img} alt={product.name} width={64} height={64} className={styles.mCardImg} />
+                                                ) : (
+                                                    <PlantIcon size={24} />
+                                                )}
+                                            </div>
+                                            <div className={styles.mCardInfo}>
+                                                <div className={styles.mCardNameRow}>
+                                                    <h3 className={styles.mCardName}>{product.name}</h3>
+                                                    <div className={styles.mCardBadges}>
+                                                        {product.featured && <StarIcon size={14} filled color="#f59e0b" />}
+                                                        {product.showOnHome && <span title="Shown on Homepage">🏠</span>}
+                                                    </div>
+                                                </div>
+                                                <p className={styles.mCardCategory}>{product.category?.name || 'Uncategorized'}</p>
+                                                <div className={styles.mCardChips}>
+                                                    <span className={styles.typeBadge}>{product.productType}</span>
+                                                    <span className={`${styles.statusBadge} ${styles[product.status.toLowerCase()]}`}>
+                                                        {product.status}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className={styles.mCardMeta}>
+                                            <div className={styles.mCardMetaItem}>
+                                                <span className={styles.mCardMetaLabel}>Price</span>
+                                                <span className={styles.mCardMetaValue}>
+                                                    {priceRange.min === priceRange.max
+                                                        ? `₹${priceRange.min}`
+                                                        : `₹${priceRange.min} – ₹${priceRange.max}`}
+                                                </span>
+                                            </div>
+                                            <div className={styles.mCardMetaItem}>
+                                                <span className={styles.mCardMetaLabel}>Stock</span>
+                                                <span className={`${styles.mCardMetaValue} ${stockStatus.class}`}>
+                                                    {totalStock} · {stockStatus.label}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div className={styles.mCardActions}>
+                                            <Link href={productUrl} className={styles.mCardActionBtn} target="_blank" aria-label="View">
+                                                <EyeIcon size={16} />
+                                                <span>View</span>
+                                            </Link>
+                                            <Link href={`/admin/products/${product.id}/edit`} className={styles.mCardActionBtn} aria-label="Edit">
+                                                <EditIcon size={16} />
+                                                <span>Edit</span>
+                                            </Link>
+                                            <button
+                                                onClick={() => handleDelete(product.id, product.name)}
+                                                className={`${styles.mCardActionBtn} ${styles.mCardDeleteBtn}`}
+                                                aria-label="Delete"
+                                            >
+                                                <TrashIcon size={16} />
+                                                <span>Delete</span>
+                                            </button>
+                                        </div>
+
+                                        {hasVariants && (
+                                            <button
+                                                className={styles.mCardExpand}
+                                                onClick={() => toggleExpand(product.id)}
+                                                aria-expanded={isExpanded}
+                                            >
+                                                <span>{isExpanded ? 'Hide variants' : `View ${product.sizeVariants!.length} variant${product.sizeVariants!.length > 1 ? 's' : ''}`}</span>
+                                                <span className={`${styles.mCardExpandArrow} ${isExpanded ? styles.mCardExpandOpen : ''}`}>▾</span>
+                                            </button>
+                                        )}
+
+                                        {isExpanded && hasVariants && (
+                                            <div className={styles.mCardVariants}>
+                                                {product.sizeVariants!.some(v => v.planters && v.planters.length > 0) ? (
+                                                    product.sizeVariants!.flatMap((variant) => {
+                                                        const planters = variant.planters || [];
+                                                        if (planters.length === 0) {
+                                                            return [(
+                                                                <div key={variant.size} className={styles.mVariantItem}>
+                                                                    <div className={styles.mVariantHeader}>
+                                                                        <span className={styles.sizeLabel}>{variant.size}</span>
+                                                                        <span className={styles.muted}>No planters</span>
+                                                                    </div>
+                                                                </div>
+                                                            )];
+                                                        }
+                                                        return planters.map((planter, pIdx) => {
+                                                            const pStock = parseInt(planter.stock) || 0;
+                                                            return (
+                                                                <div key={`${variant.size}-${planter.name}-${pIdx}`} className={styles.mVariantItem}>
+                                                                    <div className={styles.mVariantHeader}>
+                                                                        <span className={styles.sizeLabel}>{variant.size}</span>
+                                                                        <span className={styles.planterNameCell}>{planter.name}</span>
+                                                                    </div>
+                                                                    <div className={styles.mVariantMeta}>
+                                                                        <span>{planter.price ? `₹${planter.price}` : <span className={styles.warning}>⚠️ Missing</span>}</span>
+                                                                        {planter.comparePrice && <span className={styles.muted}>MRP ₹{planter.comparePrice}</span>}
+                                                                        <span className={pStock === 0 ? styles.stockZero : ''}>Stock: {planter.stock}</span>
+                                                                    </div>
+                                                                    {planter.colors && planter.colors.length > 0 && (
+                                                                        <div className={styles.colorDots}>
+                                                                            {planter.colors.map((color, idx) => (
+                                                                                <span key={idx} className={styles.colorDot} style={{ backgroundColor: color.hex }} title={color.name} />
+                                                                            ))}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        });
+                                                    })
+                                                ) : (
+                                                    product.sizeVariants!.map((variant) => {
+                                                        const variantStock = parseInt(variant.stock) || 0;
+                                                        const imageCount = getImageCount(variant);
+                                                        return (
+                                                            <div key={variant.size} className={styles.mVariantItem}>
+                                                                <div className={styles.mVariantHeader}>
+                                                                    <span className={styles.sizeLabel}>{variant.size}</span>
+                                                                    {variant.price ? (
+                                                                        <span className={styles.variantPrice}>₹{variant.price}</span>
+                                                                    ) : (
+                                                                        <span className={styles.warning}>⚠️ Missing</span>
+                                                                    )}
+                                                                </div>
+                                                                <div className={styles.mVariantMeta}>
+                                                                    <span className={variantStock === 0 ? styles.stockZero : ''}>Stock: {variant.stock}</span>
+                                                                    {imageCount > 0 && <span className={styles.muted}>{imageCount} image{imageCount > 1 ? 's' : ''}</span>}
+                                                                </div>
+                                                                {variant.colors && variant.colors.length > 0 && (
+                                                                    <div className={styles.colorDots}>
+                                                                        {variant.colors.map((color, idx) => (
+                                                                            <span key={idx} className={styles.colorDot} style={{ backgroundColor: color.hex }} title={color.name} />
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* Desktop Table View */}
                         <table className={styles.table}>
                             <thead>
                                 <tr>
@@ -591,6 +756,7 @@ export default function AdminProductsPage() {
                                 })}
                             </tbody>
                         </table>
+                        </>
                     )}
                 </div>
 

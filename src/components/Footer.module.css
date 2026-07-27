@@ -34,6 +34,11 @@
     will-change: transform;
 }
 
+/* Brand decorative floating icons — hidden on desktop, shown inside mobile media query below */
+.brandDecor {
+    display: none;
+}
+
 /* Kill decorative animation on mobile — saves a compositor layer */
 @media (max-width: 767px) {
     .footer::after {
@@ -283,35 +288,148 @@
         row-gap: 20px;
     }
 
-    /* Brand takes full row — premium dark-green card */
+    /* Brand takes full row — premium dark-green card with floating botanical decor */
     .brand {
         grid-column: 1 / -1;
         text-align: center;
-        padding: 24px 18px;
+        padding: 28px 20px 26px;
         margin-bottom: 6px;
-        background: linear-gradient(135deg, #14532d 0%, #1a4d2e 55%, #22633b 100%);
-        border-radius: 18px;
+        background:
+            radial-gradient(ellipse 90% 60% at 20% 0%, rgba(134, 239, 172, 0.14) 0%, transparent 55%),
+            radial-gradient(ellipse 80% 50% at 100% 100%, rgba(74, 222, 128, 0.10) 0%, transparent 60%),
+            linear-gradient(135deg, #0f3d21 0%, #14532d 45%, #1a6438 100%);
+        border-radius: 20px;
+        border: 1px solid rgba(134, 239, 172, 0.14);
         border-bottom: none;
         position: relative;
         overflow: hidden;
+        isolation: isolate;
+    }
+
+    /* Subtle grain / noise overlay for depth */
+    .brand::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image:
+            radial-gradient(circle at 15% 30%, rgba(255, 255, 255, 0.05) 0.5px, transparent 1.5px),
+            radial-gradient(circle at 85% 70%, rgba(255, 255, 255, 0.04) 0.5px, transparent 1.5px),
+            radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.03) 0.5px, transparent 1.5px);
+        background-size: 24px 24px, 32px 32px, 40px 40px;
+        opacity: 0.7;
+        pointer-events: none;
+        z-index: 0;
     }
 
     .brand::after {
         content: '';
         position: absolute;
-        top: -30px;
-        right: -20px;
-        width: 130px;
-        height: 130px;
+        top: -40px;
+        right: -30px;
+        width: 160px;
+        height: 160px;
         background: radial-gradient(circle, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0) 70%);
         pointer-events: none;
+        z-index: 0;
+    }
+
+    /* ---- Floating decorative icons ---- */
+    .brandDecor {
+        display: block;
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        overflow: hidden;
+        z-index: 0;
+    }
+
+    .decorIcon {
+        position: absolute;
+        display: inline-flex;
+        color: #a7f3c0;
+        opacity: 0.22;
+        filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.25));
+        will-change: transform;
+        --r: 0deg;
+        animation: footerDecorFloat 9s ease-in-out infinite;
+    }
+
+    .decorSun {
+        top: 10px;
+        left: 12px;
+        color: #fde68a;
+        opacity: 0.32;
+        animation: footerDecorSunSpin 22s linear infinite;
+    }
+
+    .decorPlant {
+        bottom: -8px;
+        right: 8px;
+        color: #86efac;
+        opacity: 0.20;
+        animation-duration: 10s;
+        animation-delay: -2s;
+    }
+
+    .decorPot {
+        bottom: -12px;
+        left: 6px;
+        color: #fca5a5;
+        opacity: 0.18;
+        animation-duration: 12s;
+        animation-delay: -4s;
+    }
+
+    .decorSeedling {
+        top: 42%;
+        right: 14px;
+        color: #bbf7d0;
+        opacity: 0.22;
+        animation-duration: 8s;
+        animation-delay: -1s;
+    }
+
+    .decorLeaf1 {
+        top: 18px;
+        right: 30%;
+        color: #86efac;
+        opacity: 0.20;
+        --r: 25deg;
+        animation-duration: 7s;
+        animation-delay: -3s;
+    }
+
+    .decorLeaf2 {
+        bottom: 22%;
+        left: 32%;
+        color: #a7f3c0;
+        opacity: 0.16;
+        --r: -15deg;
+        animation-duration: 9.5s;
+        animation-delay: -5s;
+    }
+
+    .decorLeaf3 {
+        top: 34%;
+        left: 22%;
+        color: #bbf7d0;
+        opacity: 0.14;
+        --r: -40deg;
+        animation-duration: 8.5s;
+        animation-delay: -2.5s;
+    }
+
+    /* Text/content above decor */
+    .logo,
+    .tagline,
+    .description {
+        position: relative;
+        z-index: 1;
     }
 
     .logo {
         justify-content: center;
         margin-bottom: 4px;
-        position: relative;
-        z-index: 1;
     }
 
     .logoIcon {
@@ -407,6 +525,12 @@
         transform: scale(0.98);
     }
 
+    .contactLink:focus-visible,
+    .whatsappBtn:focus-visible {
+        outline: 2px solid var(--primary-600);
+        outline-offset: 2px;
+    }
+
     .contactIcon {
         width: 38px;
         height: 38px;
@@ -485,5 +609,38 @@
 
     .legal a {
         font-size: 0.7rem;
+    }
+}
+
+@keyframes footerDecorFloat {
+    0%, 100% {
+        transform: translate3d(0, 0, 0) rotate(var(--r, 0deg));
+    }
+    50% {
+        transform: translate3d(6px, -8px, 0) rotate(calc(var(--r, 0deg) + 6deg));
+    }
+}
+
+@keyframes footerDecorSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes footerDecorSunSpin {
+    0% {
+        transform: translate3d(0, 0, 0) rotate(0deg);
+    }
+    50% {
+        transform: translate3d(4px, -6px, 0) rotate(180deg);
+    }
+    100% {
+        transform: translate3d(0, 0, 0) rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .decorIcon {
+        animation: none !important;
+        transform: rotate(var(--r, 0deg)) !important;
     }
 }

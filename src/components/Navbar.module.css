@@ -39,7 +39,9 @@
 /* Mobile: Reorder for hamburger | logo | actions */
 @media (max-width: 767px) {
     .topRowInner {
-        gap: 0.5rem;
+        gap: 0.75rem;
+        padding-left: max(1rem, env(safe-area-inset-left));
+        padding-right: max(1rem, env(safe-area-inset-right));
     }
 }
 
@@ -129,17 +131,28 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     color: var(--neutral-700);
     text-decoration: none;
     border-radius: 50%;
     transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .iconBtn:hover {
     background: var(--neutral-50);
     color: var(--primary-600);
+}
+
+.iconBtn:focus-visible {
+    outline: 2px solid var(--primary-600);
+    outline-offset: 2px;
+}
+
+.iconBtn:active {
+    background: var(--neutral-100);
+    transform: scale(0.94);
 }
 
 .badge {

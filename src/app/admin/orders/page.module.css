@@ -648,3 +648,188 @@
         font-size: 0.85rem;
     }
 }
+
+/* =============================================
+   MOBILE CARD VIEW (=768px)
+   ============================================= */
+.mobileCards {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .tableWrapper > .table {
+        display: none;
+    }
+
+    .mobileCards {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 0.75rem;
+    }
+
+    .tableWrapper {
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        padding: 0;
+    }
+}
+
+.mCard {
+    background: #fff;
+    border: 1px solid #e6ebe8;
+    border-radius: 14px;
+    padding: 0.875rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.mCardHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding-bottom: 0.625rem;
+    border-bottom: 1px solid #f0f3f1;
+}
+
+.mCardOrderNo {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: #2d6a4f;
+    text-decoration: none;
+    font-family: 'Courier New', monospace;
+    background: #f0f7f4;
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+}
+
+.mCardOrderNo:hover {
+    background: #e0efe6;
+}
+
+.mCardDate {
+    font-size: 0.7rem;
+    color: #8a9993;
+    text-align: right;
+    line-height: 1.35;
+}
+
+.mCardCustomer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.mCardCustName {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #1a2e26;
+}
+
+.mCardCustMobile {
+    font-size: 0.75rem;
+    color: #4a5a52;
+    text-decoration: none;
+}
+
+.mCardCustMobile:hover {
+    color: #2d6a4f;
+    text-decoration: underline;
+}
+
+.mCardMeta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    padding: 0.625rem 0.75rem;
+    background: #f9fbfa;
+    border-radius: 10px;
+    border: 1px solid #eef2f0;
+}
+
+.mCardMetaItem {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.mCardMetaLabel {
+    font-size: 0.6875rem;
+    color: #8a9993;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+}
+
+.mCardMetaValue {
+    font-size: 0.8125rem;
+    color: #1a2e26;
+    font-weight: 600;
+}
+
+.mCardAmount {
+    color: #2d6a4f;
+    font-size: 0.9375rem;
+}
+
+.mCardStatusRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.mCardStatusRow .statusSelect {
+    flex: 1;
+    max-width: 60%;
+    min-height: 38px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.mCardActions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+}
+
+.mCardActionBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    padding: 0.625rem 0.5rem;
+    background: #f4f7f5;
+    color: #2d6a4f;
+    border: 1px solid #e6ebe8;
+    border-radius: 10px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.15s;
+    min-height: 42px;
+}
+
+.mCardActionBtn:hover,
+.mCardActionBtn:active {
+    background: #eaf3ed;
+    border-color: #d4e2db;
+}
+
+.mCardWhatsApp {
+    background: #dcf5e4;
+    color: #128c7e;
+    border-color: #b8e7c8;
+}
+
+.mCardWhatsApp:hover,
+.mCardWhatsApp:active {
+    background: #c8ecd4;
+    border-color: #9fdcb4;
+}

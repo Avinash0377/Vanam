@@ -53,6 +53,11 @@ export default function HomeBannerSlider({ initialBanners }: HomeBannerSliderPro
         setCurrent(prev => (prev + 1) % total);
     }, [total]);
 
+    const prev = useCallback(() => {
+        if (total === 0) return;
+        setCurrent(p => (p - 1 + total) % total);
+    }, [total]);
+
     // Preload next slide image without triggering full re-render cascade
     useEffect(() => {
         if (total <= 1) return;
@@ -67,6 +72,11 @@ export default function HomeBannerSlider({ initialBanners }: HomeBannerSliderPro
 
     useEffect(() => {
         if (paused || total <= 1) return;
+        // Respect user's reduced-motion preference — do not auto-advance
+        if (typeof window !== 'undefined'
+            && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+            return;
+        }
         const timer = setInterval(next, 4000);
         return () => clearInterval(timer);
     }, [next, paused, total]);
@@ -179,16 +189,34 @@ export default function HomeBannerSlider({ initialBanners }: HomeBannerSliderPro
             </div>
 
             {total > 1 && (
-                <div className={styles.dots}>
-                    {banners.map((_, i) => (
-                        <button
-                            key={i}
-                            className={`${styles.dot} ${i === current ? styles.dotActive : ''}`}
-                            onClick={() => setCurrent(i)}
-                            aria-label={`Go to banner ${i + 1}`}
-                        />
-                    ))}
-                </div>
+                <>
+                    <button
+                        type="button"
+                        className={`${styles.navBtn} ${styles.navPrev}`}
+                        onClick={prev}
+                        aria-label="Previous banner"
+                    >
+                        ‹
+                    </button>
+                    <button
+                        type="button"
+                        className={`${styles.navBtn} ${styles.navNext}`}
+                        onClick={next}
+                        aria-label="Next banner"
+                    >
+                        ›
+                    </button>
+                    <div className={styles.dots}>
+                        {banners.map((_, i) => (
+                            <button
+                                key={i}
+                                className={`${styles.dot} ${i === current ? styles.dotActive : ''}`}
+                                onClick={() => setCurrent(i)}
+                                aria-label={`Go to banner ${i + 1}`}
+                            />
+                        ))}
+                    </div>
+                </>
             )}
         </div>
     );

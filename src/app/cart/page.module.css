@@ -135,6 +135,7 @@
 .itemImage {
     width: 80px;
     height: 80px;
+    aspect-ratio: 1 / 1;
     border-radius: 10px;
     overflow: hidden;
     position: relative;
@@ -260,6 +261,24 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 340px) {
+    .itemControls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.625rem;
+    }
+
+    .itemPrice {
+        justify-content: flex-start;
+    }
+
+    .priceContainer {
+        align-items: flex-start;
+    }
 }
 
 .itemQuantity {
@@ -578,6 +597,34 @@
     .summaryTotal {
         margin-bottom: 2rem;
         font-size: 1.5rem;
+    }
+}
+
+/* Animated total number (#11) — bounces briefly when value changes */
+.totalPulse {
+    display: inline-block;
+    color: var(--primary-600);
+    animation: totalBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    will-change: transform;
+}
+
+@keyframes totalBounce {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.14);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .totalPulse {
+        animation: none;
     }
 }
 

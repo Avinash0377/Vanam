@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -10,6 +10,67 @@ import { TrashIcon, CartIcon, LeafIcon, ArrowRightIcon, TruckIcon, ShieldIcon, T
 import styles from './page.module.css';
 import { trackViewCart, trackBeginCheckout } from '@/lib/analytics';
 import { getProductHref } from '@/lib/variants';
+
+// Animated total (#11) — tweens the displayed number and briefly bounces when it changes.
+function AnimatedTotal({ value }: { value: number }) {
+    const [display, setDisplay] = useState(value);
+    const [bumping, setBumping] = useState(false);
+    // Track the live display value so rapid successive changes tween from
+    // the current on-screen number, not from the last completed target.
+    const displayRef = useRef(value);
+    const targetRef = useRef(value);
+    const rafRef = useRef<number | null>(null);
+    const bumpTimerRef = useRef<number | null>(null);
+
+    useEffect(() => {
+        const to = value;
+        if (targetRef.current === to) return;
+        targetRef.current = to;
+
+        // Skip animation for reduced-motion users
+        const reduce = typeof window !== 'undefined'
+            && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+        if (reduce) {
+            displayRef.current = to;
+            setDisplay(to);
+            return;
+        }
+
+        if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+        if (bumpTimerRef.current !== null) window.clearTimeout(bumpTimerRef.current);
+
+        const from = displayRef.current; // start from what's currently on screen
+        const start = performance.now();
+        const dur = 480;
+        setBumping(true);
+
+        const tick = (now: number) => {
+            const t = Math.min(1, (now - start) / dur);
+            const eased = 1 - Math.pow(1 - t, 3); // easeOutCubic
+            const current = Math.round(from + (to - from) * eased);
+            displayRef.current = current;
+            setDisplay(current);
+            if (t < 1) {
+                rafRef.current = requestAnimationFrame(tick);
+            } else {
+                rafRef.current = null;
+                bumpTimerRef.current = window.setTimeout(() => setBumping(false), 220);
+            }
+        };
+        rafRef.current = requestAnimationFrame(tick);
+
+        return () => {
+            if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+            if (bumpTimerRef.current !== null) window.clearTimeout(bumpTimerRef.current);
+        };
+    }, [value]);
+
+    return (
+        <span className={bumping ? styles.totalPulse : undefined}>
+            ₹{display.toLocaleString('en-IN')}
+        </span>
+    );
+}
 
 export default function CartPage() {
     const router = useRouter();
@@ -385,7 +446,7 @@ export default function CartPage() {
 
                         <div className={styles.summaryTotal}>
                             <span>Total</span>
-                            <span>₹{effectiveTotal.toLocaleString('en-IN')}</span>
+                            <AnimatedTotal value={effectiveTotal} />
                         </div>
 
                         {/* Pincode Checker */}
