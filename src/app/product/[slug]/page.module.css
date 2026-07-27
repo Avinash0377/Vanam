@@ -662,8 +662,8 @@
     /* ---- Page ---- */
     .page {
         padding: 0.5rem 0 0;
-        /* Bottom clearance: fixed action bar (~120px) + BottomNavBar (56px) + safe area */
-        padding-bottom: calc(190px + env(safe-area-inset-bottom, 0px));
+        /* Bottom clearance: fixed action bar (~120px) + floating BottomNavBar (~74px) + ProductOffers room */
+        padding-bottom: calc(220px + env(safe-area-inset-bottom, 0px));
         min-height: auto;
     }
 
@@ -941,7 +941,8 @@
 
     .actions {
         position: fixed;
-        bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+        /* Sit above the floating BottomNavBar (bottom: 8px + height: 58px + safe-area) */
+        bottom: calc(74px + env(safe-area-inset-bottom, 0px));
         left: 0;
         right: 0;
         z-index: 90;

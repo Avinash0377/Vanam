@@ -702,7 +702,8 @@
    ========================================== */
 @media (max-width: 767px) {
     .page {
-        padding: 0 0 8rem;
+        /* Room to scroll ProductOffers into view above the fixed action bar + floating BottomNavBar */
+        padding: 0 0 calc(200px + env(safe-area-inset-bottom, 0px));
         background: #fff;
     }
 
@@ -844,12 +845,12 @@
     /* ---- Fixed bottom action bar ---- */
     .actions {
         position: fixed;
-        bottom: 56px;
+        /* Sit above the floating BottomNavBar (bottom: 8px + height: 58px + safe-area) */
+        bottom: calc(74px + env(safe-area-inset-bottom, 0px));
         left: 0;
         right: 0;
         margin: 0;
         padding: 10px 12px;
-        padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
         background: rgba(255, 255, 255, 0.97);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
