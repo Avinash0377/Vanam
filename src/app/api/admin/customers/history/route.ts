@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { OrderStatus } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import { withAdmin } from '@/lib/middleware';
 
@@ -30,7 +31,7 @@ async function getCustomerHistory(request: NextRequest) {
             : { mobile: rawMobile };
 
         const baseWhere: Record<string, unknown> = { ...mobileFilter };
-        const notCancelled = { orderStatus: { notIn: ['CANCELLED', 'REFUNDED'] } };
+        const notCancelled = { orderStatus: { notIn: [OrderStatus.CANCELLED, OrderStatus.REFUNDED] } };
 
         const excludeCurrent = excludeOrderId ? { id: { not: excludeOrderId } } : {};
 

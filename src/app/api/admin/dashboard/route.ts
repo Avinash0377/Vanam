@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { OrderStatus } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import { withAdmin } from '@/lib/middleware';
 import { JWTPayload } from '@/lib/auth';
 
 // Order statuses that count as realised revenue
-const PAID_STATUSES = ['PAID', 'PACKING', 'SHIPPED', 'DELIVERED'];
+const PAID_STATUSES = [OrderStatus.PAID, OrderStatus.PACKING, OrderStatus.SHIPPED, OrderStatus.DELIVERED];
 
 function startOfDayLocal(d: Date) {
     return new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -48,7 +49,7 @@ async function getDashboardStats(request: NextRequest, _user: JWTPayload) {
             prisma.product.count(),
             prisma.product.count({ where: { stock: 0 } }),
             prisma.order.count(),
-            prisma.order.count({ where: { orderStatus: 'PENDING' } }),
+            prisma.order.count({ where: { orderStatus: OrderStatus.PENDING } }),
             prisma.order.count({ where: { createdAt: { gte: startOfDay } } }),
             prisma.order.count({ where: { createdAt: { gte: startOfYesterday, lt: startOfDay } } }),
             prisma.order.aggregate({
