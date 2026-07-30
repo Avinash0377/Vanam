@@ -197,6 +197,60 @@ export default function CustomersPage() {
 
             {/* Users Table */}
             <div className={styles.section}>
+                {/* Mobile Card View */}
+                <div className={styles.mobileCards}>
+                    {users.map(user => (
+                        <div
+                            key={user.id}
+                            className={styles.mCard}
+                            onClick={() => handleUserClick(user.id)}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => { if (e.key === 'Enter') handleUserClick(user.id); }}
+                        >
+                            <div className={styles.mCardTop}>
+                                <div className={styles.mCardAvatar} aria-hidden="true">
+                                    {(user.name || '?').charAt(0).toUpperCase()}
+                                </div>
+                                <div className={styles.mCardInfo}>
+                                    <div className={styles.mCardNameRow}>
+                                        <span className={styles.mCardName}>{user.name || 'Unnamed'}</span>
+                                        <span className={styles.mCardSpent}>{formatCurrency(user.totalSpent)}</span>
+                                    </div>
+                                    <p className={styles.mCardContact}>
+                                        <a href={`tel:${user.mobile}`} onClick={(e) => e.stopPropagation()} className={styles.mCardLink}>
+                                            {user.mobile}
+                                        </a>
+                                        {user.email && (
+                                            <>
+                                                <span className={styles.mCardDot}>·</span>
+                                                <span className={styles.mCardEmail}>{user.email}</span>
+                                            </>
+                                        )}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className={styles.mCardMeta}>
+                                <div className={styles.mCardMetaItem}>
+                                    <span className={styles.mCardMetaLabel}>Orders</span>
+                                    <span className={styles.mCardMetaValue}>
+                                        <span className={styles.orderBadge}>{user.orderCount}</span>
+                                    </span>
+                                </div>
+                                <div className={styles.mCardMetaItem}>
+                                    <span className={styles.mCardMetaLabel}>Joined</span>
+                                    <span className={styles.mCardMetaValue}>{formatDate(user.createdAt)}</span>
+                                </div>
+                                <div className={styles.mCardMetaItem}>
+                                    <span className={styles.mCardMetaLabel}>Last login</span>
+                                    <span className={styles.mCardMetaValue}>{formatDate(user.lastLoginAt)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
                 <div className={styles.tableWrapper}>
                     <table className={styles.table}>
                         <thead>

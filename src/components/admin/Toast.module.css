@@ -1,0 +1,100 @@
+.toastStack {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    z-index: 9999;
+    pointer-events: none;
+    max-width: min(360px, calc(100vw - 2rem));
+}
+
+.toast {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.75rem 0.875rem;
+    background: white;
+    border: 1px solid var(--neutral-200, #e5e7eb);
+    border-left-width: 4px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15), 0 2px 6px rgba(15, 23, 42, 0.06);
+    font-size: 0.875rem;
+    color: var(--neutral-800, #1f2937);
+    pointer-events: auto;
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+.toast.enter {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.success { border-left-color: #16a34a; }
+.error { border-left-color: #dc2626; }
+.info { border-left-color: #2563eb; }
+
+.icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.success .icon { background: #dcfce7; color: #15803d; }
+.error .icon { background: #fee2e2; color: #b91c1c; }
+.info .icon { background: #dbeafe; color: #1d4ed8; }
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.message {
+    flex: 1;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: transparent;
+    color: var(--neutral-500, #6b7280);
+    border-radius: 6px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.close:hover {
+    background: var(--neutral-100, #f3f4f6);
+    color: var(--neutral-800, #1f2937);
+}
+
+@media (max-width: 767px) {
+    .toastStack {
+        top: auto;
+        bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+        left: 1rem;
+        right: 1rem;
+        max-width: none;
+    }
+    .toast {
+        transform: translateY(8px);
+    }
+    .toast.enter {
+        transform: translateY(0);
+    }
+}

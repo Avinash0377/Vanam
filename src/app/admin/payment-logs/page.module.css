@@ -461,7 +461,69 @@
 .cardList {
     display: none;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 1.25rem;
+}
+
+/* A group = all events belonging to one payment (same correlationId) */
+.cardGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background: var(--neutral-50);
+    border: 1px solid var(--neutral-100);
+    border-left: 3px solid var(--primary-400, #52b788);
+    border-radius: 14px;
+}
+
+.groupHeader {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.5rem;
+    padding: 0.25rem 0.375rem 0.125rem;
+}
+
+.groupHeaderLabel {
+    font-size: 0.62rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--primary-600, #2d6a4f);
+}
+
+.groupHeaderId {
+    font-family: 'Courier New', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--neutral-700);
+    background: white;
+    border: 1px solid var(--neutral-200);
+    border-radius: 6px;
+    padding: 0.1rem 0.4rem;
+}
+
+.groupHeaderOrder {
+    font-family: 'Courier New', monospace;
+    font-size: 0.68rem;
+    color: var(--neutral-500);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 45%;
+}
+
+.groupHeaderCount {
+    margin-left: auto;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--neutral-500);
+    background: white;
+    border: 1px solid var(--neutral-200);
+    border-radius: 20px;
+    padding: 0.1rem 0.55rem;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .card {
@@ -470,6 +532,12 @@
     border-radius: 16px;
     padding: 1rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.cardExpanded {
+    border-color: var(--primary-200, #a7d7c5);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
 }
 
 .cardHeader {
@@ -478,6 +546,33 @@
     justify-content: space-between;
     gap: 0.5rem;
     margin-bottom: 0.75rem;
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-align: left;
+    font: inherit;
+    color: inherit;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.cardHeaderRight {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-shrink: 0;
+}
+
+.chevron {
+    color: var(--neutral-400);
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+}
+
+.chevronOpen {
+    transform: rotate(180deg);
+    color: var(--primary-600, #2d6a4f);
 }
 
 .cardBadges {
@@ -504,6 +599,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.15rem;
+    min-width: 0;
 }
 
 .cardLabel {
@@ -544,6 +640,88 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.cardMessageFull {
+    white-space: normal;
+    overflow: visible;
+    word-break: break-word;
+}
+
+/* Expanded full-detail drawer */
+.cardDetails {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px dashed var(--neutral-200);
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+    animation: cardDetailsIn 0.18s ease;
+}
+
+@keyframes cardDetailsIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.detailRow {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 0;
+}
+
+.detailLabel {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--neutral-400);
+}
+
+.detailValueWrap {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.detailValue {
+    font-size: 0.8rem;
+    color: var(--neutral-800);
+    font-weight: 500;
+    word-break: break-all;
+    flex: 1;
+    min-width: 0;
+}
+
+.copyBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    background: var(--neutral-50);
+    border: 1px solid var(--neutral-200);
+    border-radius: 8px;
+    color: var(--neutral-500);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.copyBtn:hover,
+.copyBtn:active {
+    background: var(--primary-50, #ecfdf5);
+    border-color: var(--primary-300, #6ee7b7);
+    color: var(--primary-700, #2d6a4f);
 }
 
 /* ===== PAGINATION ===== */

@@ -1,11 +1,24 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
-import { ArrowLeftIcon, MailIcon, RefreshIcon, CheckIcon } from '@/components/Icons';
+import {
+    RefreshIcon,
+    CheckIcon,
+    MessageIcon,
+    PhoneIcon,
+    MailIcon,
+    PlantIcon,
+    CopyIcon,
+    ExternalLinkIcon,
+} from '@/components/Icons';
+import { useToast } from '@/components/admin/Toast';
+import ConfirmDialog from '@/components/admin/ConfirmDialog';
+import { formatDateLong } from '@/lib/date';
+import { getCourierTrackingUrl, COMMON_COURIERS } from '@/lib/courier';
 import styles from './page.module.css';
 
 interface OrderItem {
@@ -49,6 +62,7 @@ interface Order {
     shippedAt?: string;
     deliveredAt?: string;
     createdAt: string;
+    updatedAt?: string;
     items: OrderItem[];
     user?: { name: string; mobile: string; email?: string };
     payment?: {
@@ -59,10 +73,24 @@ interface Order {
     };
 }
 
+interface CustomerHistory {
+    totalOrders: number;
+    paidOrders: number;
+    lifetimeValue: number;
+    previousOrders: number;
+    previousValue: number;
+    lastOrder?: { id: string; orderNumber: string; createdAt: string; orderStatus: string; totalAmount: number } | null;
+}
+
+const STATUS_OPTIONS = ['PENDING', 'PAID', 'PACKING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED'];
+const DESTRUCTIVE_STATUSES = new Set(['CANCELLED', 'REFUNDED']);
+
 export default function OrderDetailsPage() {
     const params = useParams();
     const id = params.id as string;
     const { token } = useAuth();
+    const toast = useToast();
+
     const [order, setOrder] = useState<Order | null>(null);
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(false);
@@ -71,14 +99,10 @@ export default function OrderDetailsPage() {
     const [courierName, setCourierName] = useState('');
     const [trackingSaved, setTrackingSaved] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [history, setHistory] = useState<CustomerHistory | null>(null);
+    const [confirmStatus, setConfirmStatus] = useState<string | null>(null);
 
-    useEffect(() => {
-        if (token && id) {
-            fetchOrder();
-        }
-    }, [token, id]);
-
-    const fetchOrder = async () => {
+    const fetchOrder = useCallback(async () => {
         try {
             setError(null);
             const res = await fetch(`/api/admin/orders/${id}`, {
@@ -98,10 +122,35 @@ export default function OrderDetailsPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [id, token]);
 
-    const updateStatus = async (newStatus: string) => {
+    const fetchHistory = useCallback(async (mobile: string) => {
+        try {
+            const params = new URLSearchParams({ mobile, excludeOrderId: id });
+            const res = await fetch(`/api/admin/customers/history?${params}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (!res.ok) return;
+            const data = await res.json();
+            setHistory(data);
+        } catch (err) {
+            console.error('Failed to fetch customer history:', err);
+        }
+    }, [id, token]);
+
+    useEffect(() => {
+        if (token && id) fetchOrder();
+    }, [token, id, fetchOrder]);
+
+    useEffect(() => {
+        if (order?.mobile) fetchHistory(order.mobile);
+    }, [order?.mobile, fetchHistory]);
+
+    const doStatusUpdate = async (newStatus: string) => {
+        if (!order) return;
         setUpdating(true);
+        const previousStatus = order.orderStatus;
+        setOrder(prev => prev ? { ...prev, orderStatus: newStatus } : null); // optimistic
         try {
             const res = await fetch(`/api/admin/orders/${id}`, {
                 method: 'PUT',
@@ -111,16 +160,27 @@ export default function OrderDetailsPage() {
                 },
                 body: JSON.stringify({ orderStatus: newStatus }),
             });
-
-            if (res.ok) {
-                // Preserve all existing order fields, only update status
-                setOrder(prev => prev ? { ...prev, orderStatus: newStatus } : null);
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                throw new Error(data?.error || 'Update failed');
             }
-        } catch (error) {
-            console.error('Update error:', error);
+            toast.success(`Order marked as ${newStatus}`);
+        } catch (err) {
+            console.error('Update error:', err);
+            setOrder(prev => prev ? { ...prev, orderStatus: previousStatus } : null); // rollback
+            toast.error(err instanceof Error ? err.message : 'Failed to update order');
         } finally {
             setUpdating(false);
         }
+    };
+
+    const handleStatusChange = (newStatus: string) => {
+        if (!order || newStatus === order.orderStatus) return;
+        if (DESTRUCTIVE_STATUSES.has(newStatus)) {
+            setConfirmStatus(newStatus);
+            return;
+        }
+        doStatusUpdate(newStatus);
     };
 
     const saveTracking = async () => {
@@ -133,41 +193,40 @@ export default function OrderDetailsPage() {
                     Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({
-                    // Don't send orderStatus — avoids triggering email/stock logic
                     trackingNumber: trackingNumber.trim() || null,
                     courierName: courierName.trim() || null,
                 }),
             });
-
-            if (res.ok) {
-                setOrder(prev => prev ? {
-                    ...prev,
-                    trackingNumber: trackingNumber.trim() || undefined,
-                    courierName: courierName.trim() || undefined,
-                } : null);
-                setTrackingSaved(true);
-                setTimeout(() => setTrackingSaved(false), 2500);
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                throw new Error(data?.error || 'Save failed');
             }
-        } catch (error) {
-            console.error('Tracking update error:', error);
+            setOrder(prev => prev ? {
+                ...prev,
+                trackingNumber: trackingNumber.trim() || undefined,
+                courierName: courierName.trim() || undefined,
+            } : null);
+            setTrackingSaved(true);
+            toast.success('Tracking details saved');
+            setTimeout(() => setTrackingSaved(false), 2500);
+        } catch (err) {
+            console.error('Tracking update error:', err);
+            toast.error(err instanceof Error ? err.message : 'Failed to save tracking');
         } finally {
             setSavingTracking(false);
         }
     };
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-IN', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
+    const copyToClipboard = async (text: string, label: string) => {
+        try {
+            await navigator.clipboard.writeText(text);
+            toast.success(`${label} copied`);
+        } catch {
+            toast.error('Copy failed — please copy manually');
+        }
     };
 
     const getItemImage = (item: OrderItem) => {
-        // Use product/combo/hamper image as the main thumbnail
-        // colorImage is used only for the swatch, not the main image
         if (item.image) return item.image;
         if (item.product?.images?.[0]) return item.product.images[0];
         if (item.combo?.images?.[0]) return item.combo.images[0];
@@ -182,7 +241,44 @@ export default function OrderDetailsPage() {
         return null;
     };
 
-    const statusOptions = ['PENDING', 'PAID', 'PACKING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED'];
+    const trackingUrl = useMemo(
+        () => order ? getCourierTrackingUrl(order.courierName, order.trackingNumber) : null,
+        [order],
+    );
+
+    const timeline = useMemo(() => {
+        if (!order) return [];
+        const events: { label: string; date?: string | null; done: boolean }[] = [
+            { label: 'Order placed', date: order.createdAt, done: true },
+            {
+                label: 'Payment received',
+                date: order.payment?.status === 'SUCCESS' ? order.updatedAt : undefined,
+                done: order.payment?.status === 'SUCCESS' || ['PAID', 'PACKING', 'SHIPPED', 'DELIVERED'].includes(order.orderStatus),
+            },
+            {
+                label: 'Packing',
+                date: undefined,
+                done: ['PACKING', 'SHIPPED', 'DELIVERED'].includes(order.orderStatus),
+            },
+            {
+                label: 'Shipped',
+                date: order.shippedAt,
+                done: ['SHIPPED', 'DELIVERED'].includes(order.orderStatus),
+            },
+            {
+                label: 'Delivered',
+                date: order.deliveredAt,
+                done: order.orderStatus === 'DELIVERED',
+            },
+        ];
+        if (order.orderStatus === 'CANCELLED') {
+            events.push({ label: 'Cancelled', date: order.updatedAt, done: true });
+        }
+        if (order.orderStatus === 'REFUNDED') {
+            events.push({ label: 'Refunded', date: order.updatedAt, done: true });
+        }
+        return events;
+    }, [order]);
 
     if (loading) {
         return (
@@ -203,12 +299,10 @@ export default function OrderDetailsPage() {
                             <>
                                 <h2>Something went wrong</h2>
                                 <p>{error}</p>
-                                <button onClick={() => { setLoading(true); fetchOrder(); }} style={{
-                                    padding: '0.625rem 1.25rem', fontSize: '0.875rem', fontWeight: 600,
-                                    color: 'white', background: 'var(--primary-600)', border: 'none',
-                                    borderRadius: '10px', cursor: 'pointer', marginTop: '0.5rem',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem'
-                                }}>
+                                <button
+                                    onClick={() => { setLoading(true); fetchOrder(); }}
+                                    className={styles.retryBtn}
+                                >
                                     <RefreshIcon size={16} /> Try Again
                                 </button>
                             </>
@@ -224,6 +318,8 @@ export default function OrderDetailsPage() {
         );
     }
 
+    const fullAddress = `${order.customerName}\n${order.address}\n${order.city}, ${order.state} ${order.pincode}\nPhone: ${order.mobile}`;
+
     return (
         <div className={styles.page}>
             <div className="container">
@@ -238,8 +334,19 @@ export default function OrderDetailsPage() {
                     </div>
                     <div className={styles.headerContent}>
                         <div>
-                            <h1>Order {order.orderNumber}</h1>
-                            <p className={styles.orderDate}>{formatDate(order.createdAt)}</p>
+                            <h1>
+                                Order {order.orderNumber}
+                                <button
+                                    type="button"
+                                    className={styles.inlineCopy}
+                                    onClick={() => copyToClipboard(order.orderNumber, 'Order number')}
+                                    aria-label="Copy order number"
+                                    title="Copy order number"
+                                >
+                                    <CopyIcon size={14} />
+                                </button>
+                            </h1>
+                            <p className={styles.orderDate}>{formatDateLong(order.createdAt)}</p>
                         </div>
                         <div className={styles.headerActions}>
                             <a
@@ -248,7 +355,7 @@ export default function OrderDetailsPage() {
                                 rel="noopener noreferrer"
                                 className={styles.whatsappBtn}
                             >
-                                💬 WhatsApp
+                                <MessageIcon size={16} /> WhatsApp
                             </a>
                         </div>
                     </div>
@@ -263,11 +370,11 @@ export default function OrderDetailsPage() {
                             <label>Status</label>
                             <select
                                 value={order.orderStatus}
-                                onChange={(e) => updateStatus(e.target.value)}
+                                onChange={(e) => handleStatusChange(e.target.value)}
                                 disabled={updating}
                                 className={`${styles.statusSelect} ${styles[order.orderStatus.toLowerCase()]}`}
                             >
-                                {statusOptions.map(status => (
+                                {STATUS_OPTIONS.map(status => (
                                     <option key={status} value={status}>{status}</option>
                                 ))}
                             </select>
@@ -279,22 +386,33 @@ export default function OrderDetailsPage() {
                         </div>
                         <div className={styles.infoRow}>
                             <span>Payment Status</span>
-                            <span className={`${styles.badge} ${order.payment?.status === 'SUCCESS' ? styles.success : styles.pending}`}>
+                            <span className={`${styles.badge} ${styles[`pay_${(order.payment?.status || 'PENDING').toLowerCase()}`] || styles.pending}`}>
                                 {order.payment?.status || 'PENDING'}
                             </span>
                         </div>
                         {order.payment?.razorpayPaymentId && (
                             <div className={styles.infoRow}>
                                 <span>Razorpay ID</span>
-                                <a
-                                    href={`https://dashboard.razorpay.com/app/payments/${order.payment.razorpayPaymentId}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className={styles.razorpayLink}
-                                    title="View in Razorpay Dashboard"
-                                >
-                                    {order.payment.razorpayPaymentId.slice(0, 18)}…↗
-                                </a>
+                                <span className={styles.razorpayCell}>
+                                    <a
+                                        href={`https://dashboard.razorpay.com/app/payments/${order.payment.razorpayPaymentId}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={styles.razorpayLink}
+                                        title="View in Razorpay Dashboard"
+                                    >
+                                        {order.payment.razorpayPaymentId.slice(0, 18)}… <ExternalLinkIcon size={11} />
+                                    </a>
+                                    <button
+                                        type="button"
+                                        className={styles.inlineCopy}
+                                        onClick={() => copyToClipboard(order.payment!.razorpayPaymentId!, 'Payment ID')}
+                                        title="Copy payment ID"
+                                        aria-label="Copy payment ID"
+                                    >
+                                        <CopyIcon size={12} />
+                                    </button>
+                                </span>
                             </div>
                         )}
                     </div>
@@ -306,23 +424,58 @@ export default function OrderDetailsPage() {
                             <div className={styles.customerAvatar}>
                                 {order.customerName.charAt(0).toUpperCase()}
                             </div>
-                            <div>
+                            <div className={styles.customerBody}>
                                 <h3>{order.customerName}</h3>
                                 <a href={`tel:${order.mobile}`} className={styles.customerContact}>
-                                    📞 {order.mobile}
+                                    <PhoneIcon size={13} /> {order.mobile}
                                 </a>
                                 {order.email && (
                                     <a href={`mailto:${order.email}`} className={styles.customerContact}>
-                                        ✉️ {order.email}
+                                        <MailIcon size={13} /> {order.email}
                                     </a>
                                 )}
                             </div>
                         </div>
+                        {history && (
+                            <div className={styles.historyStrip}>
+                                <div className={styles.historyItem}>
+                                    <span className={styles.historyLabel}>Total orders</span>
+                                    <span className={styles.historyValue}>{history.totalOrders}</span>
+                                </div>
+                                <div className={styles.historyItem}>
+                                    <span className={styles.historyLabel}>Lifetime</span>
+                                    <span className={styles.historyValue}>₹{history.lifetimeValue.toLocaleString('en-IN')}</span>
+                                </div>
+                                {history.previousOrders > 0 && (
+                                    <span className={styles.repeatBadge} title={`Previously spent ₹${history.previousValue.toLocaleString('en-IN')}`}>
+                                        Repeat · {history.previousOrders} prior
+                                    </span>
+                                )}
+                                {history.totalOrders <= 1 && (
+                                    <span className={styles.firstBadge}>First-time buyer</span>
+                                )}
+                                {history.lastOrder && (
+                                    <Link href={`/admin/orders/${history.lastOrder.id}`} className={styles.historyLink} title="View last order">
+                                        Last: {history.lastOrder.orderNumber}
+                                    </Link>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     {/* Shipping Address */}
                     <div className={styles.card}>
-                        <h2 className={styles.cardTitle}>Shipping Address</h2>
+                        <div className={styles.cardHeaderRow}>
+                            <h2 className={styles.cardTitle}>Shipping Address</h2>
+                            <button
+                                type="button"
+                                className={styles.textBtn}
+                                onClick={() => copyToClipboard(fullAddress, 'Address')}
+                                title="Copy full address"
+                            >
+                                <CopyIcon size={13} /> Copy
+                            </button>
+                        </div>
                         <address className={styles.address}>
                             {order.address}<br />
                             {order.city}, {order.state}<br />
@@ -331,23 +484,47 @@ export default function OrderDetailsPage() {
                     </div>
                 </div>
 
+                {/* Timeline */}
+                <div className={styles.timelineCard}>
+                    <h2 className={styles.cardTitle}>Timeline</h2>
+                    <ol className={styles.timeline}>
+                        {timeline.map((ev, i) => (
+                            <li key={i} className={`${styles.timelineItem} ${ev.done ? styles.timelineDone : ''}`}>
+                                <span className={styles.timelineDot} aria-hidden="true">
+                                    {ev.done ? <CheckIcon size={12} /> : <span className={styles.timelineDotEmpty} />}
+                                </span>
+                                <div className={styles.timelineBody}>
+                                    <span className={styles.timelineLabel}>{ev.label}</span>
+                                    {ev.date && <span className={styles.timelineDate}>{formatDateLong(ev.date)}</span>}
+                                </div>
+                            </li>
+                        ))}
+                    </ol>
+                </div>
+
                 {/* Tracking Card */}
                 <div className={styles.trackingCard}>
-                    <h2 className={styles.cardTitle}>Shipping & Tracking</h2>
+                    <h2 className={styles.cardTitle}>Shipping &amp; Tracking</h2>
                     <div className={styles.trackingGrid}>
                         <div className={styles.trackingField}>
-                            <label>Courier Name</label>
+                            <label htmlFor="courier-name">Courier Name</label>
                             <input
+                                id="courier-name"
                                 type="text"
+                                list="courier-list"
                                 placeholder="e.g. Delhivery, DTDC, Blue Dart"
                                 value={courierName}
                                 onChange={(e) => setCourierName(e.target.value)}
                                 className={styles.trackingInput}
                             />
+                            <datalist id="courier-list">
+                                {COMMON_COURIERS.map(c => <option key={c} value={c} />)}
+                            </datalist>
                         </div>
                         <div className={styles.trackingField}>
-                            <label>Tracking Number</label>
+                            <label htmlFor="tracking-number">Tracking Number</label>
                             <input
+                                id="tracking-number"
                                 type="text"
                                 placeholder="Enter tracking number"
                                 value={trackingNumber}
@@ -365,12 +542,35 @@ export default function OrderDetailsPage() {
                             {savingTracking ? 'Saving...' : trackingSaved ? <><CheckIcon size={16} /> Saved!</> : 'Save Tracking'}
                         </button>
                         {(order.trackingNumber || order.courierName) && (
-                            <span className={styles.trackingNote}>
-                                Last saved:
-                                {order.courierName ? ` ${order.courierName}` : ''}
-                                {order.courierName && order.trackingNumber ? ' — ' : ''}
-                                {order.trackingNumber || ''}
-                            </span>
+                            <div className={styles.trackingSummary}>
+                                <span className={styles.trackingNote}>
+                                    Saved:
+                                    {order.courierName ? ` ${order.courierName}` : ''}
+                                    {order.courierName && order.trackingNumber ? ' — ' : ''}
+                                    {order.trackingNumber || ''}
+                                </span>
+                                {trackingUrl && (
+                                    <a
+                                        href={trackingUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={styles.trackingLink}
+                                    >
+                                        Track shipment <ExternalLinkIcon size={12} />
+                                    </a>
+                                )}
+                                {order.trackingNumber && (
+                                    <button
+                                        type="button"
+                                        className={styles.inlineCopy}
+                                        onClick={() => copyToClipboard(order.trackingNumber!, 'Tracking number')}
+                                        title="Copy tracking number"
+                                        aria-label="Copy tracking number"
+                                    >
+                                        <CopyIcon size={12} />
+                                    </button>
+                                )}
+                            </div>
                         )}
                     </div>
                 </div>
@@ -389,7 +589,7 @@ export default function OrderDetailsPage() {
                                         {image ? (
                                             <Image src={image} alt={item.name} width={56} height={56} className={styles.itemImg} />
                                         ) : (
-                                            <span>🌱</span>
+                                            <PlantIcon size={22} color="var(--primary-600, #2d6a4f)" />
                                         )}
                                     </div>
                                     <div className={styles.itemDetails}>
@@ -464,6 +664,22 @@ export default function OrderDetailsPage() {
                     </div>
                 )}
             </div>
+
+            <ConfirmDialog
+                open={!!confirmStatus}
+                title={confirmStatus ? `Mark order as ${confirmStatus}?` : ''}
+                message={confirmStatus
+                    ? `This will restore stock${confirmStatus === 'REFUNDED' ? ' and mark the order as refunded' : ''}. This action can't be undone.`
+                    : ''}
+                confirmLabel={`Yes, ${confirmStatus ?? ''}`}
+                cancelLabel="Cancel"
+                variant="danger"
+                onConfirm={() => {
+                    if (confirmStatus) doStatusUpdate(confirmStatus);
+                    setConfirmStatus(null);
+                }}
+                onCancel={() => setConfirmStatus(null)}
+            />
         </div>
     );
 }

@@ -22,6 +22,7 @@ import {
     ActivityIcon,
     GridIcon,
 } from '@/components/Icons';
+import { ToastProvider } from '@/components/admin/Toast';
 import styles from './layout.module.css';
 
 const navItems = [
@@ -153,7 +154,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
             {/* Main Content */}
             <main className={styles.main}>
-                {children}
+                <ToastProvider>{children}</ToastProvider>
             </main>
         </div>
     );

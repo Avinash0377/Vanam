@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import styles from './page.module.css';
-import { ActivityIcon, SearchIcon } from '@/components/Icons';
+import { ActivityIcon, SearchIcon, ChevronDownIcon, CopyIcon, CheckIcon } from '@/components/Icons';
 
 type PaymentEventType =
     | 'INITIATED'
@@ -103,6 +103,18 @@ export default function PaymentLogsPage() {
     const [to, setTo] = useState('');
     const [page, setPage] = useState(1);
     const [activeChip, setActiveChip] = useState<number | null>(null);
+    const [expandedId, setExpandedId] = useState<string | null>(null);
+    const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+    const copyValue = useCallback(async (key: string, value: string) => {
+        try {
+            await navigator.clipboard.writeText(value);
+            setCopiedKey(key);
+            setTimeout(() => setCopiedKey(c => (c === key ? null : c)), 1500);
+        } catch {
+            /* clipboard unavailable — ignore */
+        }
+    }, []);
 
     const fetchLogs = useCallback(async () => {
         if (!token) return;
@@ -364,52 +376,129 @@ export default function PaymentLogsPage() {
                         </div>
                     </div>
                 )}
-                {!loading && logs.map(log => (
-                    <div key={log.id} className={styles.card}>
-                        <div className={styles.cardHeader}>
-                            <div className={styles.cardBadges}>
-                                <span className={`${styles.badge} ${styles[EVENT_COLORS[log.eventType]]}`}>
-                                    {log.eventType.replace(/_/g, ' ')}
-                                </span>
-                                <span className={`${styles.statusBadge} ${styles[STATUS_COLORS[log.status]]}`}>
-                                    {log.status}
-                                </span>
+                {!loading && (() => {
+                    // Group consecutive logs by correlationId so events of the
+                    // SAME payment stay visually together (mirrors desktop grouping).
+                    const groups: PaymentLog[][] = [];
+                    let currentKey: string | null | undefined = undefined;
+                    logs.forEach(log => {
+                        if (groups.length === 0 || log.correlationId !== currentKey) {
+                            groups.push([log]);
+                            currentKey = log.correlationId;
+                        } else {
+                            groups[groups.length - 1].push(log);
+                        }
+                    });
+
+                    return groups.map((group, gIdx) => {
+                        const head = group[0];
+                        const groupRazorpay = group.find(l => l.razorpayOrderId)?.razorpayOrderId ?? null;
+                        return (
+                            <div key={head.correlationId ?? `nogroup-${gIdx}`} className={styles.cardGroup}>
+                                <div className={styles.groupHeader}>
+                                    <span className={styles.groupHeaderLabel}>Payment</span>
+                                    <span className={styles.groupHeaderId} title={head.correlationId ?? ''}>
+                                        {head.correlationId ? shortId(head.correlationId) : 'Ungrouped'}
+                                    </span>
+                                    {groupRazorpay && (
+                                        <span className={styles.groupHeaderOrder} title={groupRazorpay}>
+                                            {shortId(groupRazorpay)}
+                                        </span>
+                                    )}
+                                    <span className={styles.groupHeaderCount}>
+                                        {group.length} {group.length === 1 ? 'event' : 'events'}
+                                    </span>
+                                </div>
+
+                                {group.map(log => {
+                                    const isExpanded = expandedId === log.id;
+                                    const detailRows: { label: string; value: string | null; mono?: boolean }[] = [
+                                        { label: 'Correlation ID', value: log.correlationId, mono: true },
+                                        { label: 'Order ID', value: log.orderId, mono: true },
+                                        { label: 'Razorpay Order ID', value: log.razorpayOrderId, mono: true },
+                                        { label: 'Razorpay Payment ID', value: log.razorpayPaymentId, mono: true },
+                                        { label: 'IP Address', value: log.ipAddress, mono: true },
+                                    ];
+                                    return (
+                                        <div key={log.id} className={`${styles.card} ${isExpanded ? styles.cardExpanded : ''}`}>
+                                            <button
+                                                type="button"
+                                                className={styles.cardHeader}
+                                                onClick={() => setExpandedId(prev => (prev === log.id ? null : log.id))}
+                                                aria-expanded={isExpanded}
+                                            >
+                                                <div className={styles.cardBadges}>
+                                                    <span className={`${styles.badge} ${styles[EVENT_COLORS[log.eventType]]}`}>
+                                                        {log.eventType.replace(/_/g, ' ')}
+                                                    </span>
+                                                    <span className={`${styles.statusBadge} ${styles[STATUS_COLORS[log.status]]}`}>
+                                                        {log.status}
+                                                    </span>
+                                                </div>
+                                                <span className={styles.cardHeaderRight}>
+                                                    <span className={styles.cardDate}>{formatDate(log.createdAt)}</span>
+                                                    <ChevronDownIcon
+                                                        size={16}
+                                                        className={`${styles.chevron} ${isExpanded ? styles.chevronOpen : ''}`}
+                                                    />
+                                                </span>
+                                            </button>
+
+                                            <div className={styles.cardBody}>
+                                                <div className={styles.cardField}>
+                                                    <span className={styles.cardLabel}>Razorpay Order</span>
+                                                    <span className={`${styles.cardValue} ${styles.cardValueMono}`}>
+                                                        {shortId(log.razorpayOrderId)}
+                                                    </span>
+                                                </div>
+                                                <div className={styles.cardField}>
+                                                    <span className={styles.cardLabel}>Amount</span>
+                                                    <span className={`${styles.cardValue} ${styles.cardValueAmount}`}>
+                                                        {log.amount != null ? `₹${log.amount.toFixed(2)}` : '—'}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {log.message && (
+                                                <div className={`${styles.cardMessage} ${isExpanded ? styles.cardMessageFull : ''}`}>
+                                                    {log.message}
+                                                </div>
+                                            )}
+
+                                            {isExpanded && (
+                                                <div className={styles.cardDetails}>
+                                                    {detailRows.map(row => (
+                                                        <div key={row.label} className={styles.detailRow}>
+                                                            <span className={styles.detailLabel}>{row.label}</span>
+                                                            <div className={styles.detailValueWrap}>
+                                                                <span className={`${styles.detailValue} ${row.mono ? styles.cardValueMono : ''}`}>
+                                                                    {row.value ?? '—'}
+                                                                </span>
+                                                                {row.value && (
+                                                                    <button
+                                                                        type="button"
+                                                                        className={styles.copyBtn}
+                                                                        onClick={() => copyValue(`${log.id}-${row.label}`, row.value!)}
+                                                                        aria-label={`Copy ${row.label}`}
+                                                                        title={`Copy ${row.label}`}
+                                                                    >
+                                                                        {copiedKey === `${log.id}-${row.label}`
+                                                                            ? <CheckIcon size={14} />
+                                                                            : <CopyIcon size={14} />}
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
                             </div>
-                            <span className={styles.cardDate}>{formatDate(log.createdAt)}</span>
-                        </div>
-                        <div className={styles.cardBody}>
-                            <div className={styles.cardField}>
-                                <span className={styles.cardLabel}>Correlation ID</span>
-                                <span className={`${styles.cardValue} ${styles.cardValueMono}`} title={log.correlationId ?? ''}>
-                                    {shortId(log.correlationId)}
-                                </span>
-                            </div>
-                            <div className={styles.cardField}>
-                                <span className={styles.cardLabel}>Razorpay Order</span>
-                                <span className={`${styles.cardValue} ${styles.cardValueMono}`} title={log.razorpayOrderId ?? ''}>
-                                    {shortId(log.razorpayOrderId)}
-                                </span>
-                            </div>
-                            <div className={styles.cardField}>
-                                <span className={styles.cardLabel}>Amount</span>
-                                <span className={`${styles.cardValue} ${styles.cardValueAmount}`}>
-                                    {log.amount != null ? `₹${log.amount.toFixed(2)}` : '—'}
-                                </span>
-                            </div>
-                            <div className={styles.cardField}>
-                                <span className={styles.cardLabel}>IP Address</span>
-                                <span className={`${styles.cardValue} ${styles.cardValueMono}`}>
-                                    {log.ipAddress ?? '—'}
-                                </span>
-                            </div>
-                        </div>
-                        {log.message && (
-                            <div className={styles.cardMessage} title={log.message}>
-                                {log.message}
-                            </div>
-                        )}
-                    </div>
-                ))}
+                        );
+                    });
+                })()}
             </div>
 
             {/* Pagination */}

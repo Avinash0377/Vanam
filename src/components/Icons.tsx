@@ -603,3 +603,53 @@ export const XIcon = ({ size = 24, color = 'currentColor', className }: IconProp
     </svg>
 );
 
+// Copy Icon
+export const CopyIcon = ({ size = 24, color = 'currentColor', className }: IconProps) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+    </svg>
+);
+
+// External Link Icon
+export const ExternalLinkIcon = ({ size = 24, color = 'currentColor', className }: IconProps) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+        <polyline points="15 3 21 3 21 9" />
+        <line x1="10" y1="14" x2="21" y2="3" />
+    </svg>
+);
+
+// Alert / Warning Icon
+export const AlertIcon = ({ size = 24, color = 'currentColor', className }: IconProps) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+        <line x1="12" y1="9" x2="12" y2="13" />
+        <line x1="12" y1="17" x2="12.01" y2="17" />
+    </svg>
+);
+
+// Sort Icon
+export const SortIcon = ({ size = 24, color = 'currentColor', className }: IconProps) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M3 6h18" />
+        <path d="M6 12h12" />
+        <path d="M10 18h4" />
+    </svg>
+);
+
+// Chevron Down Icon
+export const ChevronDownIcon = ({ size = 24, color = 'currentColor', className }: IconProps) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <polyline points="6 9 12 15 18 9" />
+    </svg>
+);
+
+// Trending Down Icon
+export const TrendingDownIcon = ({ size = 24, color = 'currentColor', className }: IconProps) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <polyline points="22 17 13.5 8.5 8.5 13.5 2 7" />
+        <polyline points="16 17 22 17 22 11" />
+    </svg>
+);
+
