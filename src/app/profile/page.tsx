@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { PackageIcon, WhatsAppIcon, LeafIcon, MailIcon, LogoutIcon, ArrowRightIcon, CheckIcon } from '@/components/Icons';
 import styles from './page.module.css';
@@ -125,7 +126,7 @@ function ProfileContent() {
                                             <div key={item.id} className={styles.orderItem}>
                                                 <div className={styles.itemImage}>
                                                     {item.image ? (
-                                                        <img src={item.image} alt={item.name} />
+                                                        <Image src={item.image} alt={item.name} width={56} height={56} />
                                                     ) : (
                                                         <div className={styles.placeholderImage} />
                                                     )}

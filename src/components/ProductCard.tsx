@@ -16,75 +16,6 @@ function prefersReducedMotion(): boolean {
     return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 }
 
-function flyToCart(sourceEl: HTMLImageElement | null) {
-    if (!sourceEl || typeof document === 'undefined') return;
-    if (prefersReducedMotion()) return;
-    // Pick the first VISIBLE flip target so mobile flies to the bottom-nav
-    // cart (not the hidden/tiny top-right cart) and desktop flies to the top.
-    const candidates = document.querySelectorAll<HTMLElement>('[data-flip-target="cart"]');
-    let target: HTMLElement | null = null;
-    for (const el of Array.from(candidates)) {
-        const r = el.getBoundingClientRect();
-        if (r.width > 0 && r.height > 0) {
-            // Prefer targets in the lower half of the viewport on mobile
-            // (bottom nav) — falls through to whichever is visible otherwise.
-            if (!target || r.top > target.getBoundingClientRect().top) {
-                target = el;
-            }
-        }
-    }
-    if (!target) return;
-
-    const src = sourceEl.getBoundingClientRect();
-    const dst = target.getBoundingClientRect();
-    if (src.width === 0 || dst.width === 0) return;
-
-    const clone = document.createElement('div');
-    clone.style.cssText = [
-        'position:fixed',
-        `top:${src.top}px`,
-        `left:${src.left}px`,
-        `width:${src.width}px`,
-        `height:${src.height}px`,
-        `background-image:url("${sourceEl.currentSrc || sourceEl.src}")`,
-        'background-size:cover',
-        'background-position:center',
-        'border-radius:12px',
-        'box-shadow:0 12px 40px rgba(0,0,0,0.28)',
-        'pointer-events:none',
-        'z-index:9999',
-        'will-change:transform,opacity,border-radius',
-        'transition:none',
-        'margin:0',
-        'padding:0',
-    ].join(';');
-    document.body.appendChild(clone);
-
-    const tx = dst.left + dst.width / 2 - (src.left + src.width / 2);
-    const ty = dst.top + dst.height / 2 - (src.top + src.height / 2);
-
-    requestAnimationFrame(() => {
-        clone.style.transition = 'transform 0.75s cubic-bezier(0.5, -0.15, 0.7, 1.2), opacity 0.75s ease-in, border-radius 0.75s ease-in';
-        clone.style.transform = `translate(${tx}px, ${ty}px) scale(0.15) rotate(20deg)`;
-        clone.style.opacity = '0.35';
-        clone.style.borderRadius = '50%';
-    });
-
-    // Safety margin: 750ms transition + rAF (~16ms) + jitter buffer
-    window.setTimeout(() => {
-        clone.remove();
-        // Bounce the cart icon on arrival
-        target!.animate(
-            [
-                { transform: 'scale(1)' },
-                { transform: 'scale(1.35)' },
-                { transform: 'scale(1)' },
-            ],
-            { duration: 420, easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }
-        );
-    }, 820);
-}
-
 function heartBurst(sourceEl: HTMLElement) {
     if (typeof document === 'undefined') return;
     if (prefersReducedMotion()) return;
@@ -367,9 +298,6 @@ function ProductCard({
         } else {
             cartItem.productId = id;
         }
-
-        // Fly the product image toward the cart icon
-        flyToCart(imgRef.current);
 
         addItem(cartItem);
 

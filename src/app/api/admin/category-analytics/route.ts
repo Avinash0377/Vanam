@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { OrderStatus } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import { withAdmin } from '@/lib/middleware';
 
@@ -22,48 +23,41 @@ async function getCategoryAnalytics(request: NextRequest) {
             }
         });
 
-        // Get order items to calculate sales per category
+        // Only line items from non-cancelled orders count as sales. Filter at the DB
+        // level and select just the scalar fields we need instead of loading every
+        // related product/category/order object into memory.
         const orderItems = await prisma.orderItem.findMany({
-            include: {
-                product: {
-                    include: {
-                        category: true
-                    }
-                },
-                order: {
-                    select: {
-                        orderStatus: true,
-                        createdAt: true
-                    }
-                }
-            }
+            where: {
+                productId: { not: null },
+                order: { orderStatus: { not: OrderStatus.CANCELLED } },
+            },
+            select: {
+                orderId: true,
+                price: true,
+                quantity: true,
+                product: { select: { id: true, name: true, categoryId: true } },
+            },
         });
 
         // Aggregate sales data by category
         const categoryStats = categories.map(category => {
             const categoryOrderItems = orderItems.filter(
-                item => item.product?.category?.id === category.id
+                item => item.product?.categoryId === category.id
             );
 
-            const totalSales = categoryOrderItems.reduce((sum, item) => {
-                if (item.order.orderStatus !== 'CANCELLED') {
-                    return sum + (item.price * item.quantity);
-                }
-                return sum;
-            }, 0);
+            const totalSales = categoryOrderItems.reduce(
+                (sum, item) => sum + item.price * item.quantity,
+                0
+            );
 
             const totalOrders = new Set(
-                categoryOrderItems
-                    .filter(item => item.order.orderStatus !== 'CANCELLED')
-                    .map(item => item.orderId)
+                categoryOrderItems.map(item => item.orderId)
             ).size;
 
-            const totalQuantitySold = categoryOrderItems.reduce((sum, item) => {
-                if (item.order.orderStatus !== 'CANCELLED') {
-                    return sum + item.quantity;
-                }
-                return sum;
-            }, 0);
+            const totalQuantitySold = categoryOrderItems.reduce(
+                (sum, item) => sum + item.quantity,
+                0
+            );
 
             // Calculate stock value
             const stockValue = category.products.reduce((sum, product) => {
@@ -73,7 +67,7 @@ async function getCategoryAnalytics(request: NextRequest) {
             // Top selling product in category
             const productSales: Record<string, { name: string; quantity: number; revenue: number }> = {};
             categoryOrderItems.forEach(item => {
-                if (item.product && item.order.orderStatus !== 'CANCELLED') {
+                if (item.product) {
                     if (!productSales[item.product.id]) {
                         productSales[item.product.id] = {
                             name: item.product.name,
@@ -113,7 +107,7 @@ async function getCategoryAnalytics(request: NextRequest) {
             totalCategories: categories.length,
             totalProducts: categories.reduce((sum, cat) => sum + cat._count.products, 0),
             totalRevenue: categoryStats.reduce((sum, cat) => sum + cat.totalSales, 0),
-            totalOrders: new Set(orderItems.filter(i => i.order.orderStatus !== 'CANCELLED').map(i => i.orderId)).size,
+            totalOrders: new Set(orderItems.map(i => i.orderId)).size,
         };
 
         return NextResponse.json({

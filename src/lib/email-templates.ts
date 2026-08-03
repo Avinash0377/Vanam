@@ -11,14 +11,23 @@
 // ==================== BRAND TOKENS ====================
 
 const BRAND_GREEN = '#2d6a4f';
-const BRAND_LIGHT = '#52b788';
+const BRAND_ACCENT = '#95d5b2';
 const BRAND_DARK = '#1b4332';
-const TEXT_PRIMARY = '#1a1a2e';
-const TEXT_SECONDARY = '#4a5568';
-const TEXT_MUTED = '#718096';
-const BG_PAGE = '#f4f6f4';
+const TEXT_PRIMARY = '#1f2a24';
+const TEXT_SECONDARY = '#4b5563';
+const TEXT_MUTED = '#8a9490';
+const BG_PAGE = '#eef2ee';
 const BG_CARD = '#ffffff';
-const BORDER_COLOR = '#e2e8f0';
+const BG_SOFT = '#f5f9f6';
+const BORDER_COLOR = '#e6ebe6';
+
+const FONT_SANS = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+const FONT_SERIF = "Georgia,'Times New Roman',serif";
+
+// Format an amount as Indian rupees, e.g. 1234 -> "₹1,234"
+function inr(amount: number): string {
+    return `₹${Math.round(amount).toLocaleString('en-IN')}`;
+}
 
 // ==================== SHARED LAYOUT ====================
 
@@ -32,11 +41,10 @@ function emailLayout(title: string, content: string): string {
     <title>${title}</title>
     <style>
         @media only screen and (max-width: 600px) {
-            .email-wrapper { padding: 12px 8px !important; }
-            .email-card { border-radius: 8px !important; }
-            .email-header { padding: 28px 20px !important; }
-            .email-body { padding: 28px 20px !important; }
-            .email-footer { padding: 20px !important; }
+            .email-wrapper { padding: 16px 10px !important; }
+            .email-header { padding: 34px 24px !important; }
+            .email-body { padding: 32px 24px !important; }
+            .email-footer { padding: 28px 24px !important; }
             .order-table td, .order-table th { font-size: 13px !important; padding: 8px 4px !important; }
             .total-row td { font-size: 16px !important; }
             .order-number { font-size: 20px !important; }
@@ -45,47 +53,47 @@ function emailLayout(title: string, content: string): string {
         }
     </style>
 </head>
-<body style="margin:0;padding:0;background-color:${BG_PAGE};font-family:Georgia,'Times New Roman',serif;-webkit-font-smoothing:antialiased;">
+<body style="margin:0;padding:0;background-color:${BG_PAGE};font-family:${FONT_SANS};-webkit-font-smoothing:antialiased;">
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;">${title}</div>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${BG_PAGE};">
         <tr>
-            <td class="email-wrapper" align="center" style="padding:40px 16px;">
-                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;">
+            <td class="email-wrapper" align="center" style="padding:44px 16px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;">
 
                     <!-- Header -->
                     <tr>
-                        <td class="email-header" style="background-color:${BRAND_DARK};padding:36px 40px;text-align:center;border-radius:12px 12px 0 0;">
-                            <p style="margin:0 0 6px;color:${BRAND_LIGHT};font-size:11px;letter-spacing:3px;text-transform:uppercase;font-family:Arial,Helvetica,sans-serif;">Rooted in Nature</p>
-                            <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:normal;letter-spacing:2px;font-family:Georgia,'Times New Roman',serif;">VANAM STORE</h1>
+                        <td class="email-header" style="background-color:${BRAND_DARK};background-image:linear-gradient(135deg,${BRAND_DARK} 0%,${BRAND_GREEN} 100%);padding:44px 40px;text-align:center;border-radius:18px 18px 0 0;">
+                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:0 auto 18px;">
+                                <tr>
+                                    <td width="62" height="62" align="center" valign="middle" style="width:62px;height:62px;border:2px solid ${BRAND_ACCENT};border-radius:50%;color:#ffffff;font-family:${FONT_SERIF};font-size:28px;line-height:62px;text-align:center;">V</td>
+                                </tr>
+                            </table>
+                            <h1 style="margin:0;color:#ffffff;font-size:26px;font-weight:normal;letter-spacing:7px;font-family:${FONT_SERIF};">VANAM</h1>
+                            <p style="margin:10px 0 0;color:${BRAND_ACCENT};font-size:10px;letter-spacing:4px;text-transform:uppercase;font-family:${FONT_SANS};">Rooted in Nature</p>
                         </td>
                     </tr>
 
                     <!-- Body -->
                     <tr>
-                        <td class="email-card" style="background-color:${BG_CARD};border-left:1px solid ${BORDER_COLOR};border-right:1px solid ${BORDER_COLOR};">
-                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-                                <tr>
-                                    <td class="email-body" style="padding:40px;">
-                                        ${content}
-                                    </td>
-                                </tr>
-                            </table>
+                        <td class="email-body" style="background-color:${BG_CARD};padding:46px 40px;border-left:1px solid ${BORDER_COLOR};border-right:1px solid ${BORDER_COLOR};">
+                            ${content}
                         </td>
                     </tr>
 
                     <!-- Footer -->
                     <tr>
-                        <td class="email-footer" style="background-color:#f8faf8;padding:28px 40px;text-align:center;border:1px solid ${BORDER_COLOR};border-top:none;border-radius:0 0 12px 12px;">
-                            <p style="margin:0 0 6px;color:${TEXT_MUTED};font-size:12px;font-family:Arial,Helvetica,sans-serif;letter-spacing:0.5px;">Questions? We are here to help.</p>
-                            <p style="margin:0 0 4px;color:${TEXT_MUTED};font-size:12px;font-family:Arial,Helvetica,sans-serif;">
-                                <a href="mailto:vanamstore@gmail.com" style="color:${BRAND_GREEN};text-decoration:none;">vanamstore@gmail.com</a>
-                                &nbsp;&nbsp;|&nbsp;&nbsp;
-                                <a href="tel:+918897249374" style="color:${BRAND_GREEN};text-decoration:none;">+91 88972 49374</a>
+                        <td class="email-footer" style="background-color:${BRAND_DARK};padding:34px 40px;text-align:center;border-radius:0 0 18px 18px;">
+                            <p style="margin:0 0 14px;color:#ffffff;font-size:15px;font-family:${FONT_SERIF};letter-spacing:4px;">VANAM</p>
+                            <p style="margin:0 0 12px;color:${BRAND_ACCENT};font-size:12px;font-family:${FONT_SANS};line-height:1.7;">
+                                <a href="mailto:vanamstore@gmail.com" style="color:${BRAND_ACCENT};text-decoration:none;">vanamstore@gmail.com</a>
+                                &nbsp;&middot;&nbsp;
+                                <a href="tel:+918897249374" style="color:${BRAND_ACCENT};text-decoration:none;">+91 88972 49374</a>
                             </p>
-                            <p style="margin:8px 0 0;color:${TEXT_MUTED};font-size:12px;font-family:Arial,Helvetica,sans-serif;">
-                                <a href="https://wa.me/918897249374" style="color:${BRAND_GREEN};text-decoration:none;">Chat on WhatsApp</a>
+                            <p style="margin:0 0 18px;">
+                                <a href="https://wa.me/918897249374" style="display:inline-block;color:#ffffff;font-size:12px;font-family:${FONT_SANS};text-decoration:none;border:1px solid rgba(255,255,255,0.3);border-radius:22px;padding:8px 20px;">Chat with us on WhatsApp</a>
                             </p>
-                            <p style="margin:16px 0 0;color:#a0aec0;font-size:11px;font-family:Arial,Helvetica,sans-serif;letter-spacing:0.5px;">
-                                &copy; ${new Date().getFullYear()} Vanam Store. All rights reserved.
+                            <p style="margin:0;color:rgba(255,255,255,0.55);font-size:11px;font-family:${FONT_SANS};letter-spacing:0.5px;">
+                                &copy; ${new Date().getFullYear()} Vanam Store &nbsp;&middot;&nbsp; All rights reserved.
                             </p>
                         </td>
                     </tr>
@@ -116,6 +124,7 @@ interface OrderConfirmationData {
         name: string;
         quantity: number;
         price: number;
+        image?: string | null;
         size?: string | null;
         selectedColor?: string | null;
         selectedPlanter?: string | null;
@@ -125,14 +134,25 @@ interface OrderConfirmationData {
 export function orderConfirmationTemplate(data: OrderConfirmationData): string {
     const itemRows = data.items.map(item => `
         <tr>
-            <td class="order-table" style="padding:14px 0;border-bottom:1px solid ${BORDER_COLOR};vertical-align:top;">
-                <p class="item-name" style="margin:0 0 3px;color:${TEXT_PRIMARY};font-size:14px;font-family:Arial,Helvetica,sans-serif;font-weight:600;">${item.name}</p>
-                ${item.size ? `<p style="margin:0;color:${TEXT_MUTED};font-size:12px;font-family:Arial,Helvetica,sans-serif;">Size: ${item.size}</p>` : ''}
-                ${item.selectedPlanter ? `<p style="margin:0;color:${TEXT_MUTED};font-size:12px;font-family:Arial,Helvetica,sans-serif;">Planter: ${item.selectedPlanter}</p>` : ''}
-                ${item.selectedColor ? `<p style="margin:0;color:${TEXT_MUTED};font-size:12px;font-family:Arial,Helvetica,sans-serif;">Colour: ${item.selectedColor}</p>` : ''}
+            <td class="order-table" style="padding:16px 0;border-bottom:1px solid ${BORDER_COLOR};vertical-align:top;">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                        ${item.image ? `<td width="56" valign="top" style="padding-right:14px;">
+                            <img src="${item.image}" alt="${item.name}" width="56" height="56" style="display:block;width:56px;height:56px;border-radius:8px;object-fit:cover;border:1px solid ${BORDER_COLOR};background-color:${BG_SOFT};" />
+                        </td>` : ''}
+                        <td valign="top">
+                            <p class="item-name" style="margin:0 0 3px;color:${TEXT_PRIMARY};font-size:14px;font-family:${FONT_SANS};font-weight:600;">${item.name}</p>
+                            ${item.size ? `<p style="margin:0;color:${TEXT_MUTED};font-size:12px;font-family:${FONT_SANS};">Size: ${item.size}</p>` : ''}
+                            ${item.selectedPlanter ? `<p style="margin:0;color:${TEXT_MUTED};font-size:12px;font-family:${FONT_SANS};">Planter: ${item.selectedPlanter}</p>` : ''}
+                            ${item.selectedColor ? `<p style="margin:0;color:${TEXT_MUTED};font-size:12px;font-family:${FONT_SANS};">Colour: ${item.selectedColor}</p>` : ''}
+                        </td>
+                    </tr>
+                </table>
             </td>
-            <td class="order-table" style="padding:14px 8px;border-bottom:1px solid ${BORDER_COLOR};text-align:center;vertical-align:top;color:${TEXT_SECONDARY};font-size:14px;font-family:Arial,Helvetica,sans-serif;white-space:nowrap;">${item.quantity}</td>
-            <td class="order-table" style="padding:14px 0;border-bottom:1px solid ${BORDER_COLOR};text-align:right;vertical-align:top;color:${TEXT_PRIMARY};font-size:14px;font-family:Arial,Helvetica,sans-serif;font-weight:600;white-space:nowrap;">Rs. ${(item.price * item.quantity).toLocaleString('en-IN')}</td>
+            <td class="order-table" style="padding:16px 8px;border-bottom:1px solid ${BORDER_COLOR};text-align:center;vertical-align:top;white-space:nowrap;">
+                <span style="display:inline-block;min-width:22px;padding:2px 8px;background-color:${BG_SOFT};border:1px solid ${BORDER_COLOR};border-radius:12px;color:${TEXT_SECONDARY};font-size:13px;font-family:${FONT_SANS};">${item.quantity}</span>
+            </td>
+            <td class="order-table" style="padding:16px 0;border-bottom:1px solid ${BORDER_COLOR};text-align:right;vertical-align:top;color:${TEXT_PRIMARY};font-size:14px;font-family:${FONT_SANS};font-weight:600;white-space:nowrap;">${inr(item.price * item.quantity)}</td>
         </tr>
     `).join('');
 
@@ -145,9 +165,9 @@ export function orderConfirmationTemplate(data: OrderConfirmationData): string {
         <!-- Order Number Banner -->
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:32px;">
             <tr>
-                <td style="background-color:#f0f7f4;border-left:4px solid ${BRAND_GREEN};padding:16px 20px;border-radius:0 6px 6px 0;">
-                    <p style="margin:0 0 2px;color:${TEXT_MUTED};font-size:11px;letter-spacing:2px;text-transform:uppercase;font-family:Arial,Helvetica,sans-serif;">Order Reference</p>
-                    <p class="order-number" style="margin:0;font-size:22px;font-weight:700;color:${BRAND_DARK};font-family:Arial,Helvetica,sans-serif;letter-spacing:1px;">${data.orderNumber}</p>
+                <td style="background-color:${BG_SOFT};border:1px solid ${BORDER_COLOR};border-left:4px solid ${BRAND_GREEN};padding:18px 22px;border-radius:10px;">
+                    <p style="margin:0 0 4px;color:${TEXT_MUTED};font-size:11px;letter-spacing:2px;text-transform:uppercase;font-family:${FONT_SANS};">Order Reference</p>
+                    <p class="order-number" style="margin:0;font-size:22px;font-weight:700;color:${BRAND_DARK};font-family:${FONT_SANS};letter-spacing:1px;">${data.orderNumber}</p>
                 </td>
             </tr>
         </table>
@@ -170,21 +190,21 @@ export function orderConfirmationTemplate(data: OrderConfirmationData): string {
         <!-- Totals -->
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:16px;">
             <tr>
-                <td style="padding:6px 0;color:${TEXT_SECONDARY};font-size:13px;font-family:Arial,Helvetica,sans-serif;">Subtotal</td>
-                <td style="padding:6px 0;text-align:right;color:${TEXT_PRIMARY};font-size:13px;font-family:Arial,Helvetica,sans-serif;">Rs. ${data.subtotal.toLocaleString('en-IN')}</td>
+                <td style="padding:6px 0;color:${TEXT_SECONDARY};font-size:13px;font-family:${FONT_SANS};">Subtotal</td>
+                <td style="padding:6px 0;text-align:right;color:${TEXT_PRIMARY};font-size:13px;font-family:${FONT_SANS};">${inr(data.subtotal)}</td>
             </tr>
             ${data.discountAmount > 0 ? `
             <tr>
-                <td style="padding:6px 0;color:${BRAND_GREEN};font-size:13px;font-family:Arial,Helvetica,sans-serif;">Discount${data.couponCode ? ` (${data.couponCode})` : ''}</td>
-                <td style="padding:6px 0;text-align:right;color:${BRAND_GREEN};font-size:13px;font-family:Arial,Helvetica,sans-serif;">- Rs. ${data.discountAmount.toLocaleString('en-IN')}</td>
+                <td style="padding:6px 0;color:${BRAND_GREEN};font-size:13px;font-family:${FONT_SANS};">Discount${data.couponCode ? ` (${data.couponCode})` : ''}</td>
+                <td style="padding:6px 0;text-align:right;color:${BRAND_GREEN};font-size:13px;font-family:${FONT_SANS};">- ${inr(data.discountAmount)}</td>
             </tr>` : ''}
             <tr>
-                <td style="padding:6px 0;color:${TEXT_SECONDARY};font-size:13px;font-family:Arial,Helvetica,sans-serif;">Delivery</td>
-                <td style="padding:6px 0;text-align:right;color:${data.shippingCost === 0 ? BRAND_GREEN : TEXT_PRIMARY};font-size:13px;font-family:Arial,Helvetica,sans-serif;">${data.shippingCost === 0 ? 'Free' : 'Rs. ' + data.shippingCost.toLocaleString('en-IN')}</td>
+                <td style="padding:6px 0;color:${TEXT_SECONDARY};font-size:13px;font-family:${FONT_SANS};">Delivery</td>
+                <td style="padding:6px 0;text-align:right;color:${data.shippingCost === 0 ? BRAND_GREEN : TEXT_PRIMARY};font-size:13px;font-family:${FONT_SANS};">${data.shippingCost === 0 ? 'Free' : inr(data.shippingCost)}</td>
             </tr>
             <tr class="total-row">
-                <td style="padding:14px 0 0;color:${TEXT_PRIMARY};font-size:18px;font-weight:700;border-top:2px solid ${TEXT_PRIMARY};font-family:Arial,Helvetica,sans-serif;">Total Paid</td>
-                <td style="padding:14px 0 0;text-align:right;color:${BRAND_DARK};font-size:18px;font-weight:700;border-top:2px solid ${TEXT_PRIMARY};font-family:Arial,Helvetica,sans-serif;">Rs. ${data.totalAmount.toLocaleString('en-IN')}</td>
+                <td style="padding:16px 0 0;color:${TEXT_PRIMARY};font-size:18px;font-weight:700;border-top:2px solid ${BRAND_GREEN};font-family:${FONT_SANS};">Total Paid</td>
+                <td style="padding:16px 0 0;text-align:right;color:${BRAND_DARK};font-size:18px;font-weight:700;border-top:2px solid ${BRAND_GREEN};font-family:${FONT_SANS};">${inr(data.totalAmount)}</td>
             </tr>
         </table>
 
@@ -283,7 +303,7 @@ export function orderStatusUpdateTemplate(data: OrderStatusData): string {
                         </tr>
                         <tr>
                             <td style="color:${TEXT_MUTED};font-size:12px;font-family:Arial,Helvetica,sans-serif;padding-bottom:10px;border-top:1px solid ${BORDER_COLOR};padding-top:10px;">Order Total</td>
-                            <td style="text-align:right;font-weight:700;color:${TEXT_PRIMARY};font-size:14px;font-family:Arial,Helvetica,sans-serif;border-top:1px solid ${BORDER_COLOR};padding-top:10px;">Rs. ${data.totalAmount.toLocaleString('en-IN')}</td>
+                            <td style="text-align:right;font-weight:700;color:${TEXT_PRIMARY};font-size:14px;font-family:Arial,Helvetica,sans-serif;border-top:1px solid ${BORDER_COLOR};padding-top:10px;">${inr(data.totalAmount)}</td>
                         </tr>
                         <tr>
                             <td style="color:${TEXT_MUTED};font-size:12px;font-family:Arial,Helvetica,sans-serif;border-top:1px solid ${BORDER_COLOR};padding-top:10px;">Status</td>
@@ -379,7 +399,7 @@ export function adminNewOrderTemplate(data: AdminNewOrderData): string {
                         </tr>
                         <tr>
                             <td style="color:${TEXT_PRIMARY};font-size:16px;font-weight:700;font-family:Arial,Helvetica,sans-serif;border-top:2px solid ${BRAND_GREEN};padding-top:12px;">Order Total</td>
-                            <td style="text-align:right;color:${BRAND_DARK};font-size:20px;font-weight:700;font-family:Arial,Helvetica,sans-serif;border-top:2px solid ${BRAND_GREEN};padding-top:12px;">Rs. ${data.totalAmount.toLocaleString('en-IN')}</td>
+                            <td style="text-align:right;color:${BRAND_DARK};font-size:20px;font-weight:700;font-family:Arial,Helvetica,sans-serif;border-top:2px solid ${BRAND_GREEN};padding-top:12px;">${inr(data.totalAmount)}</td>
                         </tr>
                     </table>
                 </td>

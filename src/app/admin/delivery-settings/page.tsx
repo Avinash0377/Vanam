@@ -77,8 +77,8 @@ export default function DeliverySettingsPage() {
             });
             const data = await res.json();
             if (res.ok) {
-                setPincodes(data.pincodes);
-                setPagination(data.pagination);
+                setPincodes(data.pincodes || []);
+                setPagination(data.pagination || { total: 0, page: 1, limit: 20, totalPages: 0 });
             }
         } catch (err) {
             console.error('Fetch pincodes error:', err);
@@ -126,6 +126,7 @@ export default function DeliverySettingsPage() {
                 setNewCity('');
                 setNewState('');
                 fetchPincodes(1, search);
+                setTimeout(() => setAddSuccess(''), 3000);
             } else {
                 setAddError(data.error || 'Failed to add');
             }
@@ -240,6 +241,7 @@ export default function DeliverySettingsPage() {
             const data = await res.json();
             if (res.ok) {
                 setConfigMsg(data.message || 'Settings saved!');
+                setTimeout(() => setConfigMsg(''), 3000);
             } else {
                 setConfigError(data.error || 'Failed to save');
             }
@@ -325,6 +327,7 @@ export default function DeliverySettingsPage() {
                                 className={styles.input}
                                 maxLength={6}
                                 required
+                                disabled={config.panIndiaEnabled}
                             />
                             <input
                                 type="text"
@@ -332,6 +335,7 @@ export default function DeliverySettingsPage() {
                                 onChange={(e) => setNewCity(e.target.value)}
                                 placeholder="City (optional)"
                                 className={styles.input}
+                                disabled={config.panIndiaEnabled}
                             />
                             <input
                                 type="text"
@@ -339,8 +343,9 @@ export default function DeliverySettingsPage() {
                                 onChange={(e) => setNewState(e.target.value)}
                                 placeholder="State (optional)"
                                 className={styles.input}
+                                disabled={config.panIndiaEnabled}
                             />
-                            <button type="submit" className={styles.addBtn}>
+                            <button type="submit" className={styles.addBtn} disabled={config.panIndiaEnabled}>
                                 Add Pincode
                             </button>
                         </form>
@@ -436,6 +441,45 @@ export default function DeliverySettingsPage() {
                                         ))}
                                     </tbody>
                                 </table>
+                            </div>
+
+                            {/* Mobile card view */}
+                            <div className={styles.mobileCards}>
+                                {pincodes.map((p) => (
+                                    <div key={p.id} className={`${styles.mCard} ${!p.isActive ? styles.inactive : ''}`}>
+                                        <div className={styles.mCardTop}>
+                                            <code className={styles.mCardPincode}>{p.pincode}</code>
+                                            <span className={`${styles.badge} ${p.isActive ? styles.badgeActive : styles.badgeInactive}`}>
+                                                {p.isActive ? 'Active' : 'Inactive'}
+                                            </span>
+                                        </div>
+                                        <div className={styles.mCardLocation}>
+                                            {(p.city || p.state)
+                                                ? `${p.city || '—'}${p.state ? ', ' + p.state : ''}`
+                                                : 'No location set'}
+                                        </div>
+                                        <div className={styles.mCardDate}>
+                                            Added {new Date(p.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                        </div>
+                                        <div className={styles.mCardActions}>
+                                            <button
+                                                className={`${styles.actionBtn} ${p.isActive ? styles.deactivateBtn : styles.activateBtn}`}
+                                                onClick={() => handleToggleActive(p.id, p.isActive)}
+                                                disabled={actionLoading === p.id}
+                                            >
+                                                {actionLoading === p.id ? '...' : p.isActive ? 'Deactivate' : 'Activate'}
+                                            </button>
+                                            <button
+                                                className={`${styles.actionBtn} ${styles.deleteBtn}`}
+                                                onClick={() => handleDelete(p.id, p.pincode)}
+                                                disabled={actionLoading === p.id}
+                                                aria-label="Delete pincode"
+                                            >
+                                                <TrashIcon size={14} /> Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
 
                             {/* Pagination */}

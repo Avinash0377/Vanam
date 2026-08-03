@@ -42,13 +42,36 @@
 }
 
 .message {
-    padding: 10px 16px;
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2000;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    max-width: calc(100% - 32px);
+    text-align: center;
+    animation: toastIn 0.25s ease;
+}
+
+.messageSuccess {
     background: #f0fdf4;
     border: 1px solid #bbf7d0;
-    border-radius: 8px;
     color: #166534;
-    font-size: 0.85rem;
-    margin-bottom: 16px;
+}
+
+.messageError {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+}
+
+@keyframes toastIn {
+    from { opacity: 0; transform: translate(-50%, 12px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
 }
 
 .loading {
@@ -542,6 +565,27 @@
 
 .deleteBtn:hover {
     background: #fee2e2;
+}
+
+@media (max-width: 560px) {
+    .cardPreview {
+        width: 84px;
+    }
+
+    .cardContent {
+        padding: 12px 14px;
+    }
+
+    .cardActions {
+        flex-wrap: wrap;
+    }
+
+    .editBtn,
+    .toggleBtn,
+    .deleteBtn {
+        padding: 8px 14px;
+        font-size: 0.78rem;
+    }
 }
 
 /* ─────────────────────────────────────────

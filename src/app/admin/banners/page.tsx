@@ -67,11 +67,25 @@ export default function AdminBannersPage() {
     const [showForm, setShowForm] = useState(false);
     const [form, setForm] = useState(emptyForm);
     const [message, setMessage] = useState('');
+    const [messageType, setMessageType] = useState<'success' | 'error'>('success');
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const formRef = useRef<HTMLDivElement>(null);
+
+    const notify = (msg: string, type: 'success' | 'error' = 'success') => {
+        setMessage(msg);
+        setMessageType(type);
+        setTimeout(() => setMessage(''), 3000);
+    };
 
     useEffect(() => {
         if (token) fetchBanners();
     }, [token]);
+
+    useEffect(() => {
+        if (showForm) {
+            requestAnimationFrame(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+        }
+    }, [showForm]);
 
     const fetchBanners = async () => {
         try {
@@ -105,22 +119,21 @@ export default function AdminBannersPage() {
             if (res.ok) {
                 const data = await res.json();
                 setForm(prev => ({ ...prev, imageUrl: data.url }));
-                setMessage('Image uploaded!');
+                notify('Image uploaded!');
             } else {
-                setMessage('Failed to upload image');
+                notify('Failed to upload image', 'error');
             }
         } catch {
-            setMessage('Upload error');
+            notify('Upload error', 'error');
         } finally {
             setUploading(false);
-            setTimeout(() => setMessage(''), 3000);
         }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!form.title || !form.primaryBtnText || !form.primaryBtnLink) {
-            setMessage('Title, button text, and link are required');
+            notify('Title, button text, and link are required', 'error');
             return;
         }
 
@@ -136,20 +149,19 @@ export default function AdminBannersPage() {
             });
 
             if (res.ok) {
-                setMessage(editingId ? 'Banner updated!' : 'Banner created!');
+                notify(editingId ? 'Banner updated!' : 'Banner created!');
                 setForm(emptyForm);
                 setEditingId(null);
                 setShowForm(false);
                 fetchBanners();
             } else {
                 const data = await res.json();
-                setMessage(data.error || 'Failed to save');
+                notify(data.error || 'Failed to save', 'error');
             }
         } catch {
-            setMessage('Network error');
+            notify('Network error', 'error');
         } finally {
             setSaving(false);
-            setTimeout(() => setMessage(''), 3000);
         }
     };
 
@@ -185,10 +197,9 @@ export default function AdminBannersPage() {
                 headers: { Authorization: `Bearer ${token}` },
             });
             fetchBanners();
-            setMessage('Banner deleted');
-            setTimeout(() => setMessage(''), 3000);
+            notify('Banner deleted');
         } catch {
-            setMessage('Failed to delete');
+            notify('Failed to delete', 'error');
         }
     };
 
@@ -201,7 +212,7 @@ export default function AdminBannersPage() {
             });
             fetchBanners();
         } catch {
-            setMessage('Failed to toggle');
+            notify('Failed to toggle', 'error');
         }
     };
 
@@ -224,11 +235,15 @@ export default function AdminBannersPage() {
                 </button>
             </div>
 
-            {message && <div className={styles.message}>{message}</div>}
+            {message && (
+                <div className={`${styles.message} ${messageType === 'error' ? styles.messageError : styles.messageSuccess}`}>
+                    {message}
+                </div>
+            )}
 
             {/* Banner Form */}
             {showForm && (
-                <div className={styles.formCard}>
+                <div className={styles.formCard} ref={formRef}>
                     <h2 className={styles.formTitle}>{editingId ? 'Edit Banner' : 'Create New Banner'}</h2>
                     <form onSubmit={handleSubmit} className={styles.form}>
                         <div className={styles.formGrid}>

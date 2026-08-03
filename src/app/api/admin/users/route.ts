@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { OrderStatus } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import { withAdmin } from '@/lib/middleware';
 
@@ -39,13 +40,6 @@ async function getUsers(request: NextRequest) {
                     role: true,
                     createdAt: true,
                     lastLoginAt: true,
-                    orders: {
-                        select: {
-                            totalAmount: true,
-                            createdAt: true,
-                            orderStatus: true,
-                        },
-                    },
                 },
                 orderBy: { [sortBy]: sortOrder } as Record<string, string>,
                 skip,
@@ -60,18 +54,43 @@ async function getUsers(request: NextRequest) {
         ]);
 
         // Statuses that represent actual (paid) revenue — keep in sync with the summary aggregate
-        const PAID_STATUSES = ['PAID', 'PACKING', 'SHIPPED', 'DELIVERED'];
+        const PAID_STATUSES: OrderStatus[] = [
+            OrderStatus.PAID,
+            OrderStatus.PACKING,
+            OrderStatus.SHIPPED,
+            OrderStatus.DELIVERED,
+        ];
+
+        // Aggregate per-user order stats at the DB level instead of loading every
+        // user's full order history into memory. Bounded to the current page of users.
+        const userIds = users.map(u => u.id);
+        const [orderAgg, spentAgg] = await Promise.all([
+            userIds.length
+                ? prisma.order.groupBy({
+                    by: ['userId'],
+                    where: { userId: { in: userIds } },
+                    _count: { _all: true },
+                    _max: { createdAt: true },
+                })
+                : [],
+            userIds.length
+                ? prisma.order.groupBy({
+                    by: ['userId'],
+                    where: { userId: { in: userIds }, orderStatus: { in: PAID_STATUSES } },
+                    _sum: { totalAmount: true },
+                })
+                : [],
+        ]);
+
+        const countMap = new Map(orderAgg.map(o => [o.userId, o]));
+        const spentMap = new Map(spentAgg.map(o => [o.userId, o._sum.totalAmount || 0]));
 
         // Transform users to include computed stats
         const usersWithStats = users.map(user => {
-            const orderCount = user.orders.length;
-            const totalSpent = user.orders.reduce(
-                (sum, order) => sum + (PAID_STATUSES.includes(order.orderStatus) ? order.totalAmount : 0),
-                0
-            );
-            const lastOrderDate = user.orders.length > 0
-                ? [...user.orders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0].createdAt
-                : null;
+            const agg = countMap.get(user.id);
+            const orderCount = agg?._count._all ?? 0;
+            const totalSpent = spentMap.get(user.id) ?? 0;
+            const lastOrderDate = agg?._max.createdAt ?? null;
 
             return {
                 id: user.id,

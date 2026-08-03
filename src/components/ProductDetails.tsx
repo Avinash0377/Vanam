@@ -64,6 +64,10 @@ export default function ProductDetails({ type, initialData }: ProductDetailsProp
     const [loading, setLoading] = useState(!initialData);
     const [quantity, setQuantity] = useState(1);
     const [activeImage, setActiveImage] = useState(0);
+    const [zoomOpen, setZoomOpen] = useState(false);
+    const [scale, setScale] = useState(1);
+    const [tx, setTx] = useState(0);
+    const [ty, setTy] = useState(0);
 
     // Touch swipe for mobile gallery
     const touchStartX = useRef<number | null>(null);
@@ -88,6 +92,70 @@ export default function ProductDetails({ type, initialData }: ProductDetailsProp
             return dx < 0 ? (prev + 1) % len : (prev - 1 + len) % len;
         });
     };
+
+    // Fullscreen image viewer with pinch-to-zoom
+    const gesture = useRef({ mode: 'none' as 'none' | 'pinch' | 'pan' | 'swipe', startDist: 0, startScale: 1, startX: 0, startY: 0, startTx: 0, startTy: 0 });
+
+    const openZoom = () => { setScale(1); setTx(0); setTy(0); setZoomOpen(true); };
+    const closeZoom = () => { setZoomOpen(false); setScale(1); setTx(0); setTy(0); };
+
+    const changeImage = (dir: number) => {
+        setScale(1); setTx(0); setTy(0);
+        setActiveImage(prev => {
+            const len = displayImages.length;
+            if (len <= 1) return prev;
+            return (prev + dir + len) % len;
+        });
+    };
+
+    const touchDist = (t: React.TouchList) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+
+    const handleZoomTouchStart = (e: React.TouchEvent) => {
+        const g = gesture.current;
+        if (e.touches.length === 2) {
+            g.mode = 'pinch';
+            g.startDist = touchDist(e.touches);
+            g.startScale = scale;
+            g.startTx = tx;
+            g.startTy = ty;
+        } else if (e.touches.length === 1) {
+            g.startX = e.touches[0].clientX;
+            g.startY = e.touches[0].clientY;
+            g.startTx = tx;
+            g.startTy = ty;
+            g.mode = scale > 1 ? 'pan' : 'swipe';
+        }
+    };
+
+    const handleZoomTouchMove = (e: React.TouchEvent) => {
+        const g = gesture.current;
+        if (g.mode === 'pinch' && e.touches.length === 2) {
+            const next = Math.min(4, Math.max(1, g.startScale * (touchDist(e.touches) / g.startDist)));
+            setScale(next);
+            if (next <= 1) { setTx(0); setTy(0); }
+        } else if (g.mode === 'pan' && e.touches.length === 1) {
+            setTx(g.startTx + (e.touches[0].clientX - g.startX));
+            setTy(g.startTy + (e.touches[0].clientY - g.startY));
+        }
+    };
+
+    const handleZoomTouchEnd = (e: React.TouchEvent) => {
+        const g = gesture.current;
+        if (g.mode === 'swipe' && scale <= 1 && e.changedTouches.length) {
+            const dx = e.changedTouches[0].clientX - g.startX;
+            const dy = e.changedTouches[0].clientY - g.startY;
+            if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) changeImage(dx < 0 ? 1 : -1);
+        }
+        if (scale <= 1) { setTx(0); setTy(0); }
+        if (e.touches.length === 0) g.mode = 'none';
+    };
+
+    // Lock body scroll while the viewer is open
+    useEffect(() => {
+        if (!zoomOpen) return;
+        document.body.style.overflow = 'hidden';
+        return () => { document.body.style.overflow = ''; };
+    }, [zoomOpen]);
 
     // Variant selection state
     const [selectedSize, setSelectedSize] = useState<string | null>(null);
@@ -322,6 +390,7 @@ export default function ProductDetails({ type, initialData }: ProductDetailsProp
                     <div className={styles.gallery}>
                         <div
                             className={styles.mainImage}
+                            onClick={openZoom}
                             onTouchStart={handleGalleryTouchStart}
                             onTouchEnd={handleGalleryTouchEnd}
                         >
@@ -575,6 +644,36 @@ export default function ProductDetails({ type, initialData }: ProductDetailsProp
                     </div>
                 </div>
             </div>
+
+            {zoomOpen && displayImages[activeImage] && (
+                <div className={styles.lightbox} onClick={closeZoom} role="dialog" aria-modal="true">
+                    <button className={styles.lightboxClose} onClick={closeZoom} aria-label="Close image viewer">&times;</button>
+                    <div
+                        className={styles.lightboxStage}
+                        onClick={(e) => e.stopPropagation()}
+                        onTouchStart={handleZoomTouchStart}
+                        onTouchMove={handleZoomTouchMove}
+                        onTouchEnd={handleZoomTouchEnd}
+                    >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                            src={displayImages[activeImage]}
+                            alt={product.name}
+                            className={styles.lightboxImg}
+                            style={{ transform: `translate(${tx}px, ${ty}px) scale(${scale})` }}
+                            draggable={false}
+                        />
+                    </div>
+                    {displayImages.length > 1 && scale <= 1 && (
+                        <div className={styles.lightboxNav} onClick={(e) => e.stopPropagation()}>
+                            <button onClick={() => changeImage(-1)} aria-label="Previous image">&#8249;</button>
+                            <span>{activeImage + 1} / {displayImages.length}</span>
+                            <button onClick={() => changeImage(1)} aria-label="Next image">&#8250;</button>
+                        </div>
+                    )}
+                    <p className={styles.lightboxHint}>Pinch to zoom{displayImages.length > 1 ? ' · swipe to browse' : ''}</p>
+                </div>
+            )}
         </div>
     );
 }

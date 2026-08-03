@@ -235,6 +235,194 @@
     color: #dc2626;
 }
 
+/* =============================================
+   MOBILE CARD VIEW (≤768px) — list pages
+   ============================================= */
+.mobileCards {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .tableWrapper > .table {
+        display: none;
+    }
+
+    .tableWrapper {
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        border-radius: 0;
+    }
+
+    .mobileCards {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 0.25rem;
+    }
+
+    .header {
+        margin-bottom: 1.25rem;
+        gap: 1rem;
+    }
+
+    .header h1 {
+        font-size: 1.4rem;
+    }
+
+    .header > div {
+        flex: 1;
+    }
+
+    .addBtn {
+        padding: 0.75rem 1.1rem;
+        font-size: 0.85rem;
+        border-radius: 10px;
+    }
+}
+
+.mCard {
+    background: #fff;
+    border: 1px solid var(--neutral-100);
+    border-radius: 16px;
+    padding: 0.875rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.mCard:active {
+    transform: scale(0.998);
+}
+
+.mCardTop {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+}
+
+.mCardImage {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #f0f7f3, #e6f0ea);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+    border: 1px solid var(--neutral-200);
+}
+
+.mCardImg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.mCardInfo {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+}
+
+.mCardNameRow {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.mCardName {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--neutral-900);
+    margin: 0;
+    line-height: 1.3;
+    word-break: break-word;
+}
+
+.mCardBadges {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+    flex-shrink: 0;
+    font-size: 0.8rem;
+}
+
+.mCardMeta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    padding: 0.625rem 0.75rem;
+    background: var(--neutral-50);
+    border-radius: 10px;
+    border: 1px solid var(--neutral-100);
+}
+
+.mCardMetaItem {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+}
+
+.mCardMetaLabel {
+    font-size: 0.6875rem;
+    color: var(--neutral-400);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 700;
+}
+
+.mCardMetaValue {
+    font-size: 0.875rem;
+    color: var(--neutral-900);
+    font-weight: 700;
+    line-height: 1.2;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
+.mCardActions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+}
+
+.mCardActionBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    padding: 0.625rem;
+    background: var(--primary-50);
+    color: var(--primary-700);
+    border: 1px solid var(--primary-100);
+    border-radius: 10px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.15s;
+    min-height: 42px;
+}
+
+.mCardActionBtn:active {
+    transform: scale(0.98);
+}
+
+.mCardDeleteBtn {
+    background: #fef2f2;
+    color: #dc2626;
+    border-color: #fecaca;
+}
+
 /* Form Page Styles */
 .formPage {
     padding: 2rem;

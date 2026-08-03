@@ -40,10 +40,8 @@ const stats = [
 const getCategoryIcon = (iconName: string, color: string) => {
     const iconProps = { size: 32, color };
     switch (iconName) {
-        // eslint-disable-next-line @next/next/no-img-element
-        case 'leaf': return <img src="/icons/indoor.png" alt="Indoor" style={{ width: 32, height: 32 }} />;
-        // eslint-disable-next-line @next/next/no-img-element
-        case 'tree': return <img src="/icons/outdoor.png" alt="Outdoor" style={{ width: 32, height: 32 }} />;
+        case 'leaf': return <Image src="/icons/indoor.png" alt="Indoor" width={32} height={32} />;
+        case 'tree': return <Image src="/icons/outdoor.png" alt="Outdoor" width={32} height={32} />;
         case 'seed': return <PlantIcon {...iconProps} />;
         case 'pot': return <PotIcon {...iconProps} />;
         case 'gift': return <GiftIcon {...iconProps} />;

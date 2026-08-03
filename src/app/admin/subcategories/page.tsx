@@ -267,7 +267,7 @@ export default function AdminSubcategoriesPage() {
                 ) : (
                     filteredSubcategories.map((sub) => (
                         <div key={sub.id} className={`${styles.card} ${!sub.isActive ? styles.cardInactive : ''}`}>
-                            <div className={styles.cardImage}>
+                            <div className={`${styles.cardImage} ${sub.productType === 'PLANT' ? styles.imagePlant : styles.imagePot}`}>
                                 {sub.image ? (
                                     <img src={sub.image} alt={sub.name} />
                                 ) : (

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
@@ -87,7 +88,7 @@ export default function Navbar() {
 
                     {/* Logo (centered on mobile) */}
                     <Link href="/" className={styles.logo}>
-                        <img src="/logo.png?v=2" alt="Vanam Store" className={styles.logoImage} />
+                        <Image src="/logo.png?v=2" alt="Vanam Store" width={85} height={85} priority className={styles.logoImage} />
                         <span className={styles.tagline}>ROOTED IN NATURE</span>
                     </Link>
 

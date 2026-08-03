@@ -28,6 +28,9 @@ async function getDashboardStats(request: NextRequest, _user: JWTPayload) {
         // 30-day window (inclusive of today) for the sales chart
         const last30Start = new Date(startOfDay);
         last30Start.setDate(last30Start.getDate() - 29);
+        // 90-day window for best-seller aggregation (keeps the query bounded)
+        const bestSellerStart = new Date(startOfDay);
+        bestSellerStart.setDate(bestSellerStart.getDate() - 89);
 
         const [
             totalProducts,
@@ -80,9 +83,12 @@ async function getDashboardStats(request: NextRequest, _user: JWTPayload) {
                 where: { orderStatus: { in: PAID_STATUSES }, createdAt: { gte: last30Start } },
                 select: { createdAt: true, totalAmount: true },
             }),
-            // Best sellers: line items across paid orders (aggregated in JS)
+            // Best sellers: line items across paid orders in the last 90 days (aggregated in JS)
             prisma.orderItem.findMany({
-                where: { productId: { not: null }, order: { orderStatus: { in: PAID_STATUSES } } },
+                where: {
+                    productId: { not: null },
+                    order: { orderStatus: { in: PAID_STATUSES }, createdAt: { gte: bestSellerStart } },
+                },
                 select: { productId: true, name: true, price: true, quantity: true, image: true },
             }),
             prisma.paymentLog.count({ where: { status: 'FAILED', createdAt: { gte: startOfDay } } }),

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import styles from './SearchBar.module.css';
 
 interface SearchResult {
@@ -115,9 +116,11 @@ export default function SearchBar({ mobile = false }: { mobile?: boolean }) {
                                 >
                                     <div className={styles.resultImageWrap}>
                                         {item.image ? (
-                                            <img
+                                            <Image
                                                 src={item.image}
                                                 alt={item.name}
+                                                width={44}
+                                                height={44}
                                                 className={styles.resultImage}
                                             />
                                         ) : (

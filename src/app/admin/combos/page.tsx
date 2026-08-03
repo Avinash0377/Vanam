@@ -122,6 +122,64 @@ export default function AdminCombosPage() {
                         </Link>
                     </div>
                 ) : (
+                    <>
+                    {/* Mobile card view */}
+                    <div className={styles.mobileCards}>
+                        {combos.map((combo) => {
+                            const stockStatus = getStockStatus(combo.stock);
+                            return (
+                                <div key={combo.id} className={styles.mCard}>
+                                    <div className={styles.mCardTop}>
+                                        <div className={styles.mCardImage}>
+                                            {combo.images?.[0] ? (
+                                                <Image src={combo.images[0]} alt={combo.name} width={60} height={60} className={styles.mCardImg} />
+                                            ) : (
+                                                <PackageIcon size={24} color="#9ca3af" />
+                                            )}
+                                        </div>
+                                        <div className={styles.mCardInfo}>
+                                            <div className={styles.mCardNameRow}>
+                                                <h3 className={styles.mCardName}>{combo.name}</h3>
+                                                <div className={styles.mCardBadges}>
+                                                    {combo.featured && <StarIcon size={15} color="#f59e0b" />}
+                                                    {combo.showOnHome && <span title="Shown on Homepage">🏠</span>}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className={styles.mCardMeta}>
+                                        <div className={styles.mCardMetaItem}>
+                                            <span className={styles.mCardMetaLabel}>Price</span>
+                                            <span className={styles.mCardMetaValue}>
+                                                ₹{combo.price}
+                                                {combo.comparePrice && (
+                                                    <span className={styles.comparePrice}>₹{combo.comparePrice}</span>
+                                                )}
+                                            </span>
+                                        </div>
+                                        <div className={styles.mCardMetaItem}>
+                                            <span className={styles.mCardMetaLabel}>Stock</span>
+                                            <span className={styles.mCardMetaValue}>
+                                                <span className={`${styles.stockBadge} ${stockStatus.class}`}>{stockStatus.label}</span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className={styles.mCardActions}>
+                                        <Link href={`/admin/combos/${combo.id}`} className={styles.mCardActionBtn}>
+                                            <EditIcon size={16} /> Edit
+                                        </Link>
+                                        <button
+                                            className={`${styles.mCardActionBtn} ${styles.mCardDeleteBtn}`}
+                                            onClick={() => handleDelete(combo.id, combo.name)}
+                                        >
+                                            <TrashIcon size={16} /> Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+
                     <table className={styles.table}>
                         <thead>
                             <tr>
@@ -196,6 +254,7 @@ export default function AdminCombosPage() {
                             })}
                         </tbody>
                     </table>
+                    </>
                 )}
             </div>
         </div>

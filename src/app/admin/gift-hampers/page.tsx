@@ -125,6 +125,64 @@ export default function AdminGiftHampersPage() {
                         </Link>
                     </div>
                 ) : (
+                    <>
+                    {/* Mobile card view */}
+                    <div className={styles.mobileCards}>
+                        {hampers.map((hamper) => {
+                            const stockStatus = getStockStatus(hamper.stock);
+                            return (
+                                <div key={hamper.id} className={styles.mCard}>
+                                    <div className={styles.mCardTop}>
+                                        <div className={styles.mCardImage}>
+                                            {hamper.images?.[0] ? (
+                                                <Image src={hamper.images[0]} alt={hamper.name} width={60} height={60} className={styles.mCardImg} />
+                                            ) : (
+                                                <GiftPlantIcon size={24} color="#9ca3af" />
+                                            )}
+                                        </div>
+                                        <div className={styles.mCardInfo}>
+                                            <div className={styles.mCardNameRow}>
+                                                <h3 className={styles.mCardName}>{hamper.name}</h3>
+                                                <div className={styles.mCardBadges}>
+                                                    {hamper.featured && <StarIcon size={15} color="#f59e0b" />}
+                                                    {hamper.showOnHome && <span title="Shown on Homepage">🏠</span>}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className={styles.mCardMeta}>
+                                        <div className={styles.mCardMetaItem}>
+                                            <span className={styles.mCardMetaLabel}>Price</span>
+                                            <span className={styles.mCardMetaValue}>
+                                                ₹{hamper.price}
+                                                {hamper.comparePrice && (
+                                                    <span className={styles.comparePrice}>₹{hamper.comparePrice}</span>
+                                                )}
+                                            </span>
+                                        </div>
+                                        <div className={styles.mCardMetaItem}>
+                                            <span className={styles.mCardMetaLabel}>Stock</span>
+                                            <span className={styles.mCardMetaValue}>
+                                                <span className={`${styles.stockBadge} ${stockStatus.class}`}>{stockStatus.label}</span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className={styles.mCardActions}>
+                                        <Link href={`/admin/gift-hampers/${hamper.id}`} className={styles.mCardActionBtn}>
+                                            <EditIcon size={16} /> Edit
+                                        </Link>
+                                        <button
+                                            className={`${styles.mCardActionBtn} ${styles.mCardDeleteBtn}`}
+                                            onClick={() => handleDelete(hamper.id, hamper.name)}
+                                        >
+                                            <TrashIcon size={16} /> Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+
                     <table className={styles.table}>
                         <thead>
                             <tr>
@@ -199,6 +257,7 @@ export default function AdminGiftHampersPage() {
                             })}
                         </tbody>
                     </table>
+                    </>
                 )}
             </div>
         </div>

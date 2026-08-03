@@ -133,13 +133,27 @@ export function calculateOrderTotals(
 
 
 /**
- * Generate a unique order number using crypto-random bytes.
- * Format: VAN<timestamp><8 random hex chars>
- * Entropy: 2^32 per millisecond — astronomically collision-resistant.
+ * Generate a short, human-friendly order number.
+ * Format: VAN-YYMMDD-XXXXX  e.g. "VAN-260803-K7FQM"
+ * Uses a Crockford-style alphabet (no 0/O/1/I/L) to avoid misreads.
+ * Uniqueness is enforced by ensureUniqueOrderNumber(), which retries on collision.
  */
+const ORDER_CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+
 export function generateOrderNumber(): string {
-    const randomPart = crypto.randomBytes(4).toString('hex').toUpperCase();
-    return `VAN${Date.now()}${randomPart}`;
+    const now = new Date();
+    const datePart =
+        String(now.getFullYear()).slice(-2) +
+        String(now.getMonth() + 1).padStart(2, '0') +
+        String(now.getDate()).padStart(2, '0');
+
+    const bytes = crypto.randomBytes(5);
+    let randomPart = '';
+    for (let i = 0; i < 5; i++) {
+        randomPart += ORDER_CODE_ALPHABET[bytes[i] % ORDER_CODE_ALPHABET.length];
+    }
+
+    return `VAN-${datePart}-${randomPart}`;
 }
 
 /**

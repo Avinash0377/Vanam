@@ -5,6 +5,9 @@ import ProductClient, { ProductData } from './ProductClient';
 import RelatedProducts from '@/components/RelatedProducts';
 import styles from './page.module.css';
 
+// Cache each product page for 5 minutes, then refresh in the background (ISR).
+export const revalidate = 300;
+
 // ── Types ──────────────────────────────────────────────
 
 interface Props {
